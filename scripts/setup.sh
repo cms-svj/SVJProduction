@@ -39,16 +39,18 @@ if [ -n "$WHICH_CMSSW" ]; then
 	scramv1 project CMSSW $WHICH_CMSSW
 	cd $WHICH_CMSSW
 	CUR_DIR=`pwd`
-	scramv1 runtime -sh
+	eval `scramv1 runtime -sh`
+	$ECHO "setup $CMSSW_VERSION"
 fi
 
 # -------------------------------------------------------------------------------------
 # pythia installation
 # -------------------------------------------------------------------------------------
 
-if [ -n "$WHICH_CMSSW" ]; then
-	# create xml for tool
-	cat << 'EOF_TOOLFILE' > pythia8.xml
+if [ -n "$INSTALL_PYTHIA" ]; then
+	if [ -n "$WHICH_CMSSW" ]; then
+		# create xml for tool
+		cat << 'EOF_TOOLFILE' > pythia8.xml
 <tool name="pythia8" version="226">
   <lib name="pythia8"/>
   <client>
@@ -61,26 +63,27 @@ if [ -n "$WHICH_CMSSW" ]; then
   <use name="lhapdf"/>
 </tool>
 EOF_TOOLFILE
+	fi
+
+	# get pythia8 source and compile
+	wget -q http://home.thep.lu.se/~torbjorn/pythia8/pythia8226.tgz
+	tar -xzf pythia8226.tgz
+	export PYTHIA8DATA=$CUR_DIR/pythia8226/share/Pythia8/xmldoc
+	cd pythia8226/
+	gmake
+
+	if [ -n "$WHICH_CMSSW" ]; then
+		cd $CUR_DIR
+		# install tool in scram
+		cp ${CMSSW_BASE}/pythia8.xml ${CMSSW_BASE}/config/toolbox/${SCRAM_ARCH}/tools/selected
+		scram setup pythia8
+
+		$ECHO "you can now link to the pythia8 libraries through scram!"
+	fi
+
+	# cleanup
+	rm pythia8226.tgz
 fi
-
-# get pythia8 source and compile
-wget http://home.thep.lu.se/~torbjorn/pythia8/pythia8226.tgz
-tar -xzf pythia8226.tgz
-export PYTHIA8DATA=$CUR_DIR/pythia8226/share/Pythia8/xmldoc
-cd pythia8226/
-gmake
-
-if [ -n "$WHICH_CMSSW" ]; then
-	cd $CUR_DIR
-	# install tool in scram
-	cp ${CMSSW_BASE}/pythia8.xml ${CMSSW_BASE}/config/toolbox/${SCRAM_ARCH}/tools/selected
-	scram setup pythia8
-
-	$ECHO "you can now link to the pythia8 libraries through scram!"
-fi
-
-# cleanup
-rm pythia8226.tgz
 
 # -------------------------------------------------------------------------------------
 # CMSSW compilation
@@ -88,13 +91,14 @@ rm pythia8226.tgz
 
 if [ -n "$WHICH_CMSSW" ]; then
 	# reinitialize environment
-	scramv1 runtime -sh
+	eval `scramv1 runtime -sh`
 	cd src
 
 	# get packages
 	if [ -n "$INSTALL_PYTHIA" ]; then
 		git cms-addpkg GeneratorInterface/EvtGenInterface GeneratorInterface/PartonShowerVeto GeneratorInterface/Pythia8Interface
-		if [ "$WHICH_CMSSW" = "CMSSW_7_1_"* ]; then
+		if [[ "$WHICH_CMSSW" == "CMSSW_7_1_"* ]]; then
+			$ECHO "Merging FixPythia7126"
 			git cms-merge-topic kpedro88:FixPythia7126
 		fi
 	fi
