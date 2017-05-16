@@ -118,6 +118,12 @@ if hasattr(process,'generator'):
     process.generator.PythiaParameters.processParameters = cms.vstring(getPythiaSettings(options.mZprime,options.mDark,options.rinv,options.alpha))
     process.generator.maxEventsToPrint = cms.untracked.int32(1)
 
+# genjet/met settings - treat HV mesons as invisible
+_particles = ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandidatesForMET","genParticlesForMETAllVisible"]
+for _prod in _particles:
+    if hasattr(process,_prod):
+        getattr(process,_prod).ignoreParticleIDs.append(4900211)
+
 # miniAOD settings
 if hasattr(process,'prunedGenParticles'):
     # keep HV particles
