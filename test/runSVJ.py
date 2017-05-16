@@ -107,7 +107,10 @@ if len(_inname)>0: process.source.fileNames = cms.untracked.vstring(_inname)
 else: process.source.firstRun = cms.untracked.uint32(options.part)
 getattr(process,options.output).fileName = cms.untracked.string('file:'+_outname)
 
-process.RandomNumberGeneratorService.generator.initialSeed = cms.untracked.uint32(options.maxEvents+options.part)
+# reset all random numbers to ensure statistically distinct but reproducible jobs
+from IOMC.RandomEngine.RandomServiceHelper import RandomNumberServiceHelper
+randHelper = RandomNumberServiceHelper(process.RandomNumberGeneratorService)
+randHelper.resetSeeds(options.maxEvents+options.part)
 
 # generator settings
 if hasattr(process,'generator'):
