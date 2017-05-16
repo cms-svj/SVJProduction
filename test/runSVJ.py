@@ -123,6 +123,10 @@ _particles = ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandid
 for _prod in _particles:
     if hasattr(process,_prod):
         getattr(process,_prod).ignoreParticleIDs.append(4900211)
+if hasattr(process,'recoGenJets') and hasattr(process,'recoAllGenJetsNoNu'):
+    process.recoGenJets += process.recoAllGenJetsNoNu
+if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNoNu'):
+    process.genJetParticles += process.genParticlesForJetsNoNu
 
 # miniAOD settings
 if hasattr(process,'prunedGenParticles'):
