@@ -116,6 +116,7 @@ randHelper.resetSeeds(options.maxEvents+options.part)
 if hasattr(process,'generator'):
     process.generator.crossSection = cms.untracked.double(getPythiaXsec(options.mZprime))
     process.generator.PythiaParameters.processParameters = cms.vstring(getPythiaSettings(options.mZprime,options.mDark,options.rinv,options.alpha))
+    process.generator.maxEventsToPrint = cms.untracked.int32(1)
 
 # miniAOD settings
 if hasattr(process,'prunedGenParticles'):
