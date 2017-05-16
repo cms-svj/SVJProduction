@@ -530,15 +530,10 @@ class asymm_mt2_lester_bisect {
 
     return Lester::EllipseParams(c_xx, c_yy, c_xy, c_x, c_y, c);
   }
-};
 
-void myversion(){
+public:
 
-  std::cout << "Version is : 2014_11_13" << std::endl;
-
-}
-
-double MT(double px1, double px2, double py1, double py2, double m1 , double m2){
+static double MT(double px1, double px2, double py1, double py2, double m1 , double m2){
   double E1 = sqrt(px1*px1+py1*py1+m1*m1);
   double E2 = sqrt(px2*px2+py2*py2+m2*m2);
   double Msq = (E1+E2)*(E1+E2)-(px1+px2)*(px1+px2)-(py1+py2)*(py1+py2);
@@ -546,7 +541,7 @@ double MT(double px1, double px2, double py1, double py2, double m1 , double m2)
   return sqrt(Msq);
 }
 
-std::pair <double,double>  ben_findsols(double MT2, double px, double py, double visM, double Ma, double pxb, double pyb, double metx, double mety, double visMb, double Mb){
+static std::pair <double,double>  ben_findsols(double MT2, double px, double py, double visM, double Ma, double pxb, double pyb, double metx, double mety, double visMb, double Mb){
 
   //Visible particle (px,py,visM)                                                                                                                  
   std::pair <double,double> sols;
@@ -621,32 +616,12 @@ std::pair <double,double>  ben_findsols(double MT2, double px, double py, double
 
 }
 
+};
+
+void myversion(){
+
+  std::cout << "Version is : 2014_11_13" << std::endl;
+
+}
+
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
