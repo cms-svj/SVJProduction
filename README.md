@@ -19,6 +19,11 @@ cd SVJ/Production/test
 cmsRun runSVJ.py config=SVJ.Production.step1_GEN output=RAWSIMoutput outpre=step1 mZprime=2000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
 ```
 
+To run the GEN-level analysis:
+```
+cmsRun runSVJ.py config=SVJ.Production.genmassanalyzer_cfg output=TFileService outpre=genmassanalysis inpre=step1 mZprime=2000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
+```
+
 ## cmsDriver commands
 
 GEN only:
