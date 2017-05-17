@@ -79,9 +79,6 @@ options.register("config", "SVJ.Production.step1_GEN", VarParsing.multiplicity.s
 options.register("dump", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.parseArguments()
 
-if len(options.inputFiles)==0:
-    options.inputFiles = "file:step1.root"
-
 # output name definition
 _outname = options.outpre
 _outname += "_mZprime-{:g}".format(options.mZprime)
@@ -105,7 +102,7 @@ process = getattr(__import__(options.config,fromlist=["process"]),"process")
 process.maxEvents.input = cms.untracked.int32(options.maxEvents)
 if len(_inname)>0: process.source.fileNames = cms.untracked.vstring(_inname)
 else: process.source.firstRun = cms.untracked.uint32(options.part)
-getattr(process,options.output).fileName = cms.untracked.string('file:'+_outname)
+getattr(process,options.output).fileName = 'file:'+_outname
 
 # reset all random numbers to ensure statistically distinct but reproducible jobs
 from IOMC.RandomEngine.RandomServiceHelper import RandomNumberServiceHelper
