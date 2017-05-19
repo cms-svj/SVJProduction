@@ -44,6 +44,7 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 		struct GenNtuple {
 			vector<TLorentzVector> GenJetsAK8;
 			vector<TLorentzVector> HVMesons;
+			vector<TLorentzVector> METSystems;
 			double MET = 0.;
 			double METPhi = 0.;
 			double DeltaPhi1 = 0.;
@@ -53,6 +54,7 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 			double MT = 0.;
 			double Mmc = 0.;
 			double MT2 = 0.;
+			double MAOS = 0.;
 		};
 	
 	private:
@@ -97,6 +99,7 @@ void GenMassAnalyzer::beginJob()
 	
 	tree->Branch("GenJetsAK8" , "vector<TLorentzVector>", &entry.GenJetsAK8, 32000, 0);
 	tree->Branch("HVMesons"   , "vector<TLorentzVector>", &entry.HVMesons, 32000, 0);
+	tree->Branch("METSystems" , "vector<TLorentzVector>", &entry.METSystems, 32000, 0);
 	tree->Branch("MET"        , &entry.MET              , "MET/D");
 	tree->Branch("METPhi"     , &entry.METPhi           , "METPhi/D");
 	tree->Branch("DeltaPhi1"  , &entry.DeltaPhi1        , "DeltaPhi1/D");
@@ -106,6 +109,7 @@ void GenMassAnalyzer::beginJob()
 	tree->Branch("MT"         , &entry.MT               , "MT/D");
 	tree->Branch("Mmc"        , &entry.Mmc              , "Mmc/D");
 	tree->Branch("MT2"        , &entry.MT2              , "MT2/D");
+	tree->Branch("MAOS"       , &entry.MAOS             , "MT2/D");
 }
 
 // ------------ method called on each new Event  ------------
@@ -124,8 +128,10 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 	
 	vector<TLorentzVector> jets;
 	jets.reserve(h_jet->size());
+	TLorentzVector vjetsSum;
 	for(const auto& i_jet : *(h_jet.product())){
 		jets.emplace_back(i_jet.px(),i_jet.py(),i_jet.pz(),i_jet.energy());
+		vjetsSum += jets.back();
 	}
 	entry.GenJetsAK8 = jets;
 	
@@ -153,11 +159,11 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 		entry.DeltaPhiMin = std::min(entry.DeltaPhi1,entry.DeltaPhi2);
 		
 		//masses
-		TLorentzVector vjj;
-		vjj = entry.GenJetsAK8[0] + entry.GenJetsAK8[1];
+		TLorentzVector vjj = entry.GenJetsAK8[0] + entry.GenJetsAK8[1];
 		entry.MJJ = vjj.M();
 		
-		TLorentzVector vmc = vjj + vpartsSum;
+		//include all jets in MC mass
+		TLorentzVector vmc = vjetsSum + vpartsSum;
 		entry.Mmc = vmc.M();
 		
 		//assume MET is massless
@@ -168,6 +174,32 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 			entry.GenJetsAK8[1].M(), entry.GenJetsAK8[1].Px(), entry.GenJetsAK8[1].Py(),
 			METx, METy, 0.0, 0.0, 0
 		);
+		
+		//get invisible systems from MT2
+		auto MET0 = asymm_mt2_lester_bisect::ben_findsols(entry.MT2, 
+			entry.GenJetsAK8[0].Px(), entry.GenJetsAK8[0].Py(), entry.GenJetsAK8[0].M(), 0.0,
+			entry.GenJetsAK8[1].Px(), entry.GenJetsAK8[1].Py(),
+			METx, METy, entry.GenJetsAK8[1].M(), 0.0
+		);
+		double MET0x = MET0.first;
+		double MET0y = MET0.second;
+		double MET0t = std::sqrt(std::pow(MET0x,2)+std::pow(MET0y,2));
+		double MET1x = METx - MET0x;
+		double MET1y = METy - MET0y;
+		double MET1t = std::sqrt(std::pow(MET1x,2)+std::pow(MET1y,2));
+		
+		//use MAOS scheme 2 ("modified") to estimate longitudinal momenta of invisible systems
+		double MET0z = MET0t*entry.GenJetsAK8[0].Pz()/entry.GenJetsAK8[0].Pt();
+		double MET1z = MET1t*entry.GenJetsAK8[1].Pz()/entry.GenJetsAK8[1].Pt();
+		
+		vector<TLorentzVector> mets;
+		mets.emplace_back(MET0x,MET0y,MET0z,0.0);
+		mets.emplace_back(MET1x,MET1y,MET1z,0.0);
+		entry.METSystems = mets;
+		
+		//construct invariant mass of parent
+		TLorentzVector vparent = vjj + mets[0] + mets[1];
+		entry.MAOS = vparent.M();
 	}
 	
 	//fill tree
