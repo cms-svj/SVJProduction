@@ -573,7 +573,7 @@ static std::pair <double,double>  ben_findsols(double MT2, double px, double py,
   //First, determine the range.                                                                                                                   
   double myx = 0.;
   double myy = 0.;
-  if (TermSqy1*TermSqy1-4.*TermSqy0*TermSqy2 < 0){
+  if (TermSqy1*TermSqy1-4.*TermSqy0*TermSqy2 <= 0){
     //unbalanced                                                                                                                                 
   }
   else{
