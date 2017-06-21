@@ -93,11 +93,14 @@ if [ -n "$WHICH_CMSSW" ]; then
 	# reinitialize environment
 	eval `scramv1 runtime -sh`
 	cd src
+	git cms-init
 
 	# get packages
 	if [ -n "$INSTALL_PYTHIA" ]; then
+		# need to recompile packages that depend on pythia8
 		git cms-addpkg GeneratorInterface/EvtGenInterface GeneratorInterface/PartonShowerVeto GeneratorInterface/Pythia8Interface
-		if [[ "$WHICH_CMSSW" == "CMSSW_7_1_"* ]]; then
+		IFS='_' read -r -a ARRAY_CMSSW <<< "$WHICH_CMSSW"
+		if [ "${ARRAY_CMSSW[1]}" -eq "7" ] && [ "${ARRAY_CMSSW[2]}" -eq "1" ] && [ "${ARRAY_CMSSW[3]}" -lt "28" ]; then
 			$ECHO "Merging FixPythia7126"
 			git cms-merge-topic kpedro88:FixPythia7126
 		fi
