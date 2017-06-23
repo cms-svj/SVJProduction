@@ -1,0 +1,3 @@
+MJJ	s:legname[M_{jj}]	c:color[kRed]	c:fillcolor[kWhite]	i:linestyle[7]	s:drawopt[hist]	s:legopt[l]
+MT	s:legname[M_{T}]	c:color[kBlue]	c:fillcolor[kWhite]	i:linestyle[1]	s:drawopt[hist]	s:legopt[l]
+Mmc	s:legname[M_{mc}]	c:color[kGray + 1]	c:fillcolor[kWhite]	i:linestyle[2]	s:drawopt[hist]	s:legopt[l]
