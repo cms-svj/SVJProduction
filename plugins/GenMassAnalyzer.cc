@@ -138,7 +138,7 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 	vector<TLorentzVector> parts;
 	TLorentzVector vpartsSum;
 	for(const auto& i_part : *(h_part.product())){
-		if(i_part.pdgId()==4900211){
+		if(std::abs(i_part.pdgId())==4900211){
 			parts.emplace_back(i_part.px(),i_part.py(),i_part.pz(),i_part.energy());
 			vpartsSum += parts.back();
 		}
