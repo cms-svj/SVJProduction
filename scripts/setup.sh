@@ -11,24 +11,31 @@ usage() {
 	$ECHO "Options:"
 	$ECHO "-c <RELEASE>  \tCMSSW release to install (e.g. CMSSW_7_1_26)"
 	$ECHO "-p            \tinstall Pythia 8.226"
-	exit 1
+	$ECHO "-a            \tinstall analysis code"
+	$ECHO "-h            \tprint this message and exit"
+	exit $1
 }
 
 CUR_DIR=`pwd`
 WHICH_CMSSW=""
 INSTALL_PYTHIA=""
+INSTALL_ANALYSIS=""
 #check arguments
-while getopts "c:p" opt; do
+while getopts "c:pah" opt; do
 	case "$opt" in
 	c) WHICH_CMSSW=$OPTARG
 	;;
 	p) INSTALL_PYTHIA=yes
 	;;
+	a) INSTALL_ANALYSIS=yes
+	;;
+	h) usage 0
+	;;
 	esac
 done
 
 if [ -z "$WHICH_CMSSW" ] && [ -z "$INSTALL_PYTHIA" ]; then
-	usage
+	usage 1
 fi
 
 # -------------------------------------------------------------------------------------
@@ -94,6 +101,10 @@ if [ -n "$WHICH_CMSSW" ]; then
 	eval `scramv1 runtime -sh`
 	cd src
 	git cms-init
+
+	if [ -n "$INSTALL_ANALYSIS" ]; then
+		git clone git@github.com:kpedro88/Analysis
+	fi
 
 	# get packages
 	if [ -n "$INSTALL_PYTHIA" ]; then

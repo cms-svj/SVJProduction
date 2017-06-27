@@ -16,12 +16,26 @@ cmsenv
 To run the sample production interactively with example parameters:
 ```
 cd SVJ/Production/test
-cmsRun runSVJ.py config=SVJ.Production.step1_GEN output=RAWSIMoutput outpre=step1 mZprime=2000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
+cmsRun runSVJ.py config=SVJ.Production.step1_GEN output=RAWSIMoutput outpre=step1 mZprime=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
 ```
 
-To run the GEN-level analysis:
+## GEN-level analysis
+
+To run the GEN-level analyzer:
 ```
-cmsRun runSVJ.py config=SVJ.Production.genmassanalyzer_cfg output=TFileService outpre=genmassanalysis inpre=step1 mZprime=2000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
+cmsRun runSVJ.py config=SVJ.Production.genmassanalyzer_cfg output=TFileService outpre=genmassanalysis inpre=step1 mZprime=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
+```
+
+The macro to make mass comparison plots uses my [Analysis](https://github.com/kpedro88/Analysis) repo.
+That repo needs ROOT6 to run, therefore a newer version of CMSSW must be used.
+Rerun the setup script as follows (the `-a` flag installs the analysis code):
+```
+./setup.sh -c CMSSW_8_0_28 -a
+```
+
+Then run the macro:
+```
+root -l 'plotMasses.C+("genmassanalysis_mZprime-3000_mDark-20_rinv-0.3_alpha-0.1_n-10_part-1.root","input_masses.txt")'
 ```
 
 ## cmsDriver commands
