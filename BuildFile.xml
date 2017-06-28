@@ -1,4 +1,6 @@
 <use name="root"/>
+<use name="fastjet"/>
+<use name="fastjet-contrib"/>
 <use name="FWCore/Framework"/>
 <use name="DataFormats/Common"/>
 

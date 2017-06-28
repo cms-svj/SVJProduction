@@ -10,5 +10,7 @@
 <use name="DataFormats/HepMCCandidate"/>
 <use name="DataFormats/Math"/>
 <use name="root"/>
+<use name="fastjet"/>
+<use name="fastjet-contrib"/>
 
 <flags   EDM_PLUGIN="1"/>

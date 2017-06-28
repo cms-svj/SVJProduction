@@ -124,6 +124,10 @@ if hasattr(process,'recoGenJets') and hasattr(process,'recoAllGenJetsNoNu'):
     process.recoGenJets += process.recoAllGenJetsNoNu
 if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNoNu'):
     process.genJetParticles += process.genParticlesForJetsNoNu
+    getattr(process,options.output).outputCommands.extend([
+        'keep *_genParticlesForJets_*_*',
+        'keep *_genParticlesForJetsNoNu_*_*',
+    ])
 
 # miniAOD settings
 if hasattr(process,'prunedGenParticles'):
