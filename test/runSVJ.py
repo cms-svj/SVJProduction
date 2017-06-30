@@ -66,6 +66,7 @@ def getPythiaSettings(mZprime,mDark,rinv,alpha):
     ]
 
 options = VarParsing("analysis")
+options.register("signal", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("mZprime", 2000.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("mDark", 20.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("rinv", 0.3, VarParsing.multiplicity.singleton, VarParsing.varType.float)
@@ -81,10 +82,11 @@ options.parseArguments()
 
 # output name definition
 _outname = options.outpre
-_outname += "_mZprime-{:g}".format(options.mZprime)
-_outname += "_mDark-{:g}".format(options.mDark)
-_outname += "_rinv-{:g}".format(options.rinv)
-_outname += "_alpha-{:g}".format(options.alpha)
+if options.signal:
+    _outname += "_mZprime-{:g}".format(options.mZprime)
+    _outname += "_mDark-{:g}".format(options.mDark)
+    _outname += "_rinv-{:g}".format(options.rinv)
+    _outname += "_alpha-{:g}".format(options.alpha)
 _outname += "_n-{:g}".format(options.maxEvents)
 _outname += "_part-{:g}".format(options.part)
 _outname += ".root"
@@ -110,7 +112,7 @@ randHelper = RandomNumberServiceHelper(process.RandomNumberGeneratorService)
 randHelper.resetSeeds(options.maxEvents+options.part)
 
 # generator settings
-if hasattr(process,'generator'):
+if options.signal and hasattr(process,'generator'):
     process.generator.crossSection = cms.untracked.double(getPythiaXsec(options.mZprime))
     process.generator.PythiaParameters.processParameters = cms.vstring(getPythiaSettings(options.mZprime,options.mDark,options.rinv,options.alpha))
     process.generator.maxEventsToPrint = cms.untracked.int32(1)

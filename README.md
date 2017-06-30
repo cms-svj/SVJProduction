@@ -19,6 +19,11 @@ cd SVJ/Production/test
 cmsRun runSVJ.py config=SVJ.Production.step1_GEN output=RAWSIMoutput outpre=step1 mZprime=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
 ```
 
+To generate background samples for GEN-level analysis:
+```
+cmsRun runSVJ.py config=SVJ.Production.step1_GEN_QCDForPF_13TeV output=RAWSIMoutput outpre=step1_QCD signal=0 part=1 maxEvents=10
+```
+
 ## GEN-level analysis
 
 The analysis code needs a newer version of CMSSW (to access newer versions of ROOT and fastjet).
@@ -30,9 +35,10 @@ Rerun the setup script as follows (the `-a` flag installs the analysis code depe
 To run the GEN-level analyzer:
 ```
 cmsRun runSVJ.py config=SVJ.Production.genmassanalyzer_cfg output=TFileService outpre=genmassanalysis inpre=step1 mZprime=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
+cmsRun runSVJ.py config=SVJ.Production.genmassanalyzer_cfg output=TFileService outpre=genmassanalysis_QCD inpre=step1_QCD signal=0 part=1 maxEvents=10
 ```
 
-To run the macro:
+To run the mass comparison macro:
 ```
 root -l 'plotMasses.C+("genmassanalysis_mZprime-3000_mDark-20_rinv-0.3_alpha-0.1_n-10_part-1.root","input_masses.txt")'
 ```
@@ -42,4 +48,5 @@ root -l 'plotMasses.C+("genmassanalysis_mZprime-3000_mDark-20_rinv-0.3_alpha-0.1
 GEN only:
 ```
 cmsDriver.py SVJ.Production.EmptyFragment_cff --python_filename step1_GEN.py --mc --eventcontent RAWSIM --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1 --datatier GEN-SIM --conditions MCRUN2_71_V3::All --beamspot Realistic50ns13TeVCollision --step GEN --magField 38T_PostLS1 --fileout file:step1.root --no_exec
+cmsDriver.py QCDForPF_13TeV_TuneCUETP8M1_cfi --python_filename step1_GEN_QCDForPF_13TeV.py --mc --eventcontent RAWSIM --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1 --datatier GEN-SIM --conditions MCRUN2_71_V3::All --beamspot Realistic50ns13TeVCollision --step GEN --magField 38T_PostLS1 --fileout file:step1.root --no_exec
 ```
