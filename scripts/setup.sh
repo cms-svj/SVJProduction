@@ -103,7 +103,7 @@ if [ -n "$WHICH_CMSSW" ]; then
 	git cms-init
 
 	if [ -n "$INSTALL_ANALYSIS" ]; then
-		git clone git@github.com:kpedro88/Analysis
+		git clone git@github.com:kpedro88/Analysis -b SVJ2017-gen
 	fi
 
 	# get packages

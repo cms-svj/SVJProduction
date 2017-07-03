@@ -27,7 +27,7 @@ cmsRun runSVJ.py config=SVJ.Production.step1_GEN_QCDForPF_13TeV output=RAWSIMout
 ## GEN-level analysis
 
 The analysis code needs a newer version of CMSSW (to access newer versions of ROOT and fastjet).
-Rerun the setup script as follows (the `-a` flag installs the analysis code dependency, my [Analysis](https://github.com/kpedro88/Analysis) repo):
+Rerun the setup script as follows (the `-a` flag installs the analysis code dependency, my [Analysis](https://github.com/kpedro88/Analysis/tree/SVJ2017-gen) repo):
 ```
 ./setup.sh -c CMSSW_8_0_28 -a
 ```
@@ -38,7 +38,9 @@ cmsRun runSVJ.py config=SVJ.Production.genmassanalyzer_cfg output=TFileService o
 cmsRun runSVJ.py config=SVJ.Production.genmassanalyzer_cfg output=TFileService outpre=genmassanalysis_QCD inpre=step1_QCD signal=0 part=1 maxEvents=10
 ```
 
-To run the mass comparison macro:
+For more ways to analyzer the output of the GEN-level analyzer, see the [Analysis](https://github.com/kpedro88/Analysis/tree/SVJ2017-gen) repo.
+
+An alternative example of a semi-standalone macro is available in this repo:
 ```
 root -l 'plotMasses.C+("genmassanalysis_mZprime-3000_mDark-20_rinv-0.3_alpha-0.1_n-10_part-1.root","input_masses.txt")'
 ```
