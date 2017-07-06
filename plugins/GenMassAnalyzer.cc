@@ -35,6 +35,7 @@ using std::vector;
 //user headers
 #include "SVJ/Production/interface/lester_mt2_bisect.h"
 #include "SVJ/Production/interface/NjettinessHelper.h"
+#include "SVJ/Production/interface/ECFHelper.h"
 
 //
 // class declaration
@@ -55,6 +56,9 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 			vector<double> GenJetsAK8_AxisAverage;
 			vector<double> GenJetsAK8_AxisMajor;
 			vector<double> GenJetsAK8_AxisMinor;
+			vector<double> GenJetsAK8_ECF1;
+			vector<double> GenJetsAK8_ECF2;
+			vector<double> GenJetsAK8_ECF3;
 			vector<double> GenJetsAK8_MomentGirth;
 			vector<double> GenJetsAK8_MomentHalf;
 			vector<int> GenJetsAK8_Multiplicity;
@@ -88,6 +92,7 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 		GenNtuple entry;
 #ifdef FASTJET_VERSION_NUMBER
 		NjettinessHelper njhelper;
+		ECFHelper echelper;
 #endif
 		//tokens
 		edm::EDGetTokenT<vector<reco::GenMET>> tok_met;
@@ -103,6 +108,7 @@ GenMassAnalyzer::GenMassAnalyzer(const edm::ParameterSet& iConfig) :
 	tree(NULL),
 #ifdef FASTJET_VERSION_NUMBER
 	njhelper(iConfig.getParameter<edm::ParameterSet>("Nsubjettiness")),
+	echelper(iConfig.getParameter<edm::ParameterSet>("ECF")),
 #endif
 	tok_met(consumes<vector<reco::GenMET>>(iConfig.getParameter<edm::InputTag>("METTag"))),
 	tok_jet(consumes<vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("JetTag"))),
@@ -111,7 +117,7 @@ GenMassAnalyzer::GenMassAnalyzer(const edm::ParameterSet& iConfig) :
 {
 	usesResource("TFileService");
 #ifndef FASTJET_VERSION_NUMBER
-	std::cout << "GenMassAnalyzer: Warning - Nsubjettiness variables not available!" << std::endl;
+	std::cout << "GenMassAnalyzer: Warning - Nsubjettiness and ECF variables not available!" << std::endl;
 #endif
 }
 
@@ -132,14 +138,17 @@ void GenMassAnalyzer::beginJob()
 	tree->Branch("GenJetsAK8_AxisAverage" , "vector<double>", &entry.GenJetsAK8_AxisAverage, 32000, 0);
 	tree->Branch("GenJetsAK8_AxisMajor" , "vector<double>", &entry.GenJetsAK8_AxisMajor, 32000, 0);
 	tree->Branch("GenJetsAK8_AxisMinor" , "vector<double>", &entry.GenJetsAK8_AxisMinor, 32000, 0);
+	tree->Branch("GenJetsAK8_ECF1" , "vector<double>", &entry.GenJetsAK8_ECF1, 32000, 0);
+	tree->Branch("GenJetsAK8_ECF2" , "vector<double>", &entry.GenJetsAK8_ECF2, 32000, 0);
+	tree->Branch("GenJetsAK8_ECF3" , "vector<double>", &entry.GenJetsAK8_ECF3, 32000, 0);
 	tree->Branch("GenJetsAK8_MomentGirth" , "vector<double>", &entry.GenJetsAK8_MomentGirth, 32000, 0);
 	tree->Branch("GenJetsAK8_MomentHalf" , "vector<double>", &entry.GenJetsAK8_MomentHalf, 32000, 0);
 	tree->Branch("GenJetsAK8_Multiplicity" , "vector<int>", &entry.GenJetsAK8_Multiplicity, 32000, 0);
 	tree->Branch("GenJetsAK8_Overflow" , "vector<double>", &entry.GenJetsAK8_Overflow, 32000, 0);
-	tree->Branch("GenJetsAK8_PtD" , "vector<double>", &entry.GenJetsAK8_PtD, 32000, 0);	
-	tree->Branch("GenJetsAK8_Tau1" , "vector<double>", &entry.GenJetsAK8_Tau1, 32000, 0);	
-	tree->Branch("GenJetsAK8_Tau2" , "vector<double>", &entry.GenJetsAK8_Tau2, 32000, 0);	
-	tree->Branch("GenJetsAK8_Tau3" , "vector<double>", &entry.GenJetsAK8_Tau3, 32000, 0);	
+	tree->Branch("GenJetsAK8_PtD" , "vector<double>", &entry.GenJetsAK8_PtD, 32000, 0);
+	tree->Branch("GenJetsAK8_Tau1" , "vector<double>", &entry.GenJetsAK8_Tau1, 32000, 0);
+	tree->Branch("GenJetsAK8_Tau2" , "vector<double>", &entry.GenJetsAK8_Tau2, 32000, 0);
+	tree->Branch("GenJetsAK8_Tau3" , "vector<double>", &entry.GenJetsAK8_Tau3, 32000, 0);
 	tree->Branch("HVMesons"   , "vector<TLorentzVector>", &entry.HVMesons, 32000, 0);
 	tree->Branch("MAOS"       , &entry.MAOS             , "MAOS/D");
 	tree->Branch("METSystems" , "vector<TLorentzVector>", &entry.METSystems, 32000, 0);
@@ -180,6 +189,9 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 	entry.GenJetsAK8_Tau1.reserve(h_jet->size());
 	entry.GenJetsAK8_Tau2.reserve(h_jet->size());
 	entry.GenJetsAK8_Tau3.reserve(h_jet->size());
+	entry.GenJetsAK8_ECF1.reserve(h_jet->size());
+	entry.GenJetsAK8_ECF2.reserve(h_jet->size());
+	entry.GenJetsAK8_ECF3.reserve(h_jet->size());
 	TLorentzVector vjets8Sum;
 	for(const auto& i_jet : *(h_jet.product())){
 		entry.GenJetsAK8.emplace_back(i_jet.px(),i_jet.py(),i_jet.pz(),i_jet.energy());
@@ -246,11 +258,16 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 		entry.GenJetsAK8_AxisMinor.push_back(axis2);
 		entry.GenJetsAK8_AxisAverage.push_back(axisA);
 		
-		//calculate nsubjettiness
+		//calculate nsubjettiness & ECFs
 #ifdef FASTJET_VERSION_NUMBER
 		entry.GenJetsAK8_Tau1.push_back(njhelper.getTau(1,i_jet));
 		entry.GenJetsAK8_Tau2.push_back(njhelper.getTau(2,i_jet));
 		entry.GenJetsAK8_Tau3.push_back(njhelper.getTau(3,i_jet));
+		
+		auto ECFresult = echelper.getECFs(i_jet);
+		entry.GenJetsAK8_ECF1.push_back(ECFresult[0]);
+		entry.GenJetsAK8_ECF2.push_back(ECFresult[1]);
+		entry.GenJetsAK8_ECF3.push_back(ECFresult[2]);
 #endif
 	}
 	
@@ -340,6 +357,11 @@ void GenMassAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descripti
 	desc_nj.add<int>("nPass",999);
 	desc_nj.add<double>("akAxesR0",999.0);
 	desc.add<edm::ParameterSetDescription>("Nsubjettiness", desc_nj);
+
+	edm::ParameterSetDescription desc_ec;
+	desc_ec.add<vector<unsigned>>("Njets",{1,2,3});
+	desc_ec.add<double>("beta",1.0);
+	desc.add<edm::ParameterSetDescription>("ECF", desc_ec);
 	
 	descriptions.add("GenMassAnalyzer",desc);
 }
