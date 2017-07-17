@@ -192,10 +192,8 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 	entry.GenJetsAK8_ECF1.reserve(h_jet->size());
 	entry.GenJetsAK8_ECF2.reserve(h_jet->size());
 	entry.GenJetsAK8_ECF3.reserve(h_jet->size());
-	TLorentzVector vjets8Sum;
 	for(const auto& i_jet : *(h_jet.product())){
 		entry.GenJetsAK8.emplace_back(i_jet.px(),i_jet.py(),i_jet.pz(),i_jet.energy());
-		vjets8Sum += entry.GenJetsAK8.back();
 
 		//calculate jet "overflow": scalar sum of pT w/ dR<0.4 over scalar sum of pT w/ dR<0.8
 		double denom = 0.0;
@@ -297,7 +295,7 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 		entry.MJJ = vjj.M();
 		
 		//include all jets in MC mass
-		TLorentzVector vmc = vjets8Sum + vpartsSum;
+		TLorentzVector vmc = vjj + vpartsSum;
 		entry.Mmc = vmc.M();
 		
 		//assume MET is massless
