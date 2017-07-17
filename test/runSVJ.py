@@ -61,8 +61,6 @@ def getPythiaSettings(mZprime,mDark,rinv,alpha):
         '4900016:m0 = 5000',
         '4900113:m0 = 5000',
         '4900213:m0 = 5000',
-        # switch off unneeded
-        'PartonLevel:MPI = off',
     ]
 
 options = VarParsing("analysis")
