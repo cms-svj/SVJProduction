@@ -195,7 +195,7 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 	for(const auto& i_jet : *(h_jet.product())){
 		entry.GenJetsAK8.emplace_back(i_jet.px(),i_jet.py(),i_jet.pz(),i_jet.energy());
 
-		//calculate jet "overflow": scalar sum of pT w/ dR<0.4 over scalar sum of pT w/ dR<0.8
+		//calculate jet "overflow": 1 - (scalar sum of pT w/ dR<0.4 over scalar sum of pT w/ dR<0.8)
 		double denom = 0.0;
 		double numer = 0.0;
 		for(const auto& i_part : *(h_partnonu.product())){
@@ -203,8 +203,8 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 			if(dR < 0.8) denom += i_part->pt();
 			if(dR < 0.4) numer += i_part->pt();
 		}
-		double overflow = denom > 0.0 ? numer/denom : 0.0;
-		entry.GenJetsAK8_Overflow.push_back(overflow);
+		double underflow = denom > 0.0 ? numer/denom : 0.0;
+		entry.GenJetsAK8_Overflow.push_back(1.0-underflow);
 
 		//calculate jet moments & other vars
 		//some borrowed from RecoJets/JetProducers/plugins/QGTagger.cc
