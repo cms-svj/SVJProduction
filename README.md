@@ -2,7 +2,7 @@
 
 ## GEN-SIM production
 
-To make GEN-SIM samples, `CMSSW_7_1_28` is used (which includes the latest version of Pythia8, 8.226).
+To make GEN or GEN-SIM samples, `CMSSW_7_1_28` is used (which includes the latest version of Pythia8, 8.226).
 All of the necessary setup (including CMSSW compilation, and checkout of this repo)
 is performed by [setup.sh](./scripts/setup.sh):
 ```
@@ -12,6 +12,8 @@ chmod +x setup.sh
 cd CMSSW_7_1_28/src
 cmsenv
 ```
+
+## GEN-level analysis
 
 To run the sample production interactively with example parameters:
 ```
@@ -23,8 +25,6 @@ To generate background samples for GEN-level analysis:
 ```
 cmsRun runSVJ.py config=SVJ.Production.step1_GEN_QCDForPF_13TeV output=RAWSIMoutput outpre=step1_QCD signal=0 part=1 maxEvents=10
 ```
-
-## GEN-level analysis
 
 The analysis code needs a newer version of CMSSW (to access newer versions of ROOT and fastjet).
 Rerun the setup script as follows (the `-a` flag installs the analysis code dependency, my [Analysis](https://github.com/kpedro88/Analysis/tree/SVJ2017-gen) repo):
@@ -51,4 +51,9 @@ GEN only:
 ```
 cmsDriver.py SVJ/Production/EmptyFragment_cff --python_filename step1_GEN.py --mc --eventcontent RAWSIM --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1 --datatier GEN-SIM --conditions MCRUN2_71_V3::All --beamspot Realistic50ns13TeVCollision --step GEN --magField 38T_PostLS1 --fileout file:step1.root --no_exec
 cmsDriver.py QCDForPF_13TeV_TuneCUETP8M1_cfi --python_filename step1_GEN_QCDForPF_13TeV.py --mc --eventcontent RAWSIM --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1 --datatier GEN-SIM --conditions MCRUN2_71_V3::All --beamspot Realistic50ns13TeVCollision --step GEN --magField 38T_PostLS1 --fileout file:step1.root --no_exec
+```
+
+GEN-SIM:
+```
+cmsDriver.py SVJ/Production/EmptyFragment_cff --python_filename step1_GEN-SIM.py --mc --eventcontent RAWSIM --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1 --datatier GEN-SIM --conditions MCRUN2_71_V3::All --beamspot Realistic50ns13TeVCollision --step GEN,SIM --magField 38T_PostLS1 --fileout file:step1.root --no_exec
 ```
