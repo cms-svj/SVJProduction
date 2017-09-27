@@ -13,6 +13,17 @@ cd CMSSW_7_1_28/src
 cmsenv
 ```
 
+## MINIAOD production
+
+To make MINIAOD samples, `CMSSW_8_0_28` is used:
+```
+wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/scripts/setup.sh
+chmod +x setup.sh
+./setup.sh -c CMSSW_8_0_28
+cd CMSSW_8_0_28/src
+cmsenv
+```
+
 ## GEN-level analysis
 
 To run the sample production interactively with example parameters:
@@ -57,3 +68,25 @@ GEN-SIM:
 ```
 cmsDriver.py SVJ/Production/EmptyFragment_cff --python_filename step1_GEN-SIM.py --mc --eventcontent RAWSIM --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1 --datatier GEN-SIM --conditions MCRUN2_71_V3::All --beamspot Realistic50ns13TeVCollision --step GEN,SIM --magField 38T_PostLS1 --fileout file:step1.root --no_exec
 ```
+
+DIGI:
+```
+cmsDriver.py step2 --python_filename step2_DIGI.py --mc --eventcontent PREMIXRAW --datatier GEN-SIM-RAW --conditions 80X_mcRun2_asymptotic_2016_TrancheIV_v6 --step DIGIPREMIX_S2,DATAMIX,L1,DIGI2RAW,HLT:@frozen2016 --nThreads 4 --datamix PreMix --era Run2_2016 --filein file:step1.root --fileout file:step2.root --pileup_input pileup.root --no_exec
+```
+
+RECO:
+```
+cmsDriver.py step3 --python_filename step3_RECO.py --mc --eventcontent AODSIM --runUnscheduled --datatier AODSIM --conditions 80X_mcRun2_asymptotic_2016_TrancheIV_v6 --step RAW2DIGI,RECO,EI --nThreads 4 --era Run2_2016 --filein file:step2.root --fileout file:step3.root --no_exec
+```
+
+MINIAOD:
+```
+cmsDriver.py step4 --python_filename step4_MINIAOD.py --mc --eventcontent MINIAODSIM --runUnscheduled --datatier MINIAODSIM --conditions 80X_mcRun2_asymptotic_2016_TrancheIV_v6 --step PAT --nThreads 4 --era Run2_2016  --filein file:step3.root --fileout file:step4.root --no_exec
+```
+
+These commands are based on the [PdmVMcCampaigns twiki](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMcCampaigns),
+specifically:
+[RunIISummer15GS](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMCcampaignRunIISummer15GS),
+[RunIISummer16DR80Premix](https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmVMCcampaignRunIISummer16DR80Premix),
+[RunIISummer16MiniAODv2](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMCcampaignRunIISummer16MiniAODv2).
+
