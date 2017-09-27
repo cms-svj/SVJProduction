@@ -101,7 +101,7 @@ process = getattr(__import__(options.config,fromlist=["process"]),"process")
 # settings
 process.maxEvents.input = cms.untracked.int32(options.maxEvents)
 if len(_inname)>0: process.source.fileNames = cms.untracked.vstring(_inname)
-else: process.source.firstRun = cms.untracked.uint32(options.part)
+else: process.source.firstEvent = cms.untracked.uint32((options.part-1)*options.maxEvents+1)
 getattr(process,options.output).fileName = 'file:'+_outname
 
 # reset all random numbers to ensure statistically distinct but reproducible jobs
