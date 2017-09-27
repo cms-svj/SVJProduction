@@ -90,3 +90,13 @@ specifically:
 [RunIISummer16DR80Premix](https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmVMCcampaignRunIISummer16DR80Premix),
 [RunIISummer16MiniAODv2](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMCcampaignRunIISummer16MiniAODv2).
 
+### Pileup input files
+
+To download the premixed pileup input file list:
+```
+dasgoclient -query="file dataset=/Neutrino_E-10_gun/RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2/GEN-SIM-DIGI-RAW" | sort > Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.txt
+```
+
+For quicker loading in Python, the text file is converted to a Python list and pickled using the script [picklePileupInput.py](./test/picklePileupInput.py).
+The pickled file can be retrieved from EOS: `xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.pkl`.
+The config [step2_DIGI.py](./python/step2_DIGI.py) will try to retrieve it automatically when it is run.

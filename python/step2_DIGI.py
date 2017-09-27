@@ -64,6 +64,13 @@ process.PREMIXRAWoutput = cms.OutputModule("PoolOutputModule",
 
 # Other statements
 process.mix.digitizers = cms.PSet(process.theDigitizersMixPreMix)
+import os
+puname = "Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.pkl"
+if not os.path.isfile(puname):
+	print "retrieving "+puname
+	os.system("xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/"+puname+" .")
+	if not os.path.isfile(puname):
+		raise Exception("Could not retrieve pileup input list.")
 import cPickle as pickle
 process.mixData.input.fileNames = cms.untracked.vstring(*pickle.load(open("Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.pkl","rb")))
 from Configuration.AlCa.GlobalTag import GlobalTag
@@ -71,7 +78,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '80X_mcRun2_asymptotic_2016_Tra
 
 # Path and EndPath definitions
 process.digitisation_step = cms.Path(process.pdigi)
-process.datamixing_step = cms.Path(process.pdatamix)
+1process.datamixing_step = cms.Path(process.pdatamix)
 process.L1simulation_step = cms.Path(process.SimL1Emulator)
 process.digi2raw_step = cms.Path(process.DigiToRaw)
 process.endjob_step = cms.EndPath(process.endOfProcess)
