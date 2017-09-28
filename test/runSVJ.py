@@ -72,8 +72,8 @@ options.register("alpha", 0.1, VarParsing.multiplicity.singleton, VarParsing.var
 options.register("part", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("indir", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("inpre", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
-options.register("outpre", "step1", VarParsing.multiplicity.singleton, VarParsing.varType.string)
-options.register("output", "RAWSIMoutput", VarParsing.multiplicity.singleton, VarParsing.varType.string)
+options.register("outpre", "step1", VarParsing.multiplicity.list, VarParsing.varType.string)
+options.register("output", "", VarParsing.multiplicity.list, VarParsing.varType.string)
 options.register("config", "SVJ.Production.step1_GEN", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("threads", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("streams", 0, VarParsing.multiplicity.singleton, VarParsing.varType.int)
@@ -82,7 +82,7 @@ options.register("dump", False, VarParsing.multiplicity.singleton, VarParsing.va
 options.parseArguments()
 
 # output name definition
-_outname = options.outpre
+_outname = "outpre"
 if options.signal:
     _outname += "_mZprime-{:g}".format(options.mZprime)
     _outname += "_mDark-{:g}".format(options.mDark)
@@ -94,18 +94,26 @@ _outname += ".root"
 
 _inname = ""
 if len(options.inpre)>0:
-    _inname = _outname.replace(options.outpre,options.inpre)
+    _inname = _outname.replace("outpre",options.inpre)
     if len(options.indir)>0: _inname = options.indir+"/"+_inname
     if not "root:" in options.indir: _inname = "file:"+_inname
 
 # import process
 process = getattr(__import__(options.config,fromlist=["process"]),"process")
 
-# settings
+# input settings
 process.maxEvents.input = cms.untracked.int32(options.maxEvents)
 if len(_inname)>0: process.source.fileNames = cms.untracked.vstring(_inname)
 else: process.source.firstEvent = cms.untracked.uint32((options.part-1)*options.maxEvents+1)
-getattr(process,options.output).fileName = 'file:'+_outname
+
+# output settings
+if len(options.output)==0: options.output = sorted(process.outputModules_())
+if len(options.outpre)!=len(options.output):
+    raise ValueError("Mismatch between # of output prefixes and # of output modules\n\tOutput modules are: "+", ".join(options.output))
+for iout,output in enumerate(options.output):
+    if not hasattr(process,output):
+        raise ValueError("Unavailable output module: "+output)
+    getattr(process,output).fileName = 'file:'+_outname.replace("outpre",options.outpre[iout])
 
 # reset all random numbers to ensure statistically distinct but reproducible jobs
 from IOMC.RandomEngine.RandomServiceHelper import RandomNumberServiceHelper

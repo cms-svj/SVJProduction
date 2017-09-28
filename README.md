@@ -35,11 +35,11 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `alpha=[val]`: hidden sector force coupling value (default = 0.1)
 * `part=[num]`: part number when producing a sample in multiple jobs (default = 1)
 * `inpre=[str]`: prefix for input file name
-* `outpre=[str]`: prefix for output file name
-* `output=[str]`: output module name (default = RAWSIMoutput)
+* `outpre=[list]`: list of prefixes for output file names (must be same length as list of output modules) (default = step1)
+* `output=[list]`: list of output module names (default = `sorted(process.outputModules_())`)
 * `config=[str]`: config file to customize and run (default = SVJ.Production.step1_GEN)
 * `threads=[num]`: number of threads to run (default = 1)
-* `streams=[num]`: number of streams to run (default = 0 -> streams=threads)
+* `streams=[num]`: number of streams to run (default = 0 -> streams = threads)
 * `tmi=[bool]`: enable [TimeMemoryInfo](https://github.com/cms-sw/cmssw/blob/master/Validation/Performance/python/TimeMemoryInfo.py) for simple profiling (default = False)
 * `dump=[bool]`: equivalent to `edmConfigDump`, but accounts for all command-line settings; exits without running (default = False)
 
@@ -48,12 +48,12 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 To run the sample production interactively with example parameters:
 ```
 cd SVJ/Production/test
-cmsRun runSVJ.py config=SVJ.Production.step1_GEN output=RAWSIMoutput outpre=step1 mZprime=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
+cmsRun runSVJ.py config=SVJ.Production.step1_GEN outpre=step1 mZprime=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
 ```
 
 To generate background samples for GEN-level analysis:
 ```
-cmsRun runSVJ.py config=SVJ.Production.step1_GEN_QCDForPF_13TeV output=RAWSIMoutput outpre=step1_QCD signal=0 part=1 maxEvents=10
+cmsRun runSVJ.py config=SVJ.Production.step1_GEN_QCDForPF_13TeV outpre=step1_QCD signal=0 part=1 maxEvents=10
 ```
 
 The analysis code needs a newer version of CMSSW (to access newer versions of ROOT and fastjet).
@@ -117,5 +117,8 @@ dasgoclient -query="file dataset=/Neutrino_E-10_gun/RunIISpring15PrePremix-PUMor
 ```
 
 For quicker loading in Python, the text file is converted to a Python list and pickled using the script [picklePileupInput.py](./test/picklePileupInput.py).
-The pickled file can be retrieved from EOS: `xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.pkl`.
+The pickled file can be retrieved from EOS:
+```
+xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.pkl
+```
 The config [step2_DIGI.py](./python/step2_DIGI.py) will try to retrieve it automatically when it is run.
