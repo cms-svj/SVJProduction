@@ -75,6 +75,9 @@ options.register("inpre", "", VarParsing.multiplicity.singleton, VarParsing.varT
 options.register("outpre", "step1", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("output", "RAWSIMoutput", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("config", "SVJ.Production.step1_GEN", VarParsing.multiplicity.singleton, VarParsing.varType.string)
+options.register("threads", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
+options.register("streams", 0, VarParsing.multiplicity.singleton, VarParsing.varType.int)
+options.register("tmi", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("dump", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.parseArguments()
 
@@ -133,6 +136,15 @@ if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNo
 if hasattr(process,'prunedGenParticles'):
     # keep HV particles
     process.prunedGenParticles.select.append("keep (4900001 <= abs(pdgId) <= 4900991 )")
+
+# multithreading options
+if options.threads>1:
+    process.options.numberOfThreads = cms.untracked.uint32(options.threads)
+    process.options.numberOfStreams = cms.untracked.uint32(options.streams if options.streams>0 else 0)
+
+if options.tmi:
+    from Validation.Performance.TimeMemoryInfo import customise
+    process = customise(process)
     
 if options.dump:
     print process.dumpPython()
