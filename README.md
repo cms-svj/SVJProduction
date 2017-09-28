@@ -34,12 +34,14 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `rinv=[val]`: invisible fraction value (default = 0.3)
 * `alpha=[val]`: hidden sector force coupling value (default = 0.1)
 * `part=[num]`: part number when producing a sample in multiple jobs (default = 1)
+* `indir=[str]`: directory for input file (local or logical)
 * `inpre=[str]`: prefix for input file name
 * `outpre=[list]`: list of prefixes for output file names (must be same length as list of output modules) (default = step1)
 * `output=[list]`: list of output module names (default = `sorted(process.outputModules_())`)
 * `config=[str]`: config file to customize and run (default = SVJ.Production.step1_GEN)
 * `threads=[num]`: number of threads to run (default = 1)
 * `streams=[num]`: number of streams to run (default = 0 -> streams = threads)
+* `redir=[dir]`: xrootd redirector for input file
 * `tmi=[bool]`: enable [TimeMemoryInfo](https://github.com/cms-sw/cmssw/blob/master/Validation/Performance/python/TimeMemoryInfo.py) for simple profiling (default = False)
 * `dump=[bool]`: equivalent to `edmConfigDump`, but accounts for all command-line settings; exits without running (default = False)
 

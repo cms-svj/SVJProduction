@@ -77,6 +77,7 @@ options.register("output", "", VarParsing.multiplicity.list, VarParsing.varType.
 options.register("config", "SVJ.Production.step1_GEN", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("threads", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("streams", 0, VarParsing.multiplicity.singleton, VarParsing.varType.int)
+options.register("redir", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("tmi", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("dump", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.parseArguments()
@@ -96,7 +97,8 @@ _inname = ""
 if len(options.inpre)>0:
     _inname = _outname.replace("outpre",options.inpre)
     if len(options.indir)>0: _inname = options.indir+"/"+_inname
-    if not "root:" in options.indir: _inname = "file:"+_inname
+    if len(options.redir)>0 and _inname[0:6]=="/store": _inname = redir+_inname
+    if _inname[0:6]!="/store" and _inname[0:5]!="root:": _inname = "file:"+_inname
 
 # import process
 process = getattr(__import__(options.config,fromlist=["process"]),"process")
