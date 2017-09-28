@@ -1,28 +1,70 @@
 # SVJProduction
 
-## GEN-SIM production
+## Setup
+
+All of the necessary setup (including checkout of this repo, dependencies, and CMSSW compilation) is performed by [setup.sh](./setup.sh).
+
+### GEN-SIM production
 
 To make GEN or GEN-SIM samples, `CMSSW_7_1_28` is used (which includes the latest version of Pythia8, 8.226).
-All of the necessary setup (including CMSSW compilation, and checkout of this repo)
-is performed by [setup.sh](./scripts/setup.sh):
 ```
-wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/scripts/setup.sh
+wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/setup.sh
 chmod +x setup.sh
 ./setup.sh -c CMSSW_7_1_28
 cd CMSSW_7_1_28/src
 cmsenv
 ```
 
-## MINIAOD production
+### MINIAOD production
 
-To make MINIAOD samples, `CMSSW_8_0_28` is used:
+To make MINIAOD (or DIGI/RECO/AOD) samples, `CMSSW_8_0_28` is used:
 ```
-wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/scripts/setup.sh
+wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/setup.sh
 chmod +x setup.sh
 ./setup.sh -c CMSSW_8_0_28
 cd CMSSW_8_0_28/src
 cmsenv
 ```
+
+## Condor submission
+
+Condor submission is supported for the LPC batch system or for the global pool via [CMS Connect](https://connect.uscms.org/).
+Job submission and management is based on the [CondorProduction](https://github.com/kpedro88/CondorProduction) package.
+Refer to the package documentation for basic details.
+
+The [batch](./batch/) directory contains all of the relevant scripts.
+If you make a copy of this directory and run the [submitJobs.py](./batch/submitJobs.py) script,
+it will submit to Condor the specified number of jobs for the specified signal models. Example:
+```
+cp -r batch myProduction
+cd myProduction
+python submitJobs.py -p -o root://cmseos.fnal.gov//store/user/YOURUSERNAME/myProduction -d signals1 -E 500 -N 20 --outpre step1_GEN-SIM --config SVJ.Production.step1_GEN-SIM -s
+```
+[submitJobs.py](./batch/submitJobs.py) can also:
+* count the expected number of jobs to submit (for planning purposes),
+* check for jobs which were completely removed from the queue and make a resubmission list.
+
+The class [jobSubmitterSVJ.py](./batch/jobSubmitterSVJ.py) extends the class `jobSubmitter` from [CondorProduction](https://github.com/kpedro88/CondorProduction). It adds a few extra arguments:
+
+Python:
+* `-d, --dicts [file]`: file with list of input dicts; each dict contains signal parameters (required)
+* `-o, --output [dir]`: path to output directory in which root files will be stored (required)
+* `-E, --maxEvents [num]`: number of events to process per job (default = 1)
+* `-F, --firstPart [num]`: first part to process in case extending a sample (default = 1)
+* `-N, --nParts [num]`: number of parts to process
+* `--indir [dir]`: input file directory (LFN)
+* `--redir [dir]`: input file redirector (default = root://cmseos.fnal.gov/)
+* `--inpre [str]`: input file prefix
+* `--outpre [str]`: output file prefix (required)
+* `--config [str]`: CMSSW config to run (required)
+* `-A, --args [list]`: additional common args to use for all jobs (passed to [runSVJ.py](./Production/test/runSVJ.py))
+* `-v, --verbose`: enable verbose output (default = False)
+
+Shell (in [step2.sh](./batch/step2.sh)):
+* `-o [dir]`: output directory
+* `-j [jobname]`: job name
+* `-p [part]`: part number
+* `-x [redir]`: xrootd redirector
 
 ## runSVJ script
 
@@ -79,6 +121,9 @@ root -l 'plotMasses.C+("genmassanalysis_mZprime-3000_mDark-20_rinv-0.3_alpha-0.1
 
 ## cmsDriver commands
 
+<details>
+<summary>Commands:</summary>
+
 GEN only:
 ```
 cmsDriver.py SVJ/Production/EmptyFragment_cff --python_filename step1_GEN.py --mc --eventcontent RAWSIM --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1 --datatier GEN-SIM --conditions MCRUN2_71_V3::All --beamspot Realistic50ns13TeVCollision --step GEN --magField 38T_PostLS1 --fileout file:step1.root --no_exec
@@ -104,6 +149,8 @@ MINIAOD:
 ```
 cmsDriver.py step4 --python_filename step4_MINIAOD.py --mc --eventcontent MINIAODSIM --runUnscheduled --datatier MINIAODSIM --conditions 80X_mcRun2_asymptotic_2016_TrancheIV_v6 --step PAT --nThreads 4 --era Run2_2016  --filein file:step3.root --fileout file:step4.root --no_exec
 ```
+</details>
+
 
 These commands are based on the [PdmVMcCampaigns twiki](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMcCampaigns),
 specifically:

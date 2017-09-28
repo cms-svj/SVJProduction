@@ -116,6 +116,9 @@ if [ -n "$WHICH_CMSSW" ]; then
 			git cms-merge-topic kpedro88:FixPythia7126
 		fi
 	fi
+	git clone git@github.com:kpedro88/CondorProduction Condor/Production
 	git clone git@github.com:kpedro88/SVJProduction SVJ/Production
 	scram b -j 8
+	cd SVJ/Production/batch
+	n -s $CMSSW_BASE/src/Condor/Production/scripts/* .
 fi
