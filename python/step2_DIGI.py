@@ -78,7 +78,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '80X_mcRun2_asymptotic_2016_Tra
 
 # Path and EndPath definitions
 process.digitisation_step = cms.Path(process.pdigi)
-1process.datamixing_step = cms.Path(process.pdatamix)
+process.datamixing_step = cms.Path(process.pdatamix)
 process.L1simulation_step = cms.Path(process.SimL1Emulator)
 process.digi2raw_step = cms.Path(process.DigiToRaw)
 process.endjob_step = cms.EndPath(process.endOfProcess)
