@@ -86,7 +86,7 @@ if hasattr(process,'prunedGenParticles'):
     process.prunedGenParticles.select.append("keep (4900001 <= abs(pdgId) <= 4900991 )")
 
 # multithreading options
-if options.threads>1:
+if options.threads>0:
     process.options.numberOfThreads = cms.untracked.uint32(options.threads)
     process.options.numberOfStreams = cms.untracked.uint32(options.streams if options.streams>0 else 0)
 
