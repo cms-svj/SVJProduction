@@ -37,7 +37,7 @@ ln -fs ${CMSSWVER}/src/SVJ/Production/test/runSVJ.py
 ARGS=$(cat args_${JOBNAME}.txt)
 ARGS="$ARGS part=$PART"
 if [[ -n "$REDIR" ]]; then
- ARGS="$ARGS redir=${REDIR}"
+	ARGS="$ARGS redir=${REDIR}"
 fi
 echo "cmsRun runSVJ.py ${ARGS} 2>&1"
 cmsRun runSVJ.py ${ARGS} 2>&1
@@ -46,29 +46,29 @@ cmsRun runSVJ.py ${ARGS} 2>&1
 rm runSVJ.py
 PUFILE=Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.pkl
 if [ -e $PUFILE ]; then
-  rm $PUFILE
+	rm $PUFILE
 fi
 
 CMSEXIT=$?
 
 if [[ $CMSEXIT -ne 0 ]]; then
-  rm *.root
-  echo "exit code $CMSEXIT, skipping xrdcp"
-  exit $CMSEXIT
+	rm *.root
+	echo "exit code $CMSEXIT, skipping xrdcp"
+	exit $CMSEXIT
 fi
 
 # copy output to eos
 echo "xrdcp output for condor"
 for FILE in *.root
 do
-  echo "xrdcp -f ${FILE} ${OUTDIR}/${FILE}"
-  xrdcp -f ${FILE} ${OUTDIR}/${FILE} 2>&1
-  XRDEXIT=$?
-  if [[ $XRDEXIT -ne 0 ]]; then
-    rm *.root
-    echo "exit code $XRDEXIT, failure in xrdcp"
-    exit $XRDEXIT
-  fi
-  rm ${FILE}
+	echo "xrdcp -f ${FILE} ${OUTDIR}/${FILE}"
+	xrdcp -f ${FILE} ${OUTDIR}/${FILE} 2>&1
+	XRDEXIT=$?
+	if [[ $XRDEXIT -ne 0 ]]; then
+		rm *.root
+		echo "exit code $XRDEXIT, failure in xrdcp"
+		exit $XRDEXIT
+	fi
+	rm ${FILE}
 done
 
