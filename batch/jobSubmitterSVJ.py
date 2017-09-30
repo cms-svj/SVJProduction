@@ -116,3 +116,17 @@ class jobSubmitterSVJ(jobSubmitter):
             # store protojob
             self.protoJobs.append(job)
 
+    def makeResubmit(self,diffList):
+        with open(self.resub,'w') as rfile:
+            rfile.write("#!/bin/bash\n\n")
+            diffDict = defaultdict(list)
+            for dtmp in diffList:
+                stmp = self.jobRef[dtmp].jdl
+                ntmp = dtmp.split('_')[-1].split('-')[-1]
+                diffDict[stmp].append(ntmp)
+            for stmp in sorted(diffDict):
+                rfile.write('condor_submit '+stmp+' -queue Process in '+','.join(diffDict[stmp])+'\n')
+        # make executable
+        st = os.stat(rfile.name)
+        os.chmod(rfile.name, st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
