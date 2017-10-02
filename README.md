@@ -13,6 +13,7 @@ chmod +x setup.sh
 ./setup.sh -c CMSSW_7_1_28
 cd CMSSW_7_1_28/src
 cmsenv
+cd SVJ/Production
 ```
 
 ### MINIAOD production
@@ -24,6 +25,7 @@ chmod +x setup.sh
 ./setup.sh -c CMSSW_8_0_28
 cd CMSSW_8_0_28/src
 cmsenv
+cd SVJ/Production
 ```
 
 ## Condor submission
