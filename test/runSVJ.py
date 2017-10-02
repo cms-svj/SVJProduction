@@ -32,7 +32,7 @@ _inname = ""
 if len(options.inpre)>0:
     _inname = _outname.replace("outpre",options.inpre)
     if len(options.indir)>0: _inname = options.indir+"/"+_inname
-    if len(options.redir)>0 and _inname[0:6]=="/store": _inname = redir+_inname
+    if len(options.redir)>0 and _inname[0:6]=="/store": _inname = options.redir+_inname
     if _inname[0:6]!="/store" and _inname[0:5]!="root:": _inname = "file:"+_inname
 
 # import process
