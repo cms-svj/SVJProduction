@@ -90,7 +90,7 @@ python submitJobs.py -p -d signals1 -E 500 -N 100 --indir /store/user/pedrok/SVJ
 ```
 MINIAOD:
 ```
-python submitJobs.py -p -d signals1 -E 500 -N 100 --indir /store/user/pedrok/SVJ2017/ProductionV1/RECO/ --inpre step2_RECO --outpre step4_MINIAOD --config SVJ.Production.step4_MINIAOD -o root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/ProductionV1/MINIAOD/ --cpus 4 -s
+python submitJobs.py -p -d signals1 -E 500 -N 100 --indir /store/user/pedrok/SVJ2017/ProductionV1/RECO/ --inpre step3_RECO --outpre step4_MINIAOD --config SVJ.Production.step4_MINIAOD -o root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/ProductionV1/MINIAOD/ --cpus 4 -s
 ```
 </details>
 
