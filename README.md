@@ -102,6 +102,11 @@ Ntuple production uses the [TreeMaker](https://github.com/TreeMaker/TreeMaker) r
 ```
 python submitJobs.py -g -d signals1 -E 500 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV1/MINIAOD/ --outpre step4_MINIAOD --config SVJ.Production.step4_MINIAOD -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV1/MINIAOD/
 ```
+To submit the ntuple jobs, follow the [TreeMaker Condor submission instructions](https://github.com/TreeMaker/TreeMaker#submit-production-to-condor) and use the following command:
+```
+python submitJobs.py -p -d svj1 -N 100 --cpus 4 -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV1/Ntuples/ --args "semivisible=True lostlepton=False hadtau=False doZinv=False doPDFs=False systematics=False redir=root://cmseos.fnal.gov/" -s
+```
+N.B. this command uses `submitJobs.py` from TreeMaker, not from this repository.
 
 ## runSVJ script
 
