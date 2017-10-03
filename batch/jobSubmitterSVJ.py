@@ -136,7 +136,7 @@ class jobSubmitterSVJ(jobSubmitter):
             self.protoJobs.append(job)
 
     def doPy(self,job):
-        with open(job.name+"_cff.py",'w') as outfile:
+        with open(job.name.replace('.','p')+"_cff.py",'w') as outfile:
             outfile.write("import FWCore.ParameterSet.Config as cms\n\n")
             outfile.write("maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )\n")
             outfile.write("readFiles = cms.untracked.vstring()\n")
