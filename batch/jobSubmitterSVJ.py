@@ -7,6 +7,10 @@ class jobSubmitterSVJ(jobSubmitter):
         
         self.helper = svjHelper()
 
+    def addDefaultOptions(self,parser):
+        super(jobSubmitterSVJ,self).addDefaultOptions(parser)
+        parser.add_option("-g", "--getpy", dest="getpy", default=False, action="store_true", help="make python file list for ntuple production (default = %default)")
+
     def addExtraOptions(self,parser):
         super(jobSubmitterSVJ,self).addExtraOptions(parser)
         
@@ -22,7 +26,18 @@ class jobSubmitterSVJ(jobSubmitter):
         parser.add_option("--config", dest="config", default="", help="CMSSW config to run (required) (default = %default)")
         parser.add_option("-A", "--args", dest="args", default="", help="additional common args to use for all jobs (default = %default)")
         parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true", help="enable verbose output (default = %default)")
+
+    def run(self):
+        super(jobSubmitterSVJ,self).run()
+        if self.getpy:
+            self.finishPy()
         
+    def checkDefaultOptions(self,options,parser):
+        if (options.submit + options.count + options.missing)>1:
+            parser.error("Options -c, -s, -m are exclusive, pick one!")
+        if (options.submit + options.count + options.missing + options.prepare + options.getpy)==0:
+            parser.error("No operation mode selected! (-c, -p, -s, -m, -g)")
+
     def checkExtraOptions(self,options,parser):
         super(jobSubmitterSVJ,self).checkExtraOptions(options,parser)
     
@@ -129,4 +144,23 @@ class jobSubmitterSVJ(jobSubmitter):
         # make executable
         st = os.stat(rfile.name)
         os.chmod(rfile.name, st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+    def finishPy(self):
+        for job in self.protoJobs:
+            with open(job.name+"_cff.py",'w') as outfile:
+                outfile.write("import FWCore.ParameterSet.Config as cms\n\n")
+                outfile.write("maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )\n")
+                outfile.write("readFiles = cms.untracked.vstring()\n")
+                outfile.write("secFiles = cms.untracked.vstring()\n")
+                outfile.write("source = cms.Source (\"PoolSource\",fileNames = readFiles, secondaryFileNames = secFiles)\n")
+                counter = 0
+                #split into chunks of 255
+                for ijob in job.names:
+                    if counter==0: outfile.write("readFiles.extend( [\n")
+                    outfile.write("       '"+self.indir+"/"+ijob+".root',\n")
+                    if counter==254 or ijob==job.names[-1]:
+                        outfile.write("] )\n")
+                        counter = 0
+                    else:
+                        counter += 1
 

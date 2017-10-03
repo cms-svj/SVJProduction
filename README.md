@@ -44,11 +44,13 @@ python submitJobs.py -p -o root://cmseos.fnal.gov//store/user/YOURUSERNAME/myPro
 ```
 [submitJobs.py](./batch/submitJobs.py) can also:
 * count the expected number of jobs to submit (for planning purposes),
-* check for jobs which were completely removed from the queue and make a resubmission list.
+* check for jobs which were completely removed from the queue and make a resubmission list,
+* make an output file list for ntuple production.
 
 The class [jobSubmitterSVJ.py](./batch/jobSubmitterSVJ.py) extends the class `jobSubmitter` from [CondorProduction](https://github.com/kpedro88/CondorProduction). It adds a few extra arguments:
 
 Python:
+* `-g, --getpy`: make python file list for ntuple production (new operation mode)
 * `-d, --dicts [file]`: file with list of input dicts; each dict contains signal parameters (required)
 * `-o, --output [dir]`: path to output directory in which root files will be stored (required)
 * `-E, --maxEvents [num]`: number of events to process per job (default = 1)
@@ -93,6 +95,13 @@ MINIAOD:
 python submitJobs.py -p -d signals1 -E 500 -N 100 --indir /store/user/pedrok/SVJ2017/ProductionV1/RECO/ --inpre step3_RECO --outpre step4_MINIAOD --config SVJ.Production.step4_MINIAOD -o root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/ProductionV1/MINIAOD/ --cpus 4 -s
 ```
 </details>
+
+### Ntuple production
+
+Ntuple production uses the [TreeMaker](https://github.com/TreeMaker/TreeMaker) repository. To prepare the file lists:
+```
+python submitJobs.py -g -d signals1 -E 500 -N 100 --indir /store/user/pedrok/SVJ2017/ProductionV1/MINIAOD/ --outpre step4_MINIAOD --config SVJ.Production.step4_MINIAOD -o root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/ProductionV1/MINIAOD/
+```
 
 ## runSVJ script
 
