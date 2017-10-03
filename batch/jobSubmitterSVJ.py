@@ -1,6 +1,11 @@
 from Condor.Production.jobSubmitter import *
 from SVJ.Production.svjHelper import svjHelper
 
+def makeNameSVJ(self,num):
+    return self.name+"_part-"+str(num)
+
+protoJob.makeName = makeNameSVJ
+
 class jobSubmitterSVJ(jobSubmitter):
     def __init__(self):
         super(jobSubmitterSVJ,self).__init__()
@@ -27,10 +32,10 @@ class jobSubmitterSVJ(jobSubmitter):
         parser.add_option("-A", "--args", dest="args", default="", help="additional common args to use for all jobs (default = %default)")
         parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true", help="enable verbose output (default = %default)")
 
-    def run(self):
-        super(jobSubmitterSVJ,self).run()
+    def runPerJob(self,job):
+        super(jobSubmitterSVJ,self).runPerJob(job)
         if self.getpy:
-            self.finishPy()
+            self.doPy(job)
         
     def checkDefaultOptions(self,options,parser):
         if (options.submit + options.count + options.missing)>1:
@@ -122,45 +127,30 @@ class jobSubmitterSVJ(jobSubmitter):
                 if self.count and not self.prepare:
                     continue
 
-                job.nums.append(str(iActualJob))
-                job.names.append(job.name+"_part-"+str(iActualJob))
+                job.nums.append(iActualJob)
             
             # append queue comment
-            job.queue = "-queue Process in "+','.join(job.nums)
-            
+            job.queue = "-queue Process in "+','.join(map(str,job.nums))
+
             # store protojob
             self.protoJobs.append(job)
 
-    def makeResubmit(self,diffList):
-        with open(self.resub,'w') as rfile:
-            rfile.write("#!/bin/bash\n\n")
-            diffDict = defaultdict(list)
-            for dtmp in diffList:
-                stmp = self.jobRef[dtmp].jdl
-                ntmp = dtmp.split('_')[-1].split('-')[-1]
-                diffDict[stmp].append(ntmp)
-            for stmp in sorted(diffDict):
-                rfile.write('condor_submit '+stmp+' -queue Process in '+','.join(diffDict[stmp])+'\n')
-        # make executable
-        st = os.stat(rfile.name)
-        os.chmod(rfile.name, st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-
-    def finishPy(self):
-        for job in self.protoJobs:
-            with open(job.name+"_cff.py",'w') as outfile:
-                outfile.write("import FWCore.ParameterSet.Config as cms\n\n")
-                outfile.write("maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )\n")
-                outfile.write("readFiles = cms.untracked.vstring()\n")
-                outfile.write("secFiles = cms.untracked.vstring()\n")
-                outfile.write("source = cms.Source (\"PoolSource\",fileNames = readFiles, secondaryFileNames = secFiles)\n")
-                counter = 0
-                #split into chunks of 255
-                for ijob in job.names:
-                    if counter==0: outfile.write("readFiles.extend( [\n")
-                    outfile.write("       '"+self.indir+"/"+ijob+".root',\n")
-                    if counter==254 or ijob==job.names[-1]:
-                        outfile.write("] )\n")
-                        counter = 0
-                    else:
-                        counter += 1
+    def doPy(self,job):
+        with open(job.name+"_cff.py",'w') as outfile:
+            outfile.write("import FWCore.ParameterSet.Config as cms\n\n")
+            outfile.write("maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )\n")
+            outfile.write("readFiles = cms.untracked.vstring()\n")
+            outfile.write("secFiles = cms.untracked.vstring()\n")
+            outfile.write("source = cms.Source (\"PoolSource\",fileNames = readFiles, secondaryFileNames = secFiles)\n")
+            counter = 0
+            #split into chunks of 255
+            for ijob in job.nums:
+                iname = job.makeName(ijob)
+                if counter==0: outfile.write("readFiles.extend( [\n")
+                outfile.write("       '"+self.indir+"/"+iname+".root',\n")
+                if counter==254 or ijob==job.nums[-1]:
+                    outfile.write("] )\n")
+                    counter = 0
+                else:
+                    counter += 1
 
