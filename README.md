@@ -100,7 +100,7 @@ python submitJobs.py -p -d signals1 -E 500 -N 100 --indir /store/user/lpcsusyhad
 
 Ntuple production uses the [TreeMaker](https://github.com/TreeMaker/TreeMaker) repository. To prepare the file lists:
 ```
-python submitJobs.py -g -d signals1 -E 500 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV1/MINIAOD/ --outpre step4_MINIAOD --config SVJ.Production.step4_MINIAOD -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV1/MINIAOD/
+python submitJobs.py -g -d signals1 -E 500 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV1/MINIAOD/ --inpre step4_MINIAOD --outpre SVJ
 ```
 To submit the ntuple jobs, follow the [TreeMaker Condor submission instructions](https://github.com/TreeMaker/TreeMaker#submit-production-to-condor) and use the following command:
 ```

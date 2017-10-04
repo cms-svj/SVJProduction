@@ -38,8 +38,8 @@ class jobSubmitterSVJ(jobSubmitter):
             self.doPy(job)
         
     def checkDefaultOptions(self,options,parser):
-        if (options.submit + options.count + options.missing)>1:
-            parser.error("Options -c, -s, -m are exclusive, pick one!")
+        if (options.submit + options.count + options.missing + options.getpy)>1:
+            parser.error("Options -c, -s, -m, -g are exclusive, pick one!")
         if (options.submit + options.count + options.missing + options.prepare + options.getpy)==0:
             parser.error("No operation mode selected! (-c, -p, -s, -m, -g)")
 
@@ -50,10 +50,11 @@ class jobSubmitterSVJ(jobSubmitter):
             parser.error("Required option: --dicts [dict]")
             
         if options.prepare or not options.count:
-            if len(options.output)==0:
-                parser.error("Required option: --output [directory]")
             if len(options.outpre)==0:
                 parser.error("Required option: --outpre [str]")
+        if options.prepare or not (options.count or options.getpy):
+            if len(options.output)==0:
+                parser.error("Required option: --output [directory]")
             if len(options.config)==0:
                 parser.error("Required option: --config [str]")
             
@@ -143,7 +144,9 @@ class jobSubmitterSVJ(jobSubmitter):
             outfile.write("secFiles = cms.untracked.vstring()\n")
             outfile.write("source = cms.Source (\"PoolSource\",fileNames = readFiles, secondaryFileNames = secFiles)\n")
             counter = 0
-            #split into chunks of 255
+            # swap outpre with inpre - list of input files
+            job.name = job.name.replace(self.outpre,self.inpre)
+            # split into chunks of 255
             for ijob in job.nums:
                 iname = job.makeName(ijob)
                 if counter==0: outfile.write("readFiles.extend( [\n")
