@@ -120,5 +120,5 @@ if [ -n "$WHICH_CMSSW" ]; then
 	git clone git@github.com:kpedro88/SVJProduction SVJ/Production
 	scram b -j 8
 	cd SVJ/Production/batch
-	n -s $CMSSW_BASE/src/Condor/Production/scripts/* .
+	ln -s $CMSSW_BASE/src/Condor/Production/scripts/* .
 fi
