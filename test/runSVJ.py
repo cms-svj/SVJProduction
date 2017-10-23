@@ -81,9 +81,11 @@ if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNo
             ])
 
 # miniAOD settings
-if hasattr(process,'prunedGenParticles'):
-    # keep HV particles
-    process.prunedGenParticles.select.append("keep (4900001 <= abs(pdgId) <= 4900991 )")
+_pruned = ["prunedGenParticlesWithStatusOne","prunedGenParticles"]
+for _prod in _pruned:
+    if hasattr(process,_prod):
+        # keep HV particles
+        getattr(process,_prod).select.append("keep (4900001 <= abs(pdgId) <= 4900991 )")
 
 # multithreading options
 if options.threads>0:
