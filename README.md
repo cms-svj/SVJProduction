@@ -56,6 +56,7 @@ Python:
 * `-E, --maxEvents [num]`: number of events to process per job (default = 1)
 * `-F, --firstPart [num]`: first part to process in case extending a sample (default = 1)
 * `-N, --nParts [num]`: number of parts to process
+* `-K, --skipParts [n1,n2,... or auto]`: comma-separated list of parts to skip (or auto, which checks existence of input files)
 * `--indir [dir]`: input file directory (LFN)
 * `--redir [dir]`: input file redirector (default = root://cmseos.fnal.gov/)
 * `--inpre [str]`: input file prefix

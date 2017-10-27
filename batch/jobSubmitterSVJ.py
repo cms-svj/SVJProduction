@@ -24,6 +24,7 @@ class jobSubmitterSVJ(jobSubmitter):
         parser.add_option("-E", "--maxEvents", dest="maxEvents", default=1, help="number of events to process per job (default = %default)")
         parser.add_option("-F", "--firstPart", dest="firstPart", default=1, help="first part to process, in case extending a sample (default = %default)")
         parser.add_option("-N", "--nParts", dest="nParts", default=1, help="number of parts to process (default = %default)")
+        parser.add_option("-K", "--skipParts", dest="skipParts", default="", help="comma-separated list of parts to skip, or auto (default = %default)")
         parser.add_option("--indir", dest="indir", default="", help="input file directory (LFN) (default = %default)")
         parser.add_option("--redir", dest="redir", default="root://cmseos.fnal.gov/", help="input file redirector (default = %default)")
         parser.add_option("--inpre", dest="inpre", default="", help="input file prefix (default = %default)")
@@ -57,6 +58,9 @@ class jobSubmitterSVJ(jobSubmitter):
                 parser.error("Required option: --output [directory]")
             if len(options.config)==0:
                 parser.error("Required option: --config [str]")
+
+        if len(options.skipParts)>0 and options.skipParts!="auto":
+            options.skipParts = {int(x) for x in options.skipParts.split(',')}
             
     def generateExtra(self,job):
         super(jobSubmitterSVJ,self).generateExtra(job)
@@ -94,7 +98,17 @@ class jobSubmitterSVJ(jobSubmitter):
             if self.verbose:
                 print "Creating job: "+job.name
             self.generatePerJob(job)
-            
+
+            # for auto skipping
+            if self.skipParts=="auto":
+                if len(self.inpre)==0 or len(self.indir)==0 or len(self.redir)==0:
+                    if self.verbose: print "Disabling auto skipParts because at least one of (inpre,indir,redir) is missing"
+                    self.skipParts = ""
+                else:
+                    injob = protoJob()
+                    injob.name = self.helper.getOutName(pdict["mZprime"],pdict["mDark"],pdict["rinv"],pdict["alpha"],int(self.maxEvents),outpre=self.inpre)
+                    infiles = {x.split('/')[-1].replace(".root","") for x in filter(None,os.popen("xrdfs "+self.redir+" ls "+self.indir).read().split('\n'))}
+
             # write job options to file - will be transferred with job
             if self.prepare:
                 with open("input/args_"+job.name+".txt",'w') as argfile:
@@ -123,6 +137,10 @@ class jobSubmitterSVJ(jobSubmitter):
             for iJob in xrange(int(self.nParts)):
                 # get real part number
                 iActualJob = iJob+self.firstPart
+
+                if (self.skipParts=="auto" and injob.makeName(iActualJob) not in infiles) or (type(self.skipParts)==set and iActualJob in self.skipParts):
+                    if self.verbose: print "  skipping part "+str(iActualJob)
+                    continue
                 
                 job.njobs += 1
                 if self.count and not self.prepare:
