@@ -42,14 +42,14 @@ fi
 echo "cmsRun runSVJ.py ${ARGS} 2>&1"
 cmsRun runSVJ.py ${ARGS} 2>&1
 
+CMSEXIT=$?
+
 # cleanup
 rm runSVJ.py
 PUFILE=Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.pkl
 if [ -e $PUFILE ]; then
 	rm $PUFILE
 fi
-
-CMSEXIT=$?
 
 if [[ $CMSEXIT -ne 0 ]]; then
 	rm *.root
