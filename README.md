@@ -38,7 +38,7 @@ The [batch](./batch/) directory contains all of the relevant scripts.
 If you make a copy of this directory and run the [submitJobs.py](./batch/submitJobs.py) script,
 it will submit to Condor the specified number of jobs for the specified signal models. Example:
 ```
-cp -r batch myProduction
+test/lnbatch.sh myProduction
 cd myProduction
 python submitJobs.py -p -o root://cmseos.fnal.gov//store/user/YOURUSERNAME/myProduction -d signals1 -E 500 -N 20 --outpre step1_GEN-SIM --config SVJ.Production.step1_GEN-SIM -s
 ```
