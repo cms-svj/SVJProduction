@@ -163,6 +163,12 @@ An alternative example of a semi-standalone macro is available in this repo:
 root -l 'plotMasses.C+("genmassanalysis_mZprime-3000_mDark-20_rinv-0.3_alpha-0.1_n-10_part-1.root","input_masses.txt")'
 ```
 
+To run the softdrop algorithm on GenJets/GenParticles from an existing sample, and analyze the result:
+```
+cmsRun runSVJ.py config=SVJ.Production.softDropGenJets outpre=softdropgen indir=/store/user/lpcsusyhad/SVJ2017/ProductionV1/GEN-SIM/ inpre=step1_GEN-SIM redir=root://cmseos.fnal.gov/ mZprime=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
+cmsRun runSVJ.py config=SVJ.Production.softdropanalyzer_cfg outpre=softdropana output=TFileService inpre=softdropgen mZprime=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
+```
+
 ## cmsDriver commands
 
 <details>
