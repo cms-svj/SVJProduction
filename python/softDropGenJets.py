@@ -33,6 +33,10 @@ process.jetoutput = cms.OutputModule("PoolOutputModule",
     fileName = cms.untracked.string('file:step2.root'),
     outputCommands = cms.untracked.vstring(
         'keep *_ak8GenJetsNoNuSoftDrop_*_*',
+        'keep *_packedGenJetsAK8NoNu_*_*',
+        'keep *_ak8GenJetsNoNu_*_*',
+        'keep *_genParticles_*_*',
+        'keep *_genParticlesForJetsNoNu_*_*',
     ),
     splitLevel = cms.untracked.int32(0)
 )
@@ -50,11 +54,19 @@ process.ak8GenJetsNoNuSoftDrop = ak8GenJetsNoNu.clone(
     jetCollInstanceName=cms.string("SubJets")
 )
 
+process.packedGenJetsAK8NoNu = cms.EDProducer("GenJetSubstructurePacker",
+    jetSrc = cms.InputTag("ak8GenJetsNoNu"),
+    distMax = cms.double(0.8),
+    algoTags = cms.VInputTag(
+        cms.InputTag("ak8GenJetsNoNuSoftDrop"),
+    ),
+)
+
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '80X_mcRun2_asymptotic_2016_TrancheIV_v6', '')
 
 # Path and EndPath definitions
-process.jet_step = cms.Path(process.ak8GenJetsNoNuSoftDrop)
+process.jet_step = cms.Path(process.ak8GenJetsNoNuSoftDrop+process.packedGenJetsAK8NoNu)
 process.endjob_step = cms.EndPath(process.endOfProcess)
 process.output_step = cms.EndPath(process.jetoutput)
 

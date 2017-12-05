@@ -11,7 +11,7 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h" 
 
 //analysis headers
-#include "DataFormats/JetReco/interface/BasicJet.h"
+#include "DataFormats/JetReco/interface/GenJet.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
@@ -51,7 +51,7 @@ class SoftDropAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> 
 		TTree* tree;
 
 		//tokens
-		edm::EDGetTokenT<vector<reco::BasicJet>> tok_jet;
+		edm::EDGetTokenT<vector<reco::GenJet>> tok_jet;
 };
 
 //
@@ -59,7 +59,7 @@ class SoftDropAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> 
 //
 SoftDropAnalyzer::SoftDropAnalyzer(const edm::ParameterSet& iConfig) :
 	tree(NULL),
-	tok_jet(consumes<vector<reco::BasicJet>>(iConfig.getParameter<edm::InputTag>("JetTag")))
+	tok_jet(consumes<vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("JetTag")))
 {
 	usesResource("TFileService");
 }
@@ -76,7 +76,7 @@ void SoftDropAnalyzer::beginJob()
 // ------------ method called on each new Event  ------------
 void SoftDropAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-	edm::Handle<vector<reco::BasicJet>> h_jet;
+	edm::Handle<vector<reco::GenJet>> h_jet;
 	iEvent.getByToken(tok_jet,h_jet);
 
 	int ctr = 0;
@@ -92,7 +92,7 @@ void SoftDropAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 				vsj += vtmp;
 			}
 		}
-		std::cout << "jet " << ctr << ", m_sd = " << vsj.M() << std::endl;
+		std::cout << "jet " << ctr << ", m_sd = " << vsj.M() << ", m = " << i_jet.mass() << std::endl;
 		ctr++;
 	}
 }
@@ -100,7 +100,7 @@ void SoftDropAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
 void SoftDropAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
 	edm::ParameterSetDescription desc;
-	desc.add<edm::InputTag>("JetTag",edm::InputTag("ak8GenJetsNoNuSoftDrop"));
+	desc.add<edm::InputTag>("JetTag",edm::InputTag("packedGenJetsAK8NoNu"));
 	
 	descriptions.add("SoftDropAnalyzer",desc);
 }
