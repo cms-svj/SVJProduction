@@ -1,4 +1,10 @@
+import os
+
 class svjHelper(object):
+    def __init__(self):
+        with open(os.path.join(os.path.expandvars('$CMSSW_BASE'),'src/SVJ/Production/test/dict_xsec_Zprime.txt'),'r') as xfile:
+            self.xsecs = {int(xline.split('\t')[0]): float(xline.split('\t')[1]) for xline in xfile}
+
     def getOutName(self,mZprime,mDark,rinv,alpha,events,signal=True,outpre="outpre",part=None):
         _outname = outpre
         if signal:
@@ -12,7 +18,9 @@ class svjHelper(object):
         return _outname
 
     def getPythiaXsec(self,mZprime):
-        xsec = 0.8 # should be a function of mZprime...
+        xsec = 1.0 
+        # a function of mZprime
+        if mZprime in self.xsecs: xsec = self.xsecs[mZprime]
         return xsec
 
     def getPythiaSettings(self,mZprime,mDark,rinv,alpha):
