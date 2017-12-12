@@ -14,7 +14,7 @@ class jobSubmitterSVJ(jobSubmitter):
 
     def addDefaultOptions(self,parser):
         super(jobSubmitterSVJ,self).addDefaultOptions(parser)
-        parser.add_option("-g", "--getpy", dest="getpy", default=False, action="store_true", help="make python file list for ntuple production (default = %default)")
+        parser.add_option("-y", "--getpy", dest="getpy", default=False, action="store_true", help="make python file list for ntuple production (default = %default)")
 
     def addExtraOptions(self,parser):
         super(jobSubmitterSVJ,self).addExtraOptions(parser)

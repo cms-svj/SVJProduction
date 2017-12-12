@@ -50,7 +50,7 @@ python submitJobs.py -p -o root://cmseos.fnal.gov//store/user/YOURUSERNAME/myPro
 The class [jobSubmitterSVJ.py](./batch/jobSubmitterSVJ.py) extends the class `jobSubmitter` from [CondorProduction](https://github.com/kpedro88/CondorProduction). It adds a few extra arguments:
 
 Python:
-* `-g, --getpy`: make python file list for ntuple production (new operation mode)
+* `-y, --getpy`: make python file list for ntuple production (new operation mode)
 * `-d, --dicts [file]`: file with list of input dicts; each dict contains signal parameters (required)
 * `-o, --output [dir]`: path to output directory in which root files will be stored (required)
 * `-E, --maxEvents [num]`: number of events to process per job (default = 1)
@@ -101,7 +101,7 @@ python submitJobs.py -p -d signals1 -E 500 -N 100 --indir /store/user/lpcsusyhad
 
 Ntuple production uses the [TreeMaker](https://github.com/TreeMaker/TreeMaker) repository. To prepare the file lists:
 ```
-python submitJobs.py -g -d signals1 -E 500 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV1/MINIAOD/ --inpre step4_MINIAOD --outpre SVJ
+python submitJobs.py -y -d signals1 -E 500 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV1/MINIAOD/ --inpre step4_MINIAOD --outpre SVJ
 ```
 To submit the ntuple jobs for signal and background, follow the [TreeMaker Condor submission instructions](https://github.com/TreeMaker/TreeMaker#submit-production-to-condor) and use the following commands:
 ```
