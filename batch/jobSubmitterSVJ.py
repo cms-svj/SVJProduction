@@ -61,6 +61,10 @@ class jobSubmitterSVJ(jobSubmitter):
 
         if len(options.skipParts)>0 and options.skipParts!="auto":
             options.skipParts = {int(x) for x in options.skipParts.split(',')}
+
+        self.getpy_weights = "weights_"+options.dicts.replace(".py","")+".txt"
+        if options.getpy and os.path.isfile(self.getpy_weights):
+            os.remove(self.getpy_weights)
             
     def generateExtra(self,job):
         super(jobSubmitterSVJ,self).generateExtra(job)
@@ -175,3 +179,8 @@ class jobSubmitterSVJ(jobSubmitter):
                 else:
                     counter += 1
 
+        with open(self.getpy_weights,'a') as wfile:
+            # this is somewhat ugly
+            mZprime = int(job.name.split('_')[2].split('-')[-1])
+            line = '        MCSample("'+job.name+'", "", "", "Constant", '+str(self.helper.getPythiaXsec(mZprime))+", "+str(int(self.maxEvents)*len(job.nums))+'),';
+            wfile.write(line+"\n")

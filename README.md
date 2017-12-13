@@ -99,7 +99,7 @@ python submitJobs.py -p -d signals1 -E 500 -N 100 --indir /store/user/lpcsusyhad
 
 ### Ntuple production
 
-Ntuple production uses the [TreeMaker](https://github.com/TreeMaker/TreeMaker) repository. To prepare the file lists:
+Ntuple production uses the [TreeMaker](https://github.com/TreeMaker/TreeMaker) repository. To prepare the file lists (and `WeightProducer` lines):
 ```
 python submitJobs.py -y -d signals1 -E 500 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV1/MINIAOD/ --inpre step4_MINIAOD --outpre SVJ
 ```
