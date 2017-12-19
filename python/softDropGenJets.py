@@ -34,7 +34,7 @@ process.jetoutput = cms.OutputModule("PoolOutputModule",
     outputCommands = cms.untracked.vstring(
         'keep *_ak8GenJetsNoNuSoftDrop_*_*',
         'keep *_packedGenJetsAK8NoNu_*_*',
-        'keep *_ak8GenJetsNoNu_*_*',
+        'keep *_ak8GenJetsNoNuArea_*_*',
         'keep *_genParticles_*_*',
         'keep *_genParticlesForJetsNoNu_*_*',
     ),
@@ -44,6 +44,9 @@ process.jetoutput = cms.OutputModule("PoolOutputModule",
 
 # Other statements
 from RecoJets.Configuration.RecoGenJets_cff import ak8GenJetsNoNu
+process.ak8GenJetsNoNuArea = ak8GenJetsNoNu.clone(
+    doAreaFastjet = cms.bool(True),
+)
 process.ak8GenJetsNoNuSoftDrop = ak8GenJetsNoNu.clone(
     useSoftDrop = cms.bool(True),
     zcut = cms.double(0.1),
@@ -51,11 +54,12 @@ process.ak8GenJetsNoNuSoftDrop = ak8GenJetsNoNu.clone(
     R0   = cms.double(0.5),
     useExplicitGhosts = cms.bool(True),
     writeCompound = cms.bool(True),
-    jetCollInstanceName=cms.string("SubJets")
+    jetCollInstanceName=cms.string("SubJets"),
+    doAreaFastjet = cms.bool(True),
 )
 
 process.packedGenJetsAK8NoNu = cms.EDProducer("GenJetSubstructurePacker",
-    jetSrc = cms.InputTag("ak8GenJetsNoNu"),
+    jetSrc = cms.InputTag("ak8GenJetsNoNuArea"),
     distMax = cms.double(0.8),
     algoTags = cms.VInputTag(
         cms.InputTag("ak8GenJetsNoNuSoftDrop"),
@@ -66,7 +70,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '80X_mcRun2_asymptotic_2016_TrancheIV_v6', '')
 
 # Path and EndPath definitions
-process.jet_step = cms.Path(process.ak8GenJetsNoNuSoftDrop+process.packedGenJetsAK8NoNu)
+process.jet_step = cms.Path(process.ak8GenJetsNoNuArea+process.ak8GenJetsNoNuSoftDrop+process.packedGenJetsAK8NoNu)
 process.endjob_step = cms.EndPath(process.endOfProcess)
 process.output_step = cms.EndPath(process.jetoutput)
 
