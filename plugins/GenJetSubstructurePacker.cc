@@ -1,3 +1,6 @@
+// this is a really terrible hack to avoid compiling this in CMSSW_7_1_X
+#ifdef FASTJET_VERSION_NUMBER
+
 // system include files
 #include <memory>
 #include <vector>
@@ -128,3 +131,5 @@ GenJetSubstructurePacker::produce(edm::Event& iEvent, const edm::EventSetup&)
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(GenJetSubstructurePacker);
+
+#endif
