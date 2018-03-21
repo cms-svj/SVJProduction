@@ -37,7 +37,6 @@ class svjHelper(object):
         n_f = 1
         b0 = 11.0/6.0*n_c - 2.0/6.0*n_f
         lambdaHV = 1000*math.exp(-math.pi/(b0*alpha))
-        print lambdaHV
     
         # todo: include safety/sanity checks
         
