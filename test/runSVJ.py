@@ -9,6 +9,7 @@ options.register("mZprime", 2000.0, VarParsing.multiplicity.singleton, VarParsin
 options.register("mDark", 20.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("rinv", 0.3, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("alpha", 0.1, VarParsing.multiplicity.singleton, VarParsing.varType.float)
+options.register("filterZ2", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("part", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("indir", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("inpre", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
@@ -62,6 +63,20 @@ if options.signal and hasattr(process,'generator'):
     process.generator.crossSection = cms.untracked.double(_helper.getPythiaXsec(options.mZprime))
     process.generator.PythiaParameters.processParameters = cms.vstring(_helper.getPythiaSettings(options.mZprime,options.mDark,options.rinv,options.alpha))
     process.generator.maxEventsToPrint = cms.untracked.int32(1)
+
+# gen filter settings
+# pythia implementation of model has 4900111 -> -4900211 4900211
+# this is a stand-in for direct production of a single 4900211 in the hadronization
+# 4900211s should be produced in pairs (Z2 symmetry),
+# so require total number produced by pythia to be a multiple of 4
+if options.signal and options.filterZ2 and hasattr(process,'ProductionFilterSequence'):
+    process.darkhadronZ2filter = cms.EDFilter("MCParticleModuloFilter",
+		moduleLabel = cms.InputTag('generator', 'unsmeared'),
+		ParticleID = cms.int32(4900211),
+		multipleOf = cms.uint32(4),
+		absID = cms.bool(True),
+    )
+    process.ProductionFilterSequence += process.darkhadronZ2filter
 
 # genjet/met settings - treat HV mesons as invisible
 _particles = ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandidatesForMET","genParticlesForMETAllVisible"]
