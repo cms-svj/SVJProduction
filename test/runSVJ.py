@@ -71,8 +71,8 @@ if options.signal and hasattr(process,'generator'):
 # so require total number produced by pythia to be a multiple of 4
 if options.signal and options.filterZ2 and hasattr(process,'ProductionFilterSequence'):
     process.darkhadronZ2filter = cms.EDFilter("MCParticleModuloFilter",
-		moduleLabel = cms.InputTag('generator', 'unsmeared'),
-		ParticleID = cms.int32(4900211),
+		moduleLabel = cms.InputTag('generator'),
+		particleID = cms.int32(4900211),
 		multipleOf = cms.uint32(4),
 		absID = cms.bool(True),
     )

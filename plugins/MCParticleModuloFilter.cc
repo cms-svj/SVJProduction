@@ -58,7 +58,7 @@ bool MCParticleModuloFilter::filter(edm::StreamID, edm::Event& iEvent, const edm
 void MCParticleModuloFilter::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
 	edm::ParameterSetDescription desc;
 	desc.add<edm::InputTag>("moduleLabel",edm::InputTag("generator","unsmeared"));
-	desc.add<int>("ParticleID",0);
+	desc.add<int>("particleID",0);
 	desc.add<unsigned>("multipleOf",1);
 	desc.add<bool>("absID",false);
 
