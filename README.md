@@ -62,6 +62,7 @@ Python:
 * `--inpre [str]`: input file prefix
 * `--outpre [str]`: output file prefix (required)
 * `--config [str]`: CMSSW config to run (required)
+* `--actualEvents`: count actual number of events from each input file (for python file list, requires `-K auto`)
 * `-A, --args [list]`: additional common args to use for all jobs (passed to [runSVJ.py](./Production/test/runSVJ.py))
 * `-v, --verbose`: enable verbose output (default = False)
 
