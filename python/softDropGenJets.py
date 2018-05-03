@@ -53,7 +53,10 @@ from RecoJets.Configuration.RecoGenJets_cff import ak8GenJetsNoNu
 process.ak8GenJetsNoNuArea = ak8GenJetsNoNu.clone(
     doAreaFastjet = cms.bool(True),
 )
+<<<<<<< HEAD
 
+=======
+>>>>>>> be0312ced7194df5b59506dfadcbc7aa94d393d7
 process.ak8GenJetsNoNuSoftDrop = ak8GenJetsNoNu.clone(
     useSoftDrop = cms.bool(True),
     zcut = cms.double(0.1),
@@ -62,7 +65,11 @@ process.ak8GenJetsNoNuSoftDrop = ak8GenJetsNoNu.clone(
     useExplicitGhosts = cms.bool(True),
     writeCompound = cms.bool(True),
     jetCollInstanceName=cms.string("SubJets"),
+<<<<<<< HEAD
     doAreaFastjet = cms.bool(True)
+=======
+    doAreaFastjet = cms.bool(True),
+>>>>>>> be0312ced7194df5b59506dfadcbc7aa94d393d7
 )
 
 process.packedGenJetsAK8NoNu = cms.EDProducer("GenJetSubstructurePacker",
@@ -79,8 +86,12 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '80X_mcRun2_asymptotic_2016_TrancheIV_v6', '')
 
 # Path and EndPath definitions
+<<<<<<< HEAD
 # changed to line below for large scale: process.jet_step = cms.Path(process.ak8GenJetsNoNuArea+process.ak8GenJetsNoNuSoftDrop+process.packedGenJetsAK8NoNu)
 process.jet_step = cms.Path(process.ak8GenJetsNoNuArea+process.ak8GenJetsNoNuSoftDrop+process.packedGenJetsAK8NoNu+process.SoftDropAnalyzer)
+=======
+process.jet_step = cms.Path(process.ak8GenJetsNoNuArea+process.ak8GenJetsNoNuSoftDrop+process.packedGenJetsAK8NoNu)
+>>>>>>> be0312ced7194df5b59506dfadcbc7aa94d393d7
 process.endjob_step = cms.EndPath(process.endOfProcess)
 #removed for large scale: process.output_step = cms.EndPath(process.jetoutput)
 

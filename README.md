@@ -40,7 +40,7 @@ it will submit to Condor the specified number of jobs for the specified signal m
 ```
 test/lnbatch.sh myProduction
 cd myProduction
-python submitJobs.py -p -o root://cmseos.fnal.gov//store/user/YOURUSERNAME/myProduction -d signals1 -E 500 -N 20 --outpre step1_GEN-SIM --config SVJ.Production.step1_GEN-SIM -s
+python submitJobs.py -p -o root://cmseos.fnal.gov//store/user/YOURUSERNAME/myProduction -d signals2 -E 500 -N 20 --outpre step1_GEN-SIM --config SVJ.Production.step1_GEN-SIM -s
 ```
 [submitJobs.py](./batch/submitJobs.py) can also:
 * count the expected number of jobs to submit (for planning purposes),
@@ -50,7 +50,7 @@ python submitJobs.py -p -o root://cmseos.fnal.gov//store/user/YOURUSERNAME/myPro
 The class [jobSubmitterSVJ.py](./batch/jobSubmitterSVJ.py) extends the class `jobSubmitter` from [CondorProduction](https://github.com/kpedro88/CondorProduction). It adds a few extra arguments:
 
 Python:
-* `-g, --getpy`: make python file list for ntuple production (new operation mode)
+* `-y, --getpy`: make python file list for ntuple production (new operation mode)
 * `-d, --dicts [file]`: file with list of input dicts; each dict contains signal parameters (required)
 * `-o, --output [dir]`: path to output directory in which root files will be stored (required)
 * `-E, --maxEvents [num]`: number of events to process per job (default = 1)
@@ -62,6 +62,7 @@ Python:
 * `--inpre [str]`: input file prefix
 * `--outpre [str]`: output file prefix (required)
 * `--config [str]`: CMSSW config to run (required)
+* `--actualEvents`: count actual number of events from each input file (for python file list, requires `-K auto`)
 * `-A, --args [list]`: additional common args to use for all jobs (passed to [runSVJ.py](./Production/test/runSVJ.py))
 * `-v, --verbose`: enable verbose output (default = False)
 
@@ -81,32 +82,32 @@ They assume the basic [CondorProduction](https://github.com/kpedro88/CondorProdu
 
 GEN-SIM:
 ```
-python submitJobs.py -p -d signals1 -E 500 -N 100 --outpre step1_GEN-SIM --config SVJ.Production.step1_GEN-SIM -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV1/GEN-SIM/ -s
+python submitJobs.py -p -d signals2 -E 1000 -N 100 --outpre step1_GEN-SIM --config SVJ.Production.step1_GEN-SIM -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/GEN-SIM/ -s
 ```
 DIGI:
 ```
-python submitJobs.py -p -d signals1 -E 500 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV1/GEN-SIM/ --inpre step1_GEN-SIM --outpre step2_DIGI --config SVJ.Production.step2_DIGI -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV1/DIGI/ --cpus 4 --memory 5000 -s
+python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/GEN-SIM/ --inpre step1_GEN-SIM --outpre step2_DIGI --config SVJ.Production.step2_DIGI -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/DIGI/ --cpus 4 --memory 5000 -s
 ```
 RECO:
 ```
-python submitJobs.py -p -d signals1 -E 500 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV1/DIGI/ --inpre step2_DIGI --outpre step3_RECO --config SVJ.Production.step3_RECO -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV1/RECO/ --cpus 4 --memory 3000 -s
+python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/DIGI/ --inpre step2_DIGI --outpre step3_RECO --config SVJ.Production.step3_RECO -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/RECO/ --cpus 4 --memory 3000 -s
 ```
 MINIAOD:
 ```
-python submitJobs.py -p -d signals1 -E 500 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV1/RECO/ --inpre step3_RECO --outpre step4_MINIAOD --config SVJ.Production.step4_MINIAOD -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV1/MINIAOD/ --cpus 4 -s
+python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/RECO/ --inpre step3_RECO --outpre step4_MINIAOD --config SVJ.Production.step4_MINIAOD -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/MINIAOD/ --cpus 4 -s
 ```
 </details>
 
 ### Ntuple production
 
-Ntuple production uses the [TreeMaker](https://github.com/TreeMaker/TreeMaker) repository. To prepare the file lists:
+Ntuple production uses the [TreeMaker](https://github.com/TreeMaker/TreeMaker) repository. To prepare the file lists (and `WeightProducer` lines):
 ```
-python submitJobs.py -g -d signals1 -E 500 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV1/MINIAOD/ --inpre step4_MINIAOD --outpre SVJ
+python submitJobs.py -y --actualEvents -K auto -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/MINIAOD/ --inpre step4_MINIAOD --outpre SVJ
 ```
-To submit the ntuple jobs for signal and background, follow the [TreeMaker Condor submission instructions](https://github.com/TreeMaker/TreeMaker#submit-production-to-condor) and use the following commands:
+To submit the (mini-)ntuple jobs for signal and background, follow the [TreeMaker Condor submission instructions](https://github.com/TreeMaker/TreeMaker#submit-production-to-condor) and use the following commands:
 ```
-python submitJobs.py -p -d svj1 -N 100 --cpus 4 -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV1/Ntuples/ --args "semivisible=True lostlepton=False hadtau=False doZinv=False doPDFs=False systematics=False redir=root://cmseos.fnal.gov/" -s
-python submitJobs.py -p -d qcd_pt --cpus 4 -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV1/Ntuples/ --args "semivisible=True lostlepton=False hadtau=False doZinv=False doPDFs=False systematics=False" -s
+python submitJobs.py -p -d svj -N 200 --cpus 4 -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/Ntuples/ --args "semivisible=True lostlepton=False hadtau=False doZinv=False doPDFs=False systematics=False redir=root://cmseos.fnal.gov/" -s
+python submitJobs.py -p -d qcd_pt --cpus 4 -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/Ntuples/ --args "semivisible=True lostlepton=False hadtau=False doZinv=False doPDFs=False systematics=False" -s
 ```
 N.B. these commands uses `submitJobs.py` from TreeMaker, not from this repository.
 
@@ -119,6 +120,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `mDark=[val]`: dark meson mass value (default = 20.0)
 * `rinv=[val]`: invisible fraction value (default = 0.3)
 * `alpha=[val]`: hidden sector force coupling value (default = 0.1)
+* `filterZ2=[bool]`: only keep events with `N(4900211)%4==0` (default = True)
 * `part=[num]`: part number when producing a sample in multiple jobs (default = 1)
 * `indir=[str]`: directory for input file (local or logical)
 * `inpre=[str]`: prefix for input file name
@@ -165,7 +167,7 @@ root -l 'plotMasses.C+("genmassanalysis_mZprime-3000_mDark-20_rinv-0.3_alpha-0.1
 
 To run the softdrop algorithm on GenJets/GenParticles from an existing sample, and analyze the result:
 ```
-cmsRun runSVJ.py config=SVJ.Production.softDropGenJets outpre=softdropgen indir=/store/user/lpcsusyhad/SVJ2017/ProductionV1/GEN-SIM/ inpre=step1_GEN-SIM redir=root://cmseos.fnal.gov/ mZprime=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
+cmsRun runSVJ.py config=SVJ.Production.softDropGenJets outpre=softdropgen indir=/store/user/lpcsusyhad/SVJ2017/ProductionV2/GEN-SIM/ inpre=step1_GEN-SIM redir=root://cmseos.fnal.gov/ mZprime=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
 cmsRun runSVJ.py config=SVJ.Production.softdropanalyzer_cfg outpre=softdropana output=TFileService inpre=softdropgen mZprime=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
 ```
 
@@ -176,8 +178,8 @@ cmsRun runSVJ.py config=SVJ.Production.softdropanalyzer_cfg outpre=softdropana o
 
 GEN only:
 ```
-cmsDriver.py SVJ/Production/EmptyFragment_cff --python_filename step1_GEN.py --mc --eventcontent RAWSIM --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1 --datatier GEN-SIM --conditions MCRUN2_71_V3::All --beamspot Realistic50ns13TeVCollision --step GEN --magField 38T_PostLS1 --fileout file:step1.root --no_exec
-cmsDriver.py QCDForPF_13TeV_TuneCUETP8M1_cfi --python_filename step1_GEN_QCDForPF_13TeV.py --mc --eventcontent RAWSIM --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1 --datatier GEN-SIM --conditions MCRUN2_71_V3::All --beamspot Realistic50ns13TeVCollision --step GEN --magField 38T_PostLS1 --fileout file:step1.root --no_exec
+cmsDriver.py SVJ/Production/EmptyFragment_cff --python_filename step1_GEN.py --mc --eventcontent RAWSIM --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1 --datatier GEN --conditions MCRUN2_71_V3::All --beamspot Realistic50ns13TeVCollision --step GEN --magField 38T_PostLS1 --fileout file:step1.root --no_exec
+cmsDriver.py QCDForPF_13TeV_TuneCUETP8M1_cfi --python_filename step1_GEN_QCDForPF_13TeV.py --mc --eventcontent RAWSIM --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1 --datatier GEN --conditions MCRUN2_71_V3::All --beamspot Realistic50ns13TeVCollision --step GEN --magField 38T_PostLS1 --fileout file:step1.root --no_exec
 ```
 
 GEN-SIM:

@@ -1,4 +1,10 @@
+import os, math
+
 class svjHelper(object):
+    def __init__(self):
+        with open(os.path.join(os.path.expandvars('$CMSSW_BASE'),'src/SVJ/Production/test/dict_xsec_Zprime.txt'),'r') as xfile:
+            self.xsecs = {int(xline.split('\t')[0]): float(xline.split('\t')[1]) for xline in xfile}
+
     def getOutName(self,mZprime,mDark,rinv,alpha,events,signal=True,outpre="outpre",part=None):
         _outname = outpre
         if signal:
@@ -12,7 +18,9 @@ class svjHelper(object):
         return _outname
 
     def getPythiaXsec(self,mZprime):
-        xsec = 0.8 # should be a function of mZprime...
+        xsec = 1.0 
+        # a function of mZprime
+        if mZprime in self.xsecs: xsec = self.xsecs[mZprime]
         return xsec
 
     def getPythiaSettings(self,mZprime,mDark,rinv,alpha):
@@ -20,6 +28,15 @@ class svjHelper(object):
         mMax = mZprime+1
         mSqua = mDark/2. # dark scalar quark mass (also used for pTminFSR)
         mInv = mSqua - 0.1 # dark stable hadron mass
+
+        # calculation of lambda to give desired alpha
+        # see 1707.05326 fig2 for the equation: alpha = pi/(b * log(1 TeV / lambda)), b = 11/6*n_c - 2/6*n_f
+        # n_c = HiddenValley:Ngauge, n_f = HiddenValley:nFlav
+        # see also TimeShower.cc in Pythia8, PDG chapter 9 (Quantum chromodynamics), etc.
+        n_c = 2
+        n_f = 1
+        b0 = 11.0/6.0*n_c - 2.0/6.0*n_f
+        lambdaHV = 1000*math.exp(-math.pi/(b0*alpha))
     
         # todo: include safety/sanity checks
         
@@ -42,14 +59,14 @@ class svjHelper(object):
             '4900101:m0 = {:g}'.format(mSqua),
             '4900111:m0 = {:g}'.format(mDark),
             # other HV params
-            'HiddenValley:Ngauge = 2',
+            'HiddenValley:Ngauge = {:d}'.format(n_c),
             'HiddenValley:spinFv = 1',
             'HiddenValley:spinqv = 0',
             'HiddenValley:FSR = on',
             'HiddenValley:fragment = on',
             'HiddenValley:alphaOrder = 1',
-            'HiddenValley:Lambda = {:g}'.format(alpha),
-            'HiddenValley:nFlav = 1',
+            'HiddenValley:Lambda = {:g}'.format(lambdaHV),
+            'HiddenValley:nFlav = {:d}'.format(n_f),
             'HiddenValley:probVector = 0.0',
             'HiddenValley:pTminFSR = {:g}'.format(mSqua),
             # branching - effective rinv

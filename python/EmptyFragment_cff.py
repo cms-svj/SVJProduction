@@ -22,3 +22,5 @@ generator = cms.EDFilter("Pythia8GeneratorFilter",
         )
     )
 )
+
+ProductionFilterSequence = cms.Sequence(generator)

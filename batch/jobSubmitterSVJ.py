@@ -14,7 +14,8 @@ class jobSubmitterSVJ(jobSubmitter):
 
     def addDefaultOptions(self,parser):
         super(jobSubmitterSVJ,self).addDefaultOptions(parser)
-        parser.add_option("-g", "--getpy", dest="getpy", default=False, action="store_true", help="make python file list for ntuple production (default = %default)")
+        parser.add_option("-y", "--getpy", dest="getpy", default=False, action="store_true", help="make python file list for ntuple production (default = %default)")
+        parser.add_option("--actualEvents", dest="actualEvents", default=False, action="store_true", help="count actual number of events from each input file (for python file list) (default = %default)")
 
     def addExtraOptions(self,parser):
         super(jobSubmitterSVJ,self).addExtraOptions(parser)
@@ -43,6 +44,10 @@ class jobSubmitterSVJ(jobSubmitter):
             parser.error("Options -c, -s, -m, -g are exclusive, pick one!")
         if (options.submit + options.count + options.missing + options.prepare + options.getpy)==0:
             parser.error("No operation mode selected! (-c, -p, -s, -m, -g)")
+        if (options.actualEvents and not options.getpy):
+            parser.error("Option --actualEvents only allowed for -y mode")
+        if (options.actualEvents and options.skipParts!="auto"):
+            parser.error("Option --actualEvents requires auto skipParts")
 
     def checkExtraOptions(self,options,parser):
         super(jobSubmitterSVJ,self).checkExtraOptions(options,parser)
@@ -59,8 +64,15 @@ class jobSubmitterSVJ(jobSubmitter):
             if len(options.config)==0:
                 parser.error("Required option: --config [str]")
 
+        if options.skipParts=="auto" and (len(options.inpre)==0 or len(options.indir)==0 or len(options.redir)==0):
+            parser.error("Option auto skipParts requires inpre, indir, redir")
+
         if len(options.skipParts)>0 and options.skipParts!="auto":
             options.skipParts = {int(x) for x in options.skipParts.split(',')}
+
+        self.getpy_weights = "weights_"+options.dicts.replace(".py","")+".txt"
+        if options.getpy and os.path.isfile(self.getpy_weights):
+            os.remove(self.getpy_weights)
             
     def generateExtra(self,job):
         super(jobSubmitterSVJ,self).generateExtra(job)
@@ -93,6 +105,8 @@ class jobSubmitterSVJ(jobSubmitter):
         for pdict in flist:
             # create protojob
             job = protoJob()
+            # extra attribute to store actual events
+            if self.actualEvents: job.actualEvents = 0
             # make name from params
             job.name = self.helper.getOutName(pdict["mZprime"],pdict["mDark"],pdict["rinv"],pdict["alpha"],int(self.maxEvents),outpre=self.outpre)
             if self.verbose:
@@ -101,13 +115,9 @@ class jobSubmitterSVJ(jobSubmitter):
 
             # for auto skipping
             if self.skipParts=="auto":
-                if len(self.inpre)==0 or len(self.indir)==0 or len(self.redir)==0:
-                    if self.verbose: print "Disabling auto skipParts because at least one of (inpre,indir,redir) is missing"
-                    self.skipParts = ""
-                else:
-                    injob = protoJob()
-                    injob.name = self.helper.getOutName(pdict["mZprime"],pdict["mDark"],pdict["rinv"],pdict["alpha"],int(self.maxEvents),outpre=self.inpre)
-                    infiles = {x.split('/')[-1].replace(".root","") for x in filter(None,os.popen("xrdfs "+self.redir+" ls "+self.indir).read().split('\n'))}
+                injob = protoJob()
+                injob.name = self.helper.getOutName(pdict["mZprime"],pdict["mDark"],pdict["rinv"],pdict["alpha"],int(self.maxEvents),outpre=self.inpre)
+                infiles = {x.split('/')[-1].replace(".root","") for x in filter(None,os.popen("xrdfs "+self.redir+" ls "+self.indir).read().split('\n'))}
 
             # write job options to file - will be transferred with job
             if self.prepare:
@@ -138,10 +148,17 @@ class jobSubmitterSVJ(jobSubmitter):
                 # get real part number
                 iActualJob = iJob+self.firstPart
 
-                if (self.skipParts=="auto" and injob.makeName(iActualJob) not in infiles) or (type(self.skipParts)==set and iActualJob in self.skipParts):
+                iJobName = injob.makeName(iActualJob)
+                if (self.skipParts=="auto" and iJobName not in infiles) or (type(self.skipParts)==set and iActualJob in self.skipParts):
                     if self.verbose: print "  skipping part "+str(iActualJob)
                     continue
-                
+
+                if self.actualEvents:
+                    from ROOT import TFile,TTree
+                    iFile = TFile.Open(self.redir+self.indir+"/"+iJobName+".root")
+                    iTree = iFile.Get("Events")
+                    job.actualEvents += iTree.GetEntries()
+
                 job.njobs += 1
                 if self.count and not self.prepare:
                     continue
@@ -175,3 +192,9 @@ class jobSubmitterSVJ(jobSubmitter):
                 else:
                     counter += 1
 
+        with open(self.getpy_weights,'a') as wfile:
+            # this is somewhat ugly
+            mZprime = int(job.name.split('_')[2].split('-')[-1])
+            nEvents = job.actualEvents if self.actualEvents else int(self.maxEvents)*len(job.nums)
+            line = '        MCSample("'+job.name+'", "", "", "Constant", '+str(self.helper.getPythiaXsec(mZprime))+", "+str(nEvents)+'),';
+            wfile.write(line+"\n")
