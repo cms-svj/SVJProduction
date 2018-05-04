@@ -13,7 +13,7 @@ process.maxEvents = cms.untracked.PSet(
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(),
-    secondaryFileNames = cms.untracked.vstring()#,
+    secondaryFileNames = cms.untracked.vstring(),
     #eventsToProcess = cms.untracked.VEventRange('1:480')
 )
 
@@ -42,11 +42,3 @@ process.TFileService = cms.Service("TFileService",
 #process.p1 = cms.Path(process.SoftDropAnalyzer*process.printTree)
 
 process.p1 = cms.Path(process.SoftDropAnalyzer)
-
-
-
-
-
-
-
-
