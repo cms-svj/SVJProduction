@@ -108,7 +108,8 @@ class jobSubmitterSVJ(jobSubmitter):
             # extra attribute to store actual events
             if self.actualEvents: job.actualEvents = 0
             # make name from params
-            job.name = self.helper.getOutName(pdict["mZprime"],pdict["mDark"],pdict["rinv"],pdict["alpha"],int(self.maxEvents),outpre=self.outpre)
+            self.helper.setModel(pdict["mZprime"],pdict["mDark"],pdict["rinv"],pdict["alpha"])
+            job.name = self.helper.getOutName(int(self.maxEvents),outpre=self.outpre)
             if self.verbose:
                 print "Creating job: "+job.name
             self.generatePerJob(job)
@@ -116,7 +117,7 @@ class jobSubmitterSVJ(jobSubmitter):
             # for auto skipping
             if self.skipParts=="auto":
                 injob = protoJob()
-                injob.name = self.helper.getOutName(pdict["mZprime"],pdict["mDark"],pdict["rinv"],pdict["alpha"],int(self.maxEvents),outpre=self.inpre)
+                injob.name = self.helper.getOutName(int(self.maxEvents),outpre=self.inpre)
                 infiles = {x.split('/')[-1].replace(".root","") for x in filter(None,os.popen("xrdfs "+self.redir+" ls "+self.indir).read().split('\n'))}
 
             # write job options to file - will be transferred with job

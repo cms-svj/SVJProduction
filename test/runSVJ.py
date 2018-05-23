@@ -24,9 +24,10 @@ options.register("dump", False, VarParsing.multiplicity.singleton, VarParsing.va
 options.parseArguments()
 
 _helper = svjHelper()
+_helper.setModel(options.mZprime,options.mDark,options.rinv,options.alpha)
 
 # output name definition
-_outname = _helper.getOutName(options.mZprime,options.mDark,options.rinv,options.alpha,options.maxEvents,part=options.part,signal=options.signal)
+_outname = _helper.getOutName(options.maxEvents,part=options.part,signal=options.signal)
 _outname += ".root"
 
 _inname = ""
@@ -60,8 +61,8 @@ randHelper.resetSeeds(options.maxEvents+options.part)
 
 # generator settings
 if options.signal and hasattr(process,'generator'):
-    process.generator.crossSection = cms.untracked.double(_helper.getPythiaXsec(options.mZprime))
-    process.generator.PythiaParameters.processParameters = cms.vstring(_helper.getPythiaSettings(options.mZprime,options.mDark,options.rinv,options.alpha))
+    process.generator.crossSection = cms.untracked.double(_helper.xsec)
+    process.generator.PythiaParameters.processParameters = cms.vstring(_helper.getPythiaSettings())
     process.generator.maxEventsToPrint = cms.untracked.int32(1)
 
 # gen filter settings
