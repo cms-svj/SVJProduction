@@ -53,10 +53,12 @@ class svjHelper(object):
             '4900023:addChannel = 1 0.003 102 4 -4',
             '4900023:addChannel = 1 0.003 102 5 -5',
             '4900023:addChannel = 1 0.003 102 6 -6',
-            # hidden spectrum: fermionic dark quark, diagonal meson, off-diagonal meson
+            # hidden spectrum: fermionic dark quark, diagonal meson, off-diagonal meson, DM stand-in particle
             '4900101:m0 = {:g}'.format(mSqua),
             '4900111:m0 = {:g}'.format(mDark),
             '4900211:m0 = {:g}'.format(mDark),
+            '52:m0 = 0.0',
+            '52:isResonance = false',
             # other HV params
             'HiddenValley:Ngauge = {:d}'.format(n_c),
             # when Fv has spin 0, qv spin fixed at 1/2

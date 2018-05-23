@@ -78,11 +78,11 @@ if options.signal and options.filterZ2 and hasattr(process,'ProductionFilterSequ
     )
     process.ProductionFilterSequence += process.darkhadronZ2filter
 
-# genjet/met settings - treat HV mesons as invisible
+# genjet/met settings - treat DM stand-ins as invisible
 _particles = ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandidatesForMET","genParticlesForMETAllVisible"]
 for _prod in _particles:
     if hasattr(process,_prod):
-        getattr(process,_prod).ignoreParticleIDs.append(4900211)
+        getattr(process,_prod).ignoreParticleIDs.append(52)
 if hasattr(process,'recoGenJets') and hasattr(process,'recoAllGenJetsNoNu'):
     process.recoGenJets += process.recoAllGenJetsNoNu
 if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNoNu'):
@@ -99,8 +99,11 @@ if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNo
 _pruned = ["prunedGenParticlesWithStatusOne","prunedGenParticles"]
 for _prod in _pruned:
     if hasattr(process,_prod):
-        # keep HV particles
-        getattr(process,_prod).select.append("keep (4900001 <= abs(pdgId) <= 4900991 )")
+        # keep HV & DM particles
+        getattr(process,_prod).select.extend([
+            "keep (4900001 <= abs(pdgId) <= 4900991 )",
+            "keep (51 <= abs(pdgId) <= 53)",
+        ])
 
 # multithreading options
 if options.threads>0:
