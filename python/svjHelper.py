@@ -27,14 +27,13 @@ class svjHelper(object):
         mMin = mZprime-1
         mMax = mZprime+1
         mSqua = mDark/2. # dark scalar quark mass (also used for pTminFSR)
-        mInv = mSqua - 0.1 # dark stable hadron mass
 
         # calculation of lambda to give desired alpha
         # see 1707.05326 fig2 for the equation: alpha = pi/(b * log(1 TeV / lambda)), b = 11/6*n_c - 2/6*n_f
         # n_c = HiddenValley:Ngauge, n_f = HiddenValley:nFlav
         # see also TimeShower.cc in Pythia8, PDG chapter 9 (Quantum chromodynamics), etc.
         n_c = 2
-        n_f = 1
+        n_f = 2
         b0 = 11.0/6.0*n_c - 2.0/6.0*n_f
         lambdaHV = 1000*math.exp(-math.pi/(b0*alpha))
     
@@ -54,10 +53,10 @@ class svjHelper(object):
             '4900023:addChannel = 1 0.003 102 4 -4',
             '4900023:addChannel = 1 0.003 102 5 -5',
             '4900023:addChannel = 1 0.003 102 6 -6',
-            # hidden spectrum: HV-only meson, fermionic dark quark, SM-coupled meson
-            '4900211:m0 = {:g}'.format(mInv),
+            # hidden spectrum: fermionic dark quark, diagonal meson, off-diagonal meson
             '4900101:m0 = {:g}'.format(mSqua),
             '4900111:m0 = {:g}'.format(mDark),
+            '4900211:m0 = {:g}'.format(mDark),
             # other HV params
             'HiddenValley:Ngauge = {:d}'.format(n_c),
             # when Fv has spin 0, qv spin fixed at 1/2
@@ -69,9 +68,11 @@ class svjHelper(object):
             'HiddenValley:nFlav = {:d}'.format(n_f),
             'HiddenValley:probVector = 0.0',
             'HiddenValley:pTminFSR = {:g}'.format(mSqua),
-            # branching - effective rinv
-            '4900111:oneChannel = 1 {:g} 0 4900211 -4900211'.format(rinv),
+            # branching - effective rinv (applies to all meson species b/c n_f > 2)
+            '4900111:oneChannel = 1 {:g} 0 52 -52'.format(rinv),
             '4900111:addChannel = 1 {:g} 91 1 -1'.format(1.0-rinv),
+            '4900211:oneChannel = 1 {:g} 0 52 -52'.format(rinv),
+            '4900211:addChannel = 1 {:g} 91 1 -1'.format(1.0-rinv),
             # decouple
             '4900001:m0 = 5000',
             '4900002:m0 = 5000',
