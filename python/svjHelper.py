@@ -54,14 +54,14 @@ class svjHelper(object):
             '4900023:addChannel = 1 0.003 102 4 -4',
             '4900023:addChannel = 1 0.003 102 5 -5',
             '4900023:addChannel = 1 0.003 102 6 -6',
-            # hidden spectrum: HV-only meson, scalar quark, SM-coupled meson
+            # hidden spectrum: HV-only meson, fermionic dark quark, SM-coupled meson
             '4900211:m0 = {:g}'.format(mInv),
             '4900101:m0 = {:g}'.format(mSqua),
             '4900111:m0 = {:g}'.format(mDark),
             # other HV params
             'HiddenValley:Ngauge = {:d}'.format(n_c),
-            'HiddenValley:spinFv = 1',
-            'HiddenValley:spinqv = 0',
+            # when Fv has spin 0, qv spin fixed at 1/2
+            'HiddenValley:spinFv = 0',
             'HiddenValley:FSR = on',
             'HiddenValley:fragment = on',
             'HiddenValley:alphaOrder = 1',
