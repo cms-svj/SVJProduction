@@ -65,24 +65,29 @@ if options.signal and hasattr(process,'generator'):
     process.generator.maxEventsToPrint = cms.untracked.int32(1)
 
 # gen filter settings
-# pythia implementation of model has 4900111/211 -> -52 52
+# pythia implementation of model has 4900111/211 -> -51 51 and 4900113/213 -> -53 53
 # this is a stand-in for direct production of a single stable dark meson in the hadronization
 # stable mesons should be produced in pairs (Z2 symmetry),
 # so require total number produced by pythia to be a multiple of 4
+# require this separately for 111/211 and 113/213 (pseudoscalar vs. vector)
 if options.signal and options.filterZ2 and hasattr(process,'ProductionFilterSequence'):
-    process.darkhadronZ2filter = cms.EDFilter("MCParticleModuloFilter",
+    process.darkhadronZ2filterPseudoscalar = cms.EDFilter("MCParticleModuloFilter",
 		moduleLabel = cms.InputTag('generator'),
-		particleID = cms.int32(52),
+		particleID = cms.int32(51),
 		multipleOf = cms.uint32(4),
 		absID = cms.bool(True),
     )
-    process.ProductionFilterSequence += process.darkhadronZ2filter
+    process.ProductionFilterSequence += process.darkhadronZ2filterPseudoscalar
+    process.darkhadronZ2filterVector = process.darkhadronZ2filterPseudoscalar.clone(
+        particleID = cms.int32(53),
+    )
+    process.ProductionFilterSequence += process.darkhadronZ2filterVector
 
 # genjet/met settings - treat DM stand-ins as invisible
 _particles = ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandidatesForMET","genParticlesForMETAllVisible"]
 for _prod in _particles:
     if hasattr(process,_prod):
-        getattr(process,_prod).ignoreParticleIDs.append(52)
+        getattr(process,_prod).ignoreParticleIDs.extend([51,52,53])
 if hasattr(process,'recoGenJets') and hasattr(process,'recoAllGenJetsNoNu'):
     process.recoGenJets += process.recoAllGenJetsNoNu
 if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNoNu'):

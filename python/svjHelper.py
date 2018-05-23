@@ -53,12 +53,19 @@ class svjHelper(object):
             '4900023:addChannel = 1 0.003 102 4 -4',
             '4900023:addChannel = 1 0.003 102 5 -5',
             '4900023:addChannel = 1 0.003 102 6 -6',
-            # hidden spectrum: fermionic dark quark, diagonal meson, off-diagonal meson, DM stand-in particle
+            # hidden spectrum:
+            # fermionic dark quark,
+            # diagonal pseudoscalar meson, off-diagonal pseudoscalar meson, DM stand-in particle,
+            # diagonal vector meson, off-diagonal vector meson, DM stand-in particle
             '4900101:m0 = {:g}'.format(mSqua),
             '4900111:m0 = {:g}'.format(mDark),
             '4900211:m0 = {:g}'.format(mDark),
-            '52:m0 = 0.0',
-            '52:isResonance = false',
+            '51:m0 = 0.0',
+            '51:isResonance = false',
+            '4900113:m0 = {:g}'.format(mDark),
+            '4900213:m0 = {:g}'.format(mDark),
+            '53:m0 = 0.0',
+            '53:isResonance = false',
             # other HV params
             'HiddenValley:Ngauge = {:d}'.format(n_c),
             # when Fv has spin 0, qv spin fixed at 1/2
@@ -68,13 +75,17 @@ class svjHelper(object):
             'HiddenValley:alphaOrder = 1',
             'HiddenValley:Lambda = {:g}'.format(lambdaHV),
             'HiddenValley:nFlav = {:d}'.format(n_f),
-            'HiddenValley:probVector = 0.0',
+            'HiddenValley:probVector = 0.75',
             'HiddenValley:pTminFSR = {:g}'.format(mSqua),
-            # branching - effective rinv (applies to all meson species b/c n_f > 2)
-            '4900111:oneChannel = 1 {:g} 0 52 -52'.format(rinv),
+            # branching - effective rinv (applies to all meson species b/c n_f >= 2)
+            '4900111:oneChannel = 1 {:g} 0 51 -51'.format(rinv),
             '4900111:addChannel = 1 {:g} 91 1 -1'.format(1.0-rinv),
-            '4900211:oneChannel = 1 {:g} 0 52 -52'.format(rinv),
+            '4900211:oneChannel = 1 {:g} 0 51 -51'.format(rinv),
             '4900211:addChannel = 1 {:g} 91 1 -1'.format(1.0-rinv),
+            '4900113:oneChannel = 1 {:g} 0 53 -53'.format(rinv),
+            '4900113:addChannel = 1 {:g} 91 1 -1'.format(1.0-rinv),
+            '4900213:oneChannel = 1 {:g} 0 53 -53'.format(rinv),
+            '4900213:addChannel = 1 {:g} 91 1 -1'.format(1.0-rinv),
             # decouple
             '4900001:m0 = 5000',
             '4900002:m0 = 5000',
@@ -88,7 +99,5 @@ class svjHelper(object):
             '4900014:m0 = 5000',
             '4900015:m0 = 5000',
             '4900016:m0 = 5000',
-            '4900113:m0 = 5000',
-            '4900213:m0 = 5000',
         ]
 
