@@ -65,14 +65,14 @@ if options.signal and hasattr(process,'generator'):
     process.generator.maxEventsToPrint = cms.untracked.int32(1)
 
 # gen filter settings
-# pythia implementation of model has 4900111 -> -4900211 4900211
-# this is a stand-in for direct production of a single 4900211 in the hadronization
-# 4900211s should be produced in pairs (Z2 symmetry),
+# pythia implementation of model has 4900111/211 -> -52 52
+# this is a stand-in for direct production of a single stable dark meson in the hadronization
+# stable mesons should be produced in pairs (Z2 symmetry),
 # so require total number produced by pythia to be a multiple of 4
 if options.signal and options.filterZ2 and hasattr(process,'ProductionFilterSequence'):
     process.darkhadronZ2filter = cms.EDFilter("MCParticleModuloFilter",
 		moduleLabel = cms.InputTag('generator'),
-		particleID = cms.int32(4900211),
+		particleID = cms.int32(52),
 		multipleOf = cms.uint32(4),
 		absID = cms.bool(True),
     )
