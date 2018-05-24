@@ -69,6 +69,9 @@ class svjHelper(object):
 
     def visibleDecay(self,type,mesonID,dmID):
         theQuarks = self.getQuarks()
+        if type=="simple":
+            theQuarks = [self.quarks[0]]
+            theQuarks[0].bf = (1.0-self.rinv)
         if type=="democratic":
             bfQuarks = (1.0-self.rinv)/float(len(theQuarks))
             for iq,q in enumerate(theQuarks):
