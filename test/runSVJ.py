@@ -50,6 +50,7 @@ if len(options.output)==0: options.output = sorted(process.outputModules_())
 if len(options.outpre)!=len(options.output):
     raise ValueError("Mismatch between # of output prefixes and # of output modules\n\tOutput modules are: "+", ".join(options.output))
 for iout,output in enumerate(options.output):
+    if len(output)==0: continue
     if not hasattr(process,output):
         raise ValueError("Unavailable output module: "+output)
     getattr(process,output).fileName = 'file:'+_outname.replace("outpre",options.outpre[iout])
