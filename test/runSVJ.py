@@ -86,15 +86,16 @@ if options.signal and options.filterZ2 and hasattr(process,'ProductionFilterSequ
     process.ProductionFilterSequence += process.darkhadronZ2filterVector
 
 # also filter out events with Zprime -> SM quarks
-process.darkquarkFilter = cms.EDFilter("MCParticleModuloFilter",
-    moduleLabel = cms.InputTag('generator'),
-    particleID = cms.int32(4900101),
-    multipleOf = cms.uint32(2),
-    absID = cms.bool(True),
-    min = cms.uint32(2),
-    status = cms.int32(23),
-)
-process.ProductionFilterSequence += process.darkquarkFilter
+if hasattr(process,'ProductionFilterSequence'):
+    process.darkquarkFilter = cms.EDFilter("MCParticleModuloFilter",
+        moduleLabel = cms.InputTag('generator'),
+        particleID = cms.int32(4900101),
+        multipleOf = cms.uint32(2),
+        absID = cms.bool(True),
+        min = cms.uint32(2),
+        status = cms.int32(23),
+    )
+    process.ProductionFilterSequence += process.darkquarkFilter
 
 # genjet/met settings - treat DM stand-ins as invisible
 _particles = ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandidatesForMET","genParticlesForMETAllVisible"]
