@@ -107,6 +107,7 @@ if hasattr(process,'recoGenJets') and hasattr(process,'recoAllGenJetsNoNu'):
 if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNoNu'):
     process.genJetParticles += process.genParticlesForJetsNoNu
     for output in options.output:
+        if len(output)==0: continue
         output_attr = getattr(process,output)
         if hasattr(output_attr,"outputCommands"):
             output_attr.outputCommands.extend([
