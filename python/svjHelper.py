@@ -124,7 +124,7 @@ class svjHelper(object):
             'HiddenValley:alphaOrder = 1',
             'HiddenValley:Lambda = {:g}'.format(self.lambdaHV),
             'HiddenValley:nFlav = {:d}'.format(self.n_f),
-            'HiddenValley:probVector = 0.75',
+            'HiddenValley:probVector = 0.0',
             'HiddenValley:pTminFSR = {:g}'.format(self.mSqua),
             # decouple
             '4900001:m0 = 5000',

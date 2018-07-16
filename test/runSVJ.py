@@ -71,25 +71,21 @@ if options.signal and hasattr(process,'generator'):
 # this is a stand-in for direct production of a single stable dark meson in the hadronization
 # stable mesons should be produced in pairs (Z2 symmetry),
 # so require total number produced by pythia to be a multiple of 4
-# require this separately for 111/211 and 113/213 (pseudoscalar vs. vector)
+# do *not* require this separately for 111/211 and 113/213 (pseudoscalar vs. vector)
 if options.signal and options.filterZ2 and hasattr(process,'ProductionFilterSequence'):
-    process.darkhadronZ2filterPseudoscalar = cms.EDFilter("MCParticleModuloFilter",
+    process.darkhadronZ2filter = cms.EDFilter("MCParticleModuloFilter",
 		moduleLabel = cms.InputTag('generator'),
-		particleID = cms.int32(51),
+		particleIDs = cms.vint32(51,53),
 		multipleOf = cms.uint32(4),
 		absID = cms.bool(True),
     )
-    process.ProductionFilterSequence += process.darkhadronZ2filterPseudoscalar
-    process.darkhadronZ2filterVector = process.darkhadronZ2filterPseudoscalar.clone(
-        particleID = cms.int32(53),
-    )
-    process.ProductionFilterSequence += process.darkhadronZ2filterVector
+    process.ProductionFilterSequence += process.darkhadronZ2filter
 
 # also filter out events with Zprime -> SM quarks
 if hasattr(process,'ProductionFilterSequence'):
     process.darkquarkFilter = cms.EDFilter("MCParticleModuloFilter",
         moduleLabel = cms.InputTag('generator'),
-        particleID = cms.int32(4900101),
+        particleIDs = cms.vint32(4900101),
         multipleOf = cms.uint32(2),
         absID = cms.bool(True),
         min = cms.uint32(2),
