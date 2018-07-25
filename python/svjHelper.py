@@ -7,6 +7,7 @@ class quark(object):
         self.massrun = mass
         self.bf = 1
         self.on = True
+        self.active = True # for running nf
 
     def __repr__(self):
         return str(self.id)+": m = "+str(self.mass)+", mr = "+str(self.massrun)+", on = "+str(self.on)+", bf = "+str(self.bf)
@@ -61,11 +62,15 @@ class quarklist(object):
         self.scale = scale
         # mask quarks above scale
         for q in self.qlist:
-            if scale is None or q.mass < scale: q.on = True
+            # for decays
+            if scale is None or 2*q.mass < scale: q.on = True
             else: q.on = False
+            # for nf running
+            if scale is None or q.mass < scale: q.active = True
+            else: q.active = False
         # compute running masses
         if scale is not None:
-            qtmp = self.get()
+            qtmp = self.get(active=True)
             nf = len(qtmp)
             for iq,q in enumerate(qtmp):
                 q.massrun = self.runner.run(q,iq,scale,nf)
@@ -77,8 +82,8 @@ class quarklist(object):
     def reset(self):
         self.set(None)
 
-    def get(self):
-        return [q for q in self.qlist if q.on]
+    def get(self,active=False):
+        return [q for q in self.qlist if (q.active if active else q.on)]
 
 class svjHelper(object):
     def __init__(self):
@@ -150,7 +155,7 @@ class svjHelper(object):
                 q.bf = (1.0-self.rinv)*(q.massrun**2)/denom
         else:
             raise ValueError("unknown visible decay type: "+type)
-        lines = ['{:d}:addChannel = 1 {:g} 91 {:d} -{:d}'.format(mesonID,q.bf,q.id,q.id) for q in theQuarks]
+        lines = ['{:d}:addChannel = 1 {:g} 91 {:d} -{:d}'.format(mesonID,q.bf,q.id,q.id) for q in theQuarks if q.bf>0]
         return lines
 
     def getPythiaSettings(self):
