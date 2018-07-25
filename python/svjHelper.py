@@ -4,19 +4,87 @@ class quark(object):
     def __init__(self,id,mass):
         self.id = id
         self.mass = mass
+        self.massrun = mass
         self.bf = 1
+        self.on = True
+
+    def __repr__(self):
+        return str(self.id)+": m = "+str(self.mass)+", mr = "+str(self.massrun)+", on = "+str(self.on)+", bf = "+str(self.bf)
+
+# follows Ellis, Stirling, Webber calculations
+class massRunner(object):
+    def __init__(self):
+        # QCD scale in GeV
+        self.Lambda = 0.218
+
+    # RG terms, assuming nc = 3 (QCD)
+    def c(self): return 1./math.pi
+    def cp(self,nf): return (303.-10.*nf)/(72.*math.pi)
+    def b(self,nf): return (33.-2.*nf)/(12.*math.pi)
+    def bp(self,nf): return (153.-19.*nf)/(2.*math.pi*(33.-2.*nf))
+    def alphaS(self,Q,nf): return 1./(self.b(nf)*math.log(Q**2/self.Lambda**2))
+
+    # derived terms
+    def cb(self,nf): return 12./(33.-2.*nf)
+    def one_c_cp_bp_b(self,nf): return 1.+self.cb(nf)*(self.cp(nf)-self.bp(nf))
+
+    # constant of normalization
+    def mhat(self,mq,nfq):
+        return mq/math.pow(self.alphaS(mq,nfq),self.cb(nfq))/self.one_c_cp_bp_b(nfq)
+
+    # mass formula
+    def m(self,mq,nfq,Q,nf):
+        # temporary hack: exclude quarks w/ mq < Lambda
+        alphaq = self.alphaS(mq,nfq)
+        if alphaq < 0: return 0
+        else: return self.mhat(mq,nfq)*math.pow(self.alphaS(Q,nf),self.cb(nf))*self.one_c_cp_bp_b(nf)
+
+    # operation
+    def run(self,quark,nfq,scale,nf):
+        # run to specified scale and nf
+        return self.m(quark.mass,nfq,scale,nf)
+
+class quarklist(object):
+    def __init__(self):
+        # mass-ordered
+        self.qlist = [
+            quark(2,0.0023), # up
+            quark(1,0.0048), # down
+            quark(3,0.095),  # strange
+            quark(4,1.275),  # charm
+            quark(5,4.18),   # bottom
+        ]
+        self.scale = None
+        self.runner = massRunner()
+
+    def set(self,scale):
+        self.scale = scale
+        # mask quarks above scale
+        for q in self.qlist:
+            if scale is None or q.mass < scale: q.on = True
+            else: q.on = False
+        # compute running masses
+        if scale is not None:
+            qtmp = self.get()
+            nf = len(qtmp)
+            for iq,q in enumerate(qtmp):
+                q.massrun = self.runner.run(q,iq,scale,nf)
+        # or undo running
+        else:
+            for q in self.qlist:
+                q.massrun = q.mass
+
+    def reset(self):
+        self.set(None)
+
+    def get(self):
+        return [q for q in self.qlist if q.on]
 
 class svjHelper(object):
     def __init__(self):
         with open(os.path.join(os.path.expandvars('$CMSSW_BASE'),'src/SVJ/Production/test/dict_xsec_Zprime.txt'),'r') as xfile:
             self.xsecs = {int(xline.split('\t')[0]): float(xline.split('\t')[1]) for xline in xfile}
-        self.quarks = [
-            quark(1,0.0048),
-            quark(2,0.0023),
-            quark(3,0.095),
-            quark(4,1.275),
-            quark(5,4.18),
-        ]
+        self.quarks = quarklist()
 
     def setModel(self,mZprime,mDark,rinv,alpha):
         # store the basic parameters
@@ -30,6 +98,9 @@ class svjHelper(object):
         self.mMin = self.mZprime-1
         self.mMax = self.mZprime+1
         self.mSqua = self.mDark/2. # dark scalar quark mass (also used for pTminFSR)
+
+        # get limited set of quarks for decays (check mDark against quark masses, compute running)
+        self.quarks.set(mDark)
 
         # calculation of lambda to give desired alpha
         # see 1707.05326 fig2 for the equation: alpha = pi/(b * log(1 TeV / lambda)), b = 11/6*n_c - 2/6*n_f
@@ -59,27 +130,24 @@ class svjHelper(object):
         if mZprime in self.xsecs: xsec = self.xsecs[mZprime]
         return xsec
 
-    # check mDark against quark masses
-    def getQuarks(self):
-        return [q for q in self.quarks if q.mass < self.mDark]
-
     def invisibleDecay(self,mesonID,dmID):
         lines = ['{:d}:oneChannel = 1 {:g} 0 {:d} -{:d}'.format(mesonID,self.rinv,dmID,dmID)]
         return lines
 
     def visibleDecay(self,type,mesonID,dmID):
-        theQuarks = self.getQuarks()
+        theQuarks = self.quarks.get()
         if type=="simple":
-            theQuarks = [self.quarks[0]]
+            # just pick down quarks
+            theQuarks = [q for q in theQuarks if q.id==1]
             theQuarks[0].bf = (1.0-self.rinv)
-        if type=="democratic":
+        elif type=="democratic":
             bfQuarks = (1.0-self.rinv)/float(len(theQuarks))
             for iq,q in enumerate(theQuarks):
                 theQuarks[iq].bf = bfQuarks
         elif type=="massInsertion":
-            denom = sum([q.mass**2 for q in theQuarks])
-            for iq,q in enumerate(theQuarks):
-                theQuarks[iq].bf = (1.0-self.rinv)*(q.mass**2)/denom
+            denom = sum([q.massrun**2 for q in theQuarks])
+            for q in theQuarks:
+                q.bf = (1.0-self.rinv)*(q.massrun**2)/denom
         else:
             raise ValueError("unknown visible decay type: "+type)
         lines = ['{:d}:addChannel = 1 {:g} 91 {:d} -{:d}'.format(mesonID,q.bf,q.id,q.id) for q in theQuarks]
