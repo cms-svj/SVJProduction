@@ -149,14 +149,13 @@ class jobSubmitterSVJ(jobSubmitter):
                 # get real part number
                 iActualJob = iJob+self.firstPart
 
-                iJobName = injob.makeName(iActualJob)
-                if (self.skipParts=="auto" and iJobName not in infiles) or (type(self.skipParts)==set and iActualJob in self.skipParts):
+                if (self.skipParts=="auto" and injob.makeName(iActualJob) not in infiles) or (type(self.skipParts)==set and iActualJob in self.skipParts):
                     if self.verbose: print "  skipping part "+str(iActualJob)
                     continue
 
                 if self.actualEvents:
                     from ROOT import TFile,TTree
-                    iFile = TFile.Open(self.redir+self.indir+"/"+iJobName+".root")
+                    iFile = TFile.Open(self.redir+self.indir+"/"+injob.makeName(iActualJob)+".root")
                     iTree = iFile.Get("Events")
                     job.actualEvents += iTree.GetEntries()
 
