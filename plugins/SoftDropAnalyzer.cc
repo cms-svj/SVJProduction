@@ -27,6 +27,7 @@
 #include <memory>
 #include <cmath>
 #include <iostream>
+#include <numeric>
 using std::vector;
 // Stuff to sort the two part_DH lists the same way
 template <typename TLorentzVector, typename Compare>
