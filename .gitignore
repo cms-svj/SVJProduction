@@ -36,3 +36,10 @@
 
 # python kibble
 __init__.py
+
+# text files
+*.log
+*.stdout
+*.stderr
+*.condor
+

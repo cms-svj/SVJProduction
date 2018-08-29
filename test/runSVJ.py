@@ -24,9 +24,10 @@ options.register("dump", False, VarParsing.multiplicity.singleton, VarParsing.va
 options.parseArguments()
 
 _helper = svjHelper()
+_helper.setModel(options.mZprime,options.mDark,options.rinv,options.alpha)
 
 # output name definition
-_outname = _helper.getOutName(options.mZprime,options.mDark,options.rinv,options.alpha,options.maxEvents,part=options.part,signal=options.signal)
+_outname = _helper.getOutName(options.maxEvents,part=options.part,signal=options.signal)
 _outname += ".root"
 
 _inname = ""
@@ -49,6 +50,7 @@ if len(options.output)==0: options.output = sorted(process.outputModules_())
 if len(options.outpre)!=len(options.output):
     raise ValueError("Mismatch between # of output prefixes and # of output modules\n\tOutput modules are: "+", ".join(options.output))
 for iout,output in enumerate(options.output):
+    if len(output)==0: continue
     if not hasattr(process,output):
         raise ValueError("Unavailable output module: "+output)
     getattr(process,output).fileName = 'file:'+_outname.replace("outpre",options.outpre[iout])
@@ -60,34 +62,48 @@ randHelper.resetSeeds(options.maxEvents+options.part)
 
 # generator settings
 if options.signal and hasattr(process,'generator'):
-    process.generator.crossSection = cms.untracked.double(_helper.getPythiaXsec(options.mZprime))
-    process.generator.PythiaParameters.processParameters = cms.vstring(_helper.getPythiaSettings(options.mZprime,options.mDark,options.rinv,options.alpha))
+    process.generator.crossSection = cms.untracked.double(_helper.xsec)
+    process.generator.PythiaParameters.processParameters = cms.vstring(_helper.getPythiaSettings())
     process.generator.maxEventsToPrint = cms.untracked.int32(1)
 
 # gen filter settings
-# pythia implementation of model has 4900111 -> -4900211 4900211
-# this is a stand-in for direct production of a single 4900211 in the hadronization
-# 4900211s should be produced in pairs (Z2 symmetry),
+# pythia implementation of model has 4900111/211 -> -51 51 and 4900113/213 -> -53 53
+# this is a stand-in for direct production of a single stable dark meson in the hadronization
+# stable mesons should be produced in pairs (Z2 symmetry),
 # so require total number produced by pythia to be a multiple of 4
+# do *not* require this separately for 111/211 and 113/213 (pseudoscalar vs. vector)
 if options.signal and options.filterZ2 and hasattr(process,'ProductionFilterSequence'):
     process.darkhadronZ2filter = cms.EDFilter("MCParticleModuloFilter",
 		moduleLabel = cms.InputTag('generator'),
-		particleID = cms.int32(4900211),
+		particleIDs = cms.vint32(51,53),
 		multipleOf = cms.uint32(4),
 		absID = cms.bool(True),
     )
     process.ProductionFilterSequence += process.darkhadronZ2filter
 
-# genjet/met settings - treat HV mesons as invisible
+# also filter out events with Zprime -> SM quarks
+if hasattr(process,'ProductionFilterSequence'):
+    process.darkquarkFilter = cms.EDFilter("MCParticleModuloFilter",
+        moduleLabel = cms.InputTag('generator'),
+        particleIDs = cms.vint32(4900101),
+        multipleOf = cms.uint32(2),
+        absID = cms.bool(True),
+        min = cms.uint32(2),
+        status = cms.int32(23),
+    )
+    process.ProductionFilterSequence += process.darkquarkFilter
+
+# genjet/met settings - treat DM stand-ins as invisible
 _particles = ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandidatesForMET","genParticlesForMETAllVisible"]
 for _prod in _particles:
     if hasattr(process,_prod):
-        getattr(process,_prod).ignoreParticleIDs.append(4900211)
+        getattr(process,_prod).ignoreParticleIDs.extend([51,52,53])
 if hasattr(process,'recoGenJets') and hasattr(process,'recoAllGenJetsNoNu'):
     process.recoGenJets += process.recoAllGenJetsNoNu
 if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNoNu'):
     process.genJetParticles += process.genParticlesForJetsNoNu
     for output in options.output:
+        if len(output)==0: continue
         output_attr = getattr(process,output)
         if hasattr(output_attr,"outputCommands"):
             output_attr.outputCommands.extend([
@@ -99,8 +115,11 @@ if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNo
 _pruned = ["prunedGenParticlesWithStatusOne","prunedGenParticles"]
 for _prod in _pruned:
     if hasattr(process,_prod):
-        # keep HV particles
-        getattr(process,_prod).select.append("keep (4900001 <= abs(pdgId) <= 4900991 )")
+        # keep HV & DM particles
+        getattr(process,_prod).select.extend([
+            "keep (4900001 <= abs(pdgId) <= 4900991 )",
+            "keep (51 <= abs(pdgId) <= 53)",
+        ])
 
 # multithreading options
 if options.threads>0:

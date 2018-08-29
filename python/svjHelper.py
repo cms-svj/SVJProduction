@@ -1,51 +1,176 @@
 import os, math
 
+class quark(object):
+    def __init__(self,id,mass):
+        self.id = id
+        self.mass = mass
+        self.massrun = mass
+        self.bf = 1
+        self.on = True
+        self.active = True # for running nf
+
+    def __repr__(self):
+        return str(self.id)+": m = "+str(self.mass)+", mr = "+str(self.massrun)+", on = "+str(self.on)+", bf = "+str(self.bf)
+
+# follows Ellis, Stirling, Webber calculations
+class massRunner(object):
+    def __init__(self):
+        # QCD scale in GeV
+        self.Lambda = 0.218
+
+    # RG terms, assuming nc = 3 (QCD)
+    def c(self): return 1./math.pi
+    def cp(self,nf): return (303.-10.*nf)/(72.*math.pi)
+    def b(self,nf): return (33.-2.*nf)/(12.*math.pi)
+    def bp(self,nf): return (153.-19.*nf)/(2.*math.pi*(33.-2.*nf))
+    def alphaS(self,Q,nf): return 1./(self.b(nf)*math.log(Q**2/self.Lambda**2))
+
+    # derived terms
+    def cb(self,nf): return 12./(33.-2.*nf)
+    def one_c_cp_bp_b(self,nf): return 1.+self.cb(nf)*(self.cp(nf)-self.bp(nf))
+
+    # constant of normalization
+    def mhat(self,mq,nfq):
+        return mq/math.pow(self.alphaS(mq,nfq),self.cb(nfq))/self.one_c_cp_bp_b(nfq)
+
+    # mass formula
+    def m(self,mq,nfq,Q,nf):
+        # temporary hack: exclude quarks w/ mq < Lambda
+        alphaq = self.alphaS(mq,nfq)
+        if alphaq < 0: return 0
+        else: return self.mhat(mq,nfq)*math.pow(self.alphaS(Q,nf),self.cb(nf))*self.one_c_cp_bp_b(nf)
+
+    # operation
+    def run(self,quark,nfq,scale,nf):
+        # run to specified scale and nf
+        return self.m(quark.mass,nfq,scale,nf)
+
+class quarklist(object):
+    def __init__(self):
+        # mass-ordered
+        self.qlist = [
+            quark(2,0.0023), # up
+            quark(1,0.0048), # down
+            quark(3,0.095),  # strange
+            quark(4,1.275),  # charm
+            quark(5,4.18),   # bottom
+        ]
+        self.scale = None
+        self.runner = massRunner()
+
+    def set(self,scale):
+        self.scale = scale
+        # mask quarks above scale
+        for q in self.qlist:
+            # for decays
+            if scale is None or 2*q.mass < scale: q.on = True
+            else: q.on = False
+            # for nf running
+            if scale is None or q.mass < scale: q.active = True
+            else: q.active = False
+        # compute running masses
+        if scale is not None:
+            qtmp = self.get(active=True)
+            nf = len(qtmp)
+            for iq,q in enumerate(qtmp):
+                q.massrun = self.runner.run(q,iq,scale,nf)
+        # or undo running
+        else:
+            for q in self.qlist:
+                q.massrun = q.mass
+
+    def reset(self):
+        self.set(None)
+
+    def get(self,active=False):
+        return [q for q in self.qlist if (q.active if active else q.on)]
+
 class svjHelper(object):
     def __init__(self):
         with open(os.path.join(os.path.expandvars('$CMSSW_BASE'),'src/SVJ/Production/test/dict_xsec_Zprime.txt'),'r') as xfile:
             self.xsecs = {int(xline.split('\t')[0]): float(xline.split('\t')[1]) for xline in xfile}
+        self.quarks = quarklist()
 
-    def getOutName(self,mZprime,mDark,rinv,alpha,events,signal=True,outpre="outpre",part=None):
+    def setModel(self,mZprime,mDark,rinv,alpha,lambdaHV=None):
+        # store the basic parameters
+        self.mZprime = mZprime
+        self.mDark = mDark
+        self.rinv = rinv
+        self.alpha = alpha
+
+        # get more parameters
+        self.xsec = self.getPythiaXsec(self.mZprime)
+        self.mMin = self.mZprime-1
+        self.mMax = self.mZprime+1
+        self.mSqua = self.mDark/2. # dark scalar quark mass (also used for pTminFSR)
+
+        # get limited set of quarks for decays (check mDark against quark masses, compute running)
+        self.quarks.set(mDark)
+
+        # calculation of lambda to give desired alpha
+        # see 1707.05326 fig2 for the equation: alpha = pi/(b * log(1 TeV / lambda)), b = 11/6*n_c - 2/6*n_f
+        # n_c = HiddenValley:Ngauge, n_f = HiddenValley:nFlav
+        # see also TimeShower.cc in Pythia8, PDG chapter 9 (Quantum chromodynamics), etc.
+        self.n_c = 2
+        self.n_f = 2
+        b0 = 11.0/6.0*self.n_c - 2.0/6.0*self.n_f
+        if lambdaHV is not None:
+            self.lambdaHV = lambdaHV
+            self.alpha = math.pi/(b0*math.log(1000/self.lambdaHV))
+        else:
+            self.lambdaHV = 1000*math.exp(-math.pi/(b0*self.alpha))
+
+    def getOutName(self,events,signal=True,outpre="outpre",part=None):
         _outname = outpre
         if signal:
-            _outname += "_mZprime-{:g}".format(mZprime)
-            _outname += "_mDark-{:g}".format(mDark)
-            _outname += "_rinv-{:g}".format(rinv)
-            _outname += "_alpha-{:g}".format(alpha)
+            _outname += "_mZprime-{:g}".format(self.mZprime)
+            _outname += "_mDark-{:g}".format(self.mDark)
+            _outname += "_rinv-{:g}".format(self.rinv)
+            _outname += "_alpha-{:g}".format(self.alpha)
         _outname += "_n-{:g}".format(events)
         if part is not None:
             _outname += "_part-{:g}".format(part)
         return _outname
 
+    # allow access to all xsecs
     def getPythiaXsec(self,mZprime):
         xsec = 1.0 
         # a function of mZprime
         if mZprime in self.xsecs: xsec = self.xsecs[mZprime]
         return xsec
 
-    def getPythiaSettings(self,mZprime,mDark,rinv,alpha):
-        mMin = mZprime-1
-        mMax = mZprime+1
-        mSqua = mDark/2. # dark scalar quark mass (also used for pTminFSR)
-        mInv = mSqua - 0.1 # dark stable hadron mass
+    def invisibleDecay(self,mesonID,dmID):
+        lines = ['{:d}:oneChannel = 1 {:g} 0 {:d} -{:d}'.format(mesonID,self.rinv,dmID,dmID)]
+        return lines
 
-        # calculation of lambda to give desired alpha
-        # see 1707.05326 fig2 for the equation: alpha = pi/(b * log(1 TeV / lambda)), b = 11/6*n_c - 2/6*n_f
-        # n_c = HiddenValley:Ngauge, n_f = HiddenValley:nFlav
-        # see also TimeShower.cc in Pythia8, PDG chapter 9 (Quantum chromodynamics), etc.
-        n_c = 2
-        n_f = 1
-        b0 = 11.0/6.0*n_c - 2.0/6.0*n_f
-        lambdaHV = 1000*math.exp(-math.pi/(b0*alpha))
-    
+    def visibleDecay(self,type,mesonID,dmID):
+        theQuarks = self.quarks.get()
+        if type=="simple":
+            # just pick down quarks
+            theQuarks = [q for q in theQuarks if q.id==1]
+            theQuarks[0].bf = (1.0-self.rinv)
+        elif type=="democratic":
+            bfQuarks = (1.0-self.rinv)/float(len(theQuarks))
+            for iq,q in enumerate(theQuarks):
+                theQuarks[iq].bf = bfQuarks
+        elif type=="massInsertion":
+            denom = sum([q.massrun**2 for q in theQuarks])
+            for q in theQuarks:
+                q.bf = (1.0-self.rinv)*(q.massrun**2)/denom
+        else:
+            raise ValueError("unknown visible decay type: "+type)
+        lines = ['{:d}:addChannel = 1 {:g} 91 {:d} -{:d}'.format(mesonID,q.bf,q.id,q.id) for q in theQuarks if q.bf>0]
+        return lines
+
+    def getPythiaSettings(self):
         # todo: include safety/sanity checks
         
-        return [
+        lines = [
             'HiddenValley:ffbar2Zv = on',
             # parameters for leptophobic Z'
-            '4900023:m0 = {:g}'.format(mZprime),
-            '4900023:mMin = {:g}'.format(mMin),
-            '4900023:mMax = {:g}'.format(mMax),
+            '4900023:m0 = {:g}'.format(self.mZprime),
+            '4900023:mMin = {:g}'.format(self.mMin),
+            '4900023:mMax = {:g}'.format(self.mMax),
             '4900023:mWidth = 0.01',
             '4900023:oneChannel = 1 0.982 102 4900101 -4900101',
             '4900023:addChannel = 1 0.003 102 1 -1',
@@ -54,24 +179,29 @@ class svjHelper(object):
             '4900023:addChannel = 1 0.003 102 4 -4',
             '4900023:addChannel = 1 0.003 102 5 -5',
             '4900023:addChannel = 1 0.003 102 6 -6',
-            # hidden spectrum: HV-only meson, scalar quark, SM-coupled meson
-            '4900211:m0 = {:g}'.format(mInv),
-            '4900101:m0 = {:g}'.format(mSqua),
-            '4900111:m0 = {:g}'.format(mDark),
+            # hidden spectrum:
+            # fermionic dark quark,
+            # diagonal pseudoscalar meson, off-diagonal pseudoscalar meson, DM stand-in particle,
+            # diagonal vector meson, off-diagonal vector meson, DM stand-in particle
+            '4900101:m0 = {:g}'.format(self.mSqua),
+            '4900111:m0 = {:g}'.format(self.mDark),
+            '4900211:m0 = {:g}'.format(self.mDark),
+            '51:m0 = 0.0',
+            '51:isResonance = false',
+            '4900113:m0 = {:g}'.format(self.mDark),
+            '4900213:m0 = {:g}'.format(self.mDark),
+            '53:m0 = 0.0',
+            '53:isResonance = false',
             # other HV params
-            'HiddenValley:Ngauge = {:d}'.format(n_c),
-            'HiddenValley:spinFv = 1',
-            'HiddenValley:spinqv = 0',
+            'HiddenValley:Ngauge = {:d}'.format(self.n_c),
+            # when Fv has spin 0, qv spin fixed at 1/2
+            'HiddenValley:spinFv = 0',
             'HiddenValley:FSR = on',
             'HiddenValley:fragment = on',
             'HiddenValley:alphaOrder = 1',
-            'HiddenValley:Lambda = {:g}'.format(lambdaHV),
-            'HiddenValley:nFlav = {:d}'.format(n_f),
-            'HiddenValley:probVector = 0.0',
-            'HiddenValley:pTminFSR = {:g}'.format(mSqua),
-            # branching - effective rinv
-            '4900111:oneChannel = 1 {:g} 0 4900211 -4900211'.format(rinv),
-            '4900111:addChannel = 1 {:g} 91 1 -1'.format(1.0-rinv),
+            'HiddenValley:Lambda = {:g}'.format(self.lambdaHV),
+            'HiddenValley:nFlav = {:d}'.format(self.n_f),
+            'HiddenValley:probVector = 0.75',
             # decouple
             '4900001:m0 = 5000',
             '4900002:m0 = 5000',
@@ -85,7 +215,17 @@ class svjHelper(object):
             '4900014:m0 = 5000',
             '4900015:m0 = 5000',
             '4900016:m0 = 5000',
-            '4900113:m0 = 5000',
-            '4900213:m0 = 5000',
         ]
+        # branching - effective rinv (applies to all meson species b/c n_f >= 2)
+        # pseudoscalars have mass insertion decay, vectors have democratic decay
+        lines += self.invisibleDecay(4900111,51)
+        lines += self.visibleDecay("massInsertion",4900111,51)
+        lines += self.invisibleDecay(4900211,51)
+        lines += self.visibleDecay("massInsertion",4900211,51)
+        lines += self.invisibleDecay(4900113,53)
+        lines += self.visibleDecay("democratic",4900113,53)
+        lines += self.invisibleDecay(4900213,53)
+        lines += self.visibleDecay("democratic",4900213,53)
+
+        return lines
 
