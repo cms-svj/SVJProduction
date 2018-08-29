@@ -91,7 +91,7 @@ class svjHelper(object):
             self.xsecs = {int(xline.split('\t')[0]): float(xline.split('\t')[1]) for xline in xfile}
         self.quarks = quarklist()
 
-    def setModel(self,mZprime,mDark,rinv,alpha):
+    def setModel(self,mZprime,mDark,rinv,alpha,lambdaHV=None):
         # store the basic parameters
         self.mZprime = mZprime
         self.mDark = mDark
@@ -114,7 +114,11 @@ class svjHelper(object):
         self.n_c = 2
         self.n_f = 2
         b0 = 11.0/6.0*self.n_c - 2.0/6.0*self.n_f
-        self.lambdaHV = 1000*math.exp(-math.pi/(b0*self.alpha))
+        if lambdaHV is not None:
+            self.lambdaHV = lambdaHV
+            self.alpha = math.pi/(b0*math.log(1000/self.lambdaHV))
+        else:
+            self.lambdaHV = 1000*math.exp(-math.pi/(b0*self.alpha))
 
     def getOutName(self,events,signal=True,outpre="outpre",part=None):
         _outname = outpre
