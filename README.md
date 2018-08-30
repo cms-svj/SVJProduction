@@ -6,7 +6,7 @@ All of the necessary setup (including checkout of this repo, dependencies, and C
 
 ### GEN-SIM production (2016)
 
-To make GEN or GEN-SIM samples, `CMSSW_7_1_28` is used (which includes the latest version of Pythia8, 8.226).
+To make GEN or GEN-SIM samples, `CMSSW_7_1_28` is used (which includes Pythia8.226).
 ```
 wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/setup.sh
 chmod +x setup.sh
@@ -24,6 +24,18 @@ wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/setup.sh
 chmod +x setup.sh
 ./setup.sh -c CMSSW_8_0_28
 cd CMSSW_8_0_28/src
+cmsenv
+cd SVJ/Production
+```
+
+### GEN-SIM production (2017)
+
+To make GEN or GEN-SIM samples, `CMSSW_9_3_12` is used (which includes Pythia8.230).
+```
+wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/setup.sh
+chmod +x setup.sh
+./setup.sh -c CMSSW_9_3_12
+cd CMSSW_9_3_12/src
 cmsenv
 cd SVJ/Production
 ```
@@ -72,17 +84,18 @@ Shell (in [step2.sh](./batch/step2.sh)):
 * `-p [part]`: part number
 * `-x [redir]`: xrootd redirector
 
-### Example commands (2016)
+### Example commands
 
 These examples are for generating 50,000 events with selected signal models, after profiling with 100 events.
 They assume the basic [CondorProduction](https://github.com/kpedro88/CondorProduction) setup has already been performed.
+To run for 2017 instead of 2016, replace `SVJ.Production.2016` with `SVJ.Production.2017`.
 
 <details>
 <summary>Commands:</summary>
 
 GEN-SIM:
 ```
-python submitJobs.py -p -d 	signals2 -E 1000 -N 100 --outpre step1_GEN-SIM --config SVJ.Production.2016.step1_GEN-SIM -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/GEN-SIM/ -s
+python submitJobs.py -p -d signals2 -E 1000 -N 100 --outpre step1_GEN-SIM --config SVJ.Production.2016.step1_GEN-SIM -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/GEN-SIM/ -s
 ```
 DIGI:
 ```
@@ -209,6 +222,27 @@ specifically:
 [RunIISummer15GS](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMCcampaignRunIISummer15GS),
 [RunIISummer16DR80Premix](https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmVMCcampaignRunIISummer16DR80Premix),
 [RunIISummer16MiniAODv2](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMCcampaignRunIISummer16MiniAODv2).
+
+## cmsDriver commands (2017)
+
+<details>
+<summary>Commands:</summary>
+
+GEN only:
+```
+cmsDriver.py SVJ/Production/EmptyFragment_cff --python_filename step1_GEN.py --mc --eventcontent RAWSIM --datatier GEN --conditions 93X_mc2017_realistic_v3 --beamspot Realistic25ns13TeVEarly2017Collision --step GEN --nThreads 4 --geometry DB:Extended --era Run2_2017 --fileout file:step0.root --no_exec
+```
+
+GEN-SIM:
+```
+cmsDriver.py SVJ/Production/EmptyFragment_cff --python_filename step1_GEN-SIM.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 93X_mc2017_realistic_v3 --beamspot Realistic25ns13TeVEarly2017Collision --step GEN,SIM --nThreads 4 --geometry DB:Extended --era Run2_2017 --fileout file:step0.root --no_exec
+```
+</details>
+
+
+These commands are based on the [PdmVMcCampaigns twiki](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMcCampaigns),
+specifically:
+[RunIIFall17GS](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMCcampaignRunIIFall17GS),
 
 ### Pileup input files
 
