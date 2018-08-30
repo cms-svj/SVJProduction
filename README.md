@@ -40,6 +40,20 @@ cmsenv
 cd SVJ/Production
 ```
 
+### MINIAOD production (2017)
+
+To make MINIAOD (or DIGI/RECO/AOD) samples, `CMSSW_9_4_10` is used:
+```
+wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/setup.sh
+chmod +x setup.sh
+./setup.sh -c CMSSW_9_4_10
+cd CMSSW_9_4_10/src
+cmsenv
+cd SVJ/Production
+```
+
+2016 AOD samples can also be reprocessed in this release to get "miniAOD v3" output.
+
 ## Condor submission
 
 Condor submission is supported for the LPC batch system or for the global pool via [CMS Connect](https://connect.uscms.org/).
@@ -108,6 +122,10 @@ python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyha
 MINIAOD:
 ```
 python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/RECO/ --inpre step3_RECO --outpre step4_MINIAOD --config SVJ.Production.2016.step4_MINIAOD -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/MINIAOD/ --cpus 4 -s
+```
+MINIAOD v3 (for 2016):
+```
+python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/RECO/ --inpre step3_RECO --outpre step4_MINIAOD --config SVJ.Production.2017.step4_MINIAOD_2016 -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/MINIAOD/ --cpus 4 -s
 ```
 </details>
 
@@ -237,12 +255,35 @@ GEN-SIM:
 ```
 cmsDriver.py SVJ/Production/EmptyFragment_cff --python_filename step1_GEN-SIM.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 93X_mc2017_realistic_v3 --beamspot Realistic25ns13TeVEarly2017Collision --step GEN,SIM --nThreads 4 --geometry DB:Extended --era Run2_2017 --fileout file:step0.root --no_exec
 ```
+
+DIGI:
+```
+cmsDriver.py step2 --python_filename step2_DIGI.py --mc --eventcontent PREMIXRAW --datatier GEN-SIM-RAW --conditions 94X_mc2017_realistic_v10 --step DIGIPREMIX_S2,DATAMIX,L1,DIGI2RAW,HLT:2e34v40 --nThreads 8 --datamix PreMix --era Run2_2017  --filein file:step1.root --fileout file:step2.root --pileup_input pileup.root --no_exec
+```
+
+RECO:
+```
+cmsDriver.py step3 --python_filename step3_RECO.py --mc --eventcontent AODSIM runUnscheduled --datatier AODSIM --conditions 94X_mc2017_realistic_v10 --step RAW2DIGI,RECO,EI --nThreads 8 --era Run2_2017 --filein file:step2.root --fileout file:step3.root --no_exec
+```
+
+MINIAOD:
+```
+cmsDriver.py step4 --python_filename step4_MINIAOD.py --mc --eventcontent MINIAODSIM --runUnscheduled --datatier MINIAODSIM --conditions 94X_mc2017_realistic_v14 --step PAT --nThreads 4 --era Run2_2017,run2_miniAOD_94XFall17 --filein file:step3.root --fileout file:step4.root --no_exec
+```
+
+MINIAOD v3 (for 2016):
+```
+cmsDriver.py step4 --python_filename step4_MINIAOD_2016.py --mc --eventcontent MINIAODSIM --runUnscheduled --datatier MINIAODSIM --conditions 94X_mcRun2_asymptotic_v3 --step PAT --nThreads 8 --era Run2_2016,run2_miniAOD_80XLegacy --filein file:step3.root --fileout file:step4.root --no_exec
+```
 </details>
 
 
-These commands are based on the [PdmVMcCampaigns twiki](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMcCampaigns),
+These commands are based on the [PdmVMcCampaigns twiki](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMcCampaigns) and [McM](https://cms-pdmv.cern.ch/mcm/),
 specifically:
 [RunIIFall17GS](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMCcampaignRunIIFall17GS),
+[RunIIFall17DRPremix](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMCcampaignRunIIFall17DRPremix),
+[RunIIFall17MiniAODv2](https://cms-pdmv.cern.ch/mcm/public/restapi/requests/get_setup/BTV-RunIIFall17MiniAODv2-00024),
+[RunIISummer16MiniAODv3](https://cms-pdmv.cern.ch/mcm/public/restapi/requests/get_setup/B2G-RunIISummer16MiniAODv3-00003).
 
 ### Pileup input files
 
