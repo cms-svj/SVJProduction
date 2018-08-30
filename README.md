@@ -102,30 +102,30 @@ Shell (in [step2.sh](./batch/step2.sh)):
 
 These examples are for generating 50,000 events with selected signal models, after profiling with 100 events.
 They assume the basic [CondorProduction](https://github.com/kpedro88/CondorProduction) setup has already been performed.
-To run for 2017 instead of 2016, replace `SVJ.Production.2016` with `SVJ.Production.2017`.
+To run for 2017, replace `.2016.` with `.2017.` in the argument of `--config` and `/2016/` with `/2017/` in the arguments of `--indir` and `-o`.
 
 <details>
 <summary>Commands:</summary>
 
 GEN-SIM:
 ```
-python submitJobs.py -p -d signals2 -E 1000 -N 100 --outpre step1_GEN-SIM --config SVJ.Production.2016.step1_GEN-SIM -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/GEN-SIM/ -s
+python submitJobs.py -p -d signals2 -E 1000 -N 100 --outpre step1_GEN-SIM --config SVJ.Production.2016.step1_GEN-SIM -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/2016/GEN-SIM/ -s
 ```
 DIGI:
 ```
-python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/GEN-SIM/ --inpre step1_GEN-SIM --outpre step2_DIGI --config SVJ.Production.2016.step2_DIGI -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/DIGI/ --cpus 4 --memory 5000 -s
+python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/2016/GEN-SIM/ --inpre step1_GEN-SIM --outpre step2_DIGI --config SVJ.Production.2016.step2_DIGI -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/2016/DIGI/ --cpus 4 --memory 5000 -s
 ```
 RECO:
 ```
-python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/DIGI/ --inpre step2_DIGI --outpre step3_RECO --config SVJ.Production.2016.step3_RECO -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/RECO/ --cpus 4 --memory 3000 -s
+python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/2016/DIGI/ --inpre step2_DIGI --outpre step3_RECO --config SVJ.Production.2016.step3_RECO -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/2016/RECO/ --cpus 4 --memory 3000 -s
 ```
 MINIAOD:
 ```
-python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/RECO/ --inpre step3_RECO --outpre step4_MINIAOD --config SVJ.Production.2016.step4_MINIAOD -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/MINIAOD/ --cpus 4 -s
+python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/2016/RECO/ --inpre step3_RECO --outpre step4_MINIAOD --config SVJ.Production.2016.step4_MINIAOD -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/2016/MINIAOD/ --cpus 4 -s
 ```
 MINIAOD v3 (for 2016):
 ```
-python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/RECO/ --inpre step3_RECO --outpre step4_MINIAOD --config SVJ.Production.2017.step4_MINIAOD_2016 -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/MINIAOD/ --cpus 4 -s
+python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/2016/RECO/ --inpre step3_RECO --outpre step4_MINIAOD_2016 --config SVJ.Production.2017.step4_MINIAOD_2016 -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/2017/MINIAOD/ --cpus 4 -s
 ```
 </details>
 
