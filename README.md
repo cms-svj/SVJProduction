@@ -4,7 +4,7 @@
 
 All of the necessary setup (including checkout of this repo, dependencies, and CMSSW compilation) is performed by [setup.sh](./setup.sh).
 
-### GEN-SIM production
+### GEN-SIM production (2016)
 
 To make GEN or GEN-SIM samples, `CMSSW_7_1_28` is used (which includes the latest version of Pythia8, 8.226).
 ```
@@ -16,7 +16,7 @@ cmsenv
 cd SVJ/Production
 ```
 
-### MINIAOD production
+### MINIAOD production (2016)
 
 To make MINIAOD (or DIGI/RECO/AOD) samples, `CMSSW_8_0_28` is used:
 ```
@@ -40,7 +40,7 @@ it will submit to Condor the specified number of jobs for the specified signal m
 ```
 test/lnbatch.sh myProduction
 cd myProduction
-python submitJobs.py -p -o root://cmseos.fnal.gov//store/user/YOURUSERNAME/myProduction -d signals2 -E 500 -N 20 --outpre step1_GEN-SIM --config SVJ.Production.step1_GEN-SIM -s
+python submitJobs.py -p -o root://cmseos.fnal.gov//store/user/YOURUSERNAME/myProduction -d signals2 -E 500 -N 20 --outpre step1_GEN-SIM --config SVJ.Production.2016.step1_GEN-SIM -s
 ```
 [submitJobs.py](./batch/submitJobs.py) can also:
 * count the expected number of jobs to submit (for planning purposes),
@@ -72,7 +72,7 @@ Shell (in [step2.sh](./batch/step2.sh)):
 * `-p [part]`: part number
 * `-x [redir]`: xrootd redirector
 
-### Example commands
+### Example commands (2016)
 
 These examples are for generating 50,000 events with selected signal models, after profiling with 100 events.
 They assume the basic [CondorProduction](https://github.com/kpedro88/CondorProduction) setup has already been performed.
@@ -82,19 +82,19 @@ They assume the basic [CondorProduction](https://github.com/kpedro88/CondorProdu
 
 GEN-SIM:
 ```
-python submitJobs.py -p -d signals2 -E 1000 -N 100 --outpre step1_GEN-SIM --config SVJ.Production.step1_GEN-SIM -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/GEN-SIM/ -s
+python submitJobs.py -p -d 	signals2 -E 1000 -N 100 --outpre step1_GEN-SIM --config SVJ.Production.2016.step1_GEN-SIM -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/GEN-SIM/ -s
 ```
 DIGI:
 ```
-python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/GEN-SIM/ --inpre step1_GEN-SIM --outpre step2_DIGI --config SVJ.Production.step2_DIGI -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/DIGI/ --cpus 4 --memory 5000 -s
+python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/GEN-SIM/ --inpre step1_GEN-SIM --outpre step2_DIGI --config SVJ.Production.2016.step2_DIGI -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/DIGI/ --cpus 4 --memory 5000 -s
 ```
 RECO:
 ```
-python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/DIGI/ --inpre step2_DIGI --outpre step3_RECO --config SVJ.Production.step3_RECO -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/RECO/ --cpus 4 --memory 3000 -s
+python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/DIGI/ --inpre step2_DIGI --outpre step3_RECO --config SVJ.Production.2016.step3_RECO -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/RECO/ --cpus 4 --memory 3000 -s
 ```
 MINIAOD:
 ```
-python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/RECO/ --inpre step3_RECO --outpre step4_MINIAOD --config SVJ.Production.step4_MINIAOD -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/MINIAOD/ --cpus 4 -s
+python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/RECO/ --inpre step3_RECO --outpre step4_MINIAOD --config SVJ.Production.2016.step4_MINIAOD -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/MINIAOD/ --cpus 4 -s
 ```
 </details>
 
@@ -126,7 +126,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `inpre=[str]`: prefix for input file name
 * `outpre=[list]`: list of prefixes for output file names (must be same length as list of output modules) (default = step1)
 * `output=[list]`: list of output module names (default = `sorted(process.outputModules_())`)
-* `config=[str]`: config file to customize and run (default = SVJ.Production.step1_GEN)
+* `config=[str]`: config file to customize and run (default = SVJ.Production.2016.step1_GEN)
 * `threads=[num]`: number of threads to run (default = 1)
 * `streams=[num]`: number of streams to run (default = 0 -> streams = threads)
 * `redir=[dir]`: xrootd redirector for input file
@@ -138,12 +138,12 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 To run the sample production interactively with example parameters:
 ```
 cd SVJ/Production/test
-cmsRun runSVJ.py config=SVJ.Production.step1_GEN outpre=step1 mZprime=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
+cmsRun runSVJ.py config=SVJ.Production.2016.step1_GEN outpre=step1 mZprime=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
 ```
 
 To generate background samples for GEN-level analysis:
 ```
-cmsRun runSVJ.py config=SVJ.Production.step1_GEN_QCDForPF_13TeV outpre=step1_QCD signal=0 part=1 maxEvents=10
+cmsRun runSVJ.py config=SVJ.Production.2016.step1_GEN_QCDForPF_13TeV outpre=step1_QCD signal=0 part=1 maxEvents=10
 ```
 
 The analysis code needs a newer version of CMSSW (to access newer versions of ROOT and fastjet).
@@ -171,7 +171,7 @@ cmsRun runSVJ.py config=SVJ.Production.softDropGenJets outpre=softdropgen indir=
 cmsRun runSVJ.py config=SVJ.Production.softdropanalyzer_cfg outpre=softdropana output=TFileService inpre=softdropgen mZprime=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
 ```
 
-## cmsDriver commands
+## cmsDriver commands (2016)
 
 <details>
 <summary>Commands:</summary>
@@ -222,4 +222,4 @@ The pickled file can be retrieved from EOS:
 ```
 xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.pkl
 ```
-The config [step2_DIGI.py](./python/step2_DIGI.py) will try to retrieve it automatically when it is run.
+The config [step2_DIGI.py](./python/2016/step2_DIGI.py) will try to retrieve it automatically when it is run.

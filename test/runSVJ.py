@@ -15,7 +15,7 @@ options.register("indir", "", VarParsing.multiplicity.singleton, VarParsing.varT
 options.register("inpre", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("outpre", "step1", VarParsing.multiplicity.list, VarParsing.varType.string)
 options.register("output", "", VarParsing.multiplicity.list, VarParsing.varType.string)
-options.register("config", "SVJ.Production.step1_GEN", VarParsing.multiplicity.singleton, VarParsing.varType.string)
+options.register("config", "SVJ.Production.2016.step1_GEN", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("threads", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("streams", 0, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("redir", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
