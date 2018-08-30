@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 from FWCore.ParameterSet.VarParsing import VarParsing
-import sys
+import sys, os
 from SVJ.Production.svjHelper import svjHelper
 
 options = VarParsing("analysis")
@@ -22,6 +22,14 @@ options.register("redir", "", VarParsing.multiplicity.singleton, VarParsing.varT
 options.register("tmi", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("dump", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.parseArguments()
+
+# safety checks to handle multiple years
+cmssw_version = os.getenv("CMSSW_VERSION")
+cmssw_major = int(cmssw_version.split('_')[1])
+if "2016" in options.config and not (cmssw_major==7 or cmssw_major==8):
+	raise ValueError("2016 config ("+options.config+") should not be used in non-2016 CMSSW version ("+cmssw_version+")")
+elif "2017" in options.config and not (cmssw_major==9):
+	raise ValueError("2017 config ("+options.config+") should not be used in non-2017 CMSSW version ("+cmssw_version+")")
 
 _helper = svjHelper()
 _helper.setModel(options.mZprime,options.mDark,options.rinv,options.alpha)

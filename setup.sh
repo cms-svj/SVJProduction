@@ -142,7 +142,7 @@ if [ -n "$WHICH_CMSSW" ]; then
 		fi
 	fi
 	git clone git@github.com:kpedro88/CondorProduction Condor/Production
-	git clone git@github.com:${FORK}/SVJProduction SVJ/Production -b {BRANCH}
+	git clone git@github.com:${FORK}/SVJProduction SVJ/Production -b ${BRANCH}
 	scram b -j 8
 	cd SVJ/Production/batch
 	ln -s $CMSSW_BASE/src/Condor/Production/scripts/* .
