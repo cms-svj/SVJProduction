@@ -42,7 +42,24 @@ fi
 # CMSSW release area
 # -------------------------------------------------------------------------------------
 if [ -n "$WHICH_CMSSW" ]; then
-	export SCRAM_ARCH=slc6_amd64_gcc481
+	case $WHICH_CMSSW in
+	CMSSW_7_1_*)
+		export SCRAM_ARCH=slc6_amd64_gcc481
+	;;
+	CMSSW_8_0_*)
+		export SCRAM_ARCH=slc6_amd64_gcc530
+	;;
+	CMSSW_9_3_*)
+		export SCRAM_ARCH=slc6_amd64_gcc630
+	;;
+	CMSSW_9_4_*)
+		export SCRAM_ARCH=slc6_amd64_gcc630
+	;;
+	*)
+		$ECHO "Unknown architecture for release $WHICH_CMSSW"
+		exit 1
+	;;
+	esac
 	scramv1 project CMSSW $WHICH_CMSSW
 	cd $WHICH_CMSSW
 	CUR_DIR=`pwd`
