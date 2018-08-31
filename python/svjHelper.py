@@ -155,6 +155,8 @@ class svjHelper(object):
                 theQuarks[iq].bf = bfQuarks
         elif type=="massInsertion":
             denom = sum([q.massrun**2 for q in theQuarks])
+            # hack for really low masses
+            if denom==0.: return self.visibleDecay("democratic",mesonID,dmID)
             for q in theQuarks:
                 q.bf = (1.0-self.rinv)*(q.massrun**2)/denom
         else:
