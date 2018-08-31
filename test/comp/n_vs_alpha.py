@@ -3,7 +3,7 @@ from ROOT import *
 from numpy import array
 from multiprocessing import Pool
 
-mZprime = 1000
+mZprime = 3000
 dir = "root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/TestProductionV9/"
 ftemp = "step1_GEN_mZprime-"+str(mZprime)+"_mDark-{}_rinv-0.3_alpha-{}_n-10000_part-1.root"
 
@@ -27,9 +27,11 @@ def getAlphaInfo(optlist):
 alphas = ["0.05","0.15","0.1","0.25","0.2","0.35","0.3","0.45","0.4","0.55","0.5","0.65","0.6","0.75","0.7","0.85","0.8","0.95","0.9","1"]
 
 graphs = []
-for im,mDark in enumerate(["5","10","20","50","75","100"]):
+for mDark,alphamin in zip(["1","5","10","20","50","75","100"],[0.15,0.2,0.225,0.275,0.35,0.4,0.45]):
     # transform for map input
-    alphas_input = [[i,mDark] for i in alphas]
+    alphas_input = alphas[:]
+    alphas_input.extend([str(round(alphamin+x/200.,3)) for x in range(0,21,1)])
+    alphas_input = [[i,mDark] for i in sorted(set(alphas_input))]
     p = Pool(5)
     result = p.map(getAlphaInfo,alphas_input)
 

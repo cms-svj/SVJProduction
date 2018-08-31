@@ -22,12 +22,12 @@ def alpha_fn(x):
 alphamin = 0.05
 alphamax = 1.05
 
-mZprime = 1000
+mZprime = 3000
 file = TFile.Open("n_vs_alpha_mDark_mZprime-"+str(mZprime)+".root")
 
 graphs = []
-colors = [kBlack, kBlue, kMagenta+2, kRed, kCyan+2, kMagenta]
-masses = ["5","10","20","50","75","100"]
+colors = [kPink-9, kBlack, kBlue, kMagenta+2, kRed, kCyan+2, kMagenta]
+masses = ["1","5","10","20","50","75","100"]
 ymax = 0.0
 leg = TLegend(0.75,0.525,0.9,0.825)
 leg.SetFillColor(0)
