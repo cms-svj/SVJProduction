@@ -7,12 +7,17 @@ class NullIO(StringIO):
     def write(self, txt):
         pass
 
+if len(sys.argv)>0:
+    fname = sys.argv[1]
+else:
+    raise ValueError("Please specify input filename")
+
 # suppress pointless printouts
 sys.stdout = NullIO()
-files = filesFromList("Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.txt")
+files = filesFromList(fname)
 sys.stdout = sys.__stdout__
 
 # store list
-pickle.dump( files[0], open("Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.pkl","wb") )
+pickle.dump( files[0], open(fname.replace(".txt",".pkl"),"wb") )
 
 

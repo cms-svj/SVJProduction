@@ -10,6 +10,8 @@ usage() {
 	$ECHO
 	$ECHO "Options:"
 	$ECHO "-c <RELEASE>  \tCMSSW release to install (e.g. CMSSW_7_1_26)"
+	$ECHO "-f [fork]     \tclone from specified fork (default = kpedro88)"
+	$ECHO "-b [branch]   \tclone specified branch (default = master)"
 	$ECHO "-p            \tinstall Pythia 8.226"
 	$ECHO "-a            \tinstall analysis code"
 	$ECHO "-h            \tprint this message and exit"
@@ -18,12 +20,18 @@ usage() {
 
 CUR_DIR=`pwd`
 WHICH_CMSSW=""
+FORK=kpedro88
+BRANCH=master
 INSTALL_PYTHIA=""
 INSTALL_ANALYSIS=""
 #check arguments
-while getopts "c:pah" opt; do
+while getopts "c:f:b:pah" opt; do
 	case "$opt" in
 	c) WHICH_CMSSW=$OPTARG
+	;;
+	f) FORK=$OPTARG
+	;;
+	b) BRANCH=$OPTARG
 	;;
 	p) INSTALL_PYTHIA=yes
 	;;
@@ -42,7 +50,24 @@ fi
 # CMSSW release area
 # -------------------------------------------------------------------------------------
 if [ -n "$WHICH_CMSSW" ]; then
-	export SCRAM_ARCH=slc6_amd64_gcc481
+	case $WHICH_CMSSW in
+	CMSSW_7_1_*)
+		export SCRAM_ARCH=slc6_amd64_gcc481
+	;;
+	CMSSW_8_0_*)
+		export SCRAM_ARCH=slc6_amd64_gcc530
+	;;
+	CMSSW_9_3_*)
+		export SCRAM_ARCH=slc6_amd64_gcc630
+	;;
+	CMSSW_9_4_*)
+		export SCRAM_ARCH=slc6_amd64_gcc630
+	;;
+	*)
+		$ECHO "Unknown architecture for release $WHICH_CMSSW"
+		exit 1
+	;;
+	esac
 	scramv1 project CMSSW $WHICH_CMSSW
 	cd $WHICH_CMSSW
 	CUR_DIR=`pwd`
@@ -117,7 +142,7 @@ if [ -n "$WHICH_CMSSW" ]; then
 		fi
 	fi
 	git clone git@github.com:kpedro88/CondorProduction Condor/Production
-	git clone git@github.com:kpedro88/SVJProduction SVJ/Production
+	git clone git@github.com:${FORK}/SVJProduction SVJ/Production -b ${BRANCH}
 	scram b -j 8
 	cd SVJ/Production/batch
 	ln -s $CMSSW_BASE/src/Condor/Production/scripts/* .
