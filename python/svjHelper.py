@@ -90,13 +90,45 @@ class svjHelper(object):
         with open(os.path.join(os.path.expandvars('$CMSSW_BASE'),'src/SVJ/Production/test/dict_xsec_Zprime.txt'),'r') as xfile:
             self.xsecs = {int(xline.split('\t')[0]): float(xline.split('\t')[1]) for xline in xfile}
         self.quarks = quarklist()
+        self.alphaName = ""
+        # parameters for lambda/alpha calculations
+        self.n_c = 2
+        self.n_f = 2
+        self.b0 = 11.0/6.0*self.n_c - 2.0/6.0*self.n_f
 
+    def setAlpha(self,alpha):
+        self.alphaName = alpha
+        # "empirical" formula
+        lambda_peak = 3.2*math.pow(self.mDark,0.8)
+        if self.alphaName=="peak":
+            self.alpha = self.calcAlpha(lambda_peak)
+        elif self.alphaName=="high":
+            self.alpha = 1.5*self.calcAlpha(lambda_peak)
+        elif self.alphaName=="low":
+            self.alpha = 0.5*self.calcAlpha(lambda_peak)
+        else:
+            raise ValueError("unknown alpha request: "+alpha)
+
+    # calculation of lambda to give desired alpha
+    # see 1707.05326 fig2 for the equation: alpha = pi/(b * log(1 TeV / lambda)), b = 11/6*n_c - 2/6*n_f
+    # n_c = HiddenValley:Ngauge, n_f = HiddenValley:nFlav
+    # see also TimeShower.cc in Pythia8, PDG chapter 9 (Quantum chromodynamics), etc.
+
+    def calcAlpha(self,lambdaHV):
+        return math.pi/(self.b0*math.log(1000/lambdaHV))
+
+    def calcLambda(self,alpha):
+        return 1000*math.exp(-math.pi/(self.b0*alpha))
+
+    # has to be "lambdaHV" because "lambda" is a keyword
     def setModel(self,mZprime,mDark,rinv,alpha,lambdaHV=None):
         # store the basic parameters
         self.mZprime = mZprime
         self.mDark = mDark
         self.rinv = rinv
-        self.alpha = alpha
+        if alpha[0].isalpha(): self.setAlpha(alpha)
+        else: self.alpha = float(alpha)
+        print self.alpha
 
         # get more parameters
         self.xsec = self.getPythiaXsec(self.mZprime)
@@ -107,18 +139,11 @@ class svjHelper(object):
         # get limited set of quarks for decays (check mDark against quark masses, compute running)
         self.quarks.set(mDark)
 
-        # calculation of lambda to give desired alpha
-        # see 1707.05326 fig2 for the equation: alpha = pi/(b * log(1 TeV / lambda)), b = 11/6*n_c - 2/6*n_f
-        # n_c = HiddenValley:Ngauge, n_f = HiddenValley:nFlav
-        # see also TimeShower.cc in Pythia8, PDG chapter 9 (Quantum chromodynamics), etc.
-        self.n_c = 2
-        self.n_f = 2
-        b0 = 11.0/6.0*self.n_c - 2.0/6.0*self.n_f
         if lambdaHV is not None:
             self.lambdaHV = lambdaHV
-            self.alpha = math.pi/(b0*math.log(1000/self.lambdaHV))
+            self.alpha = self.calcAlpha(self.lambdaHV)
         else:
-            self.lambdaHV = 1000*math.exp(-math.pi/(b0*self.alpha))
+            self.lambdaHV = self.calcLambda(self.alpha)
 
     def getOutName(self,events,signal=True,outpre="outpre",part=None):
         _outname = outpre
@@ -126,7 +151,8 @@ class svjHelper(object):
             _outname += "_mZprime-{:g}".format(self.mZprime)
             _outname += "_mDark-{:g}".format(self.mDark)
             _outname += "_rinv-{:g}".format(self.rinv)
-            _outname += "_alpha-{:g}".format(self.alpha)
+            if len(self.alphaName)>0: _outname += "_alpha-"+(self.alphaName)
+            else: _outname += "_alpha-{:g}".format(self.alpha)
         _outname += "_n-{:g}".format(events)
         if part is not None:
             _outname += "_part-{:g}".format(part)

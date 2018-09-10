@@ -8,7 +8,7 @@ options.register("signal", True, VarParsing.multiplicity.singleton, VarParsing.v
 options.register("mZprime", 2000.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("mDark", 20.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("rinv", 0.3, VarParsing.multiplicity.singleton, VarParsing.varType.float)
-options.register("alpha", 0.1, VarParsing.multiplicity.singleton, VarParsing.varType.float)
+options.register("alpha", "0.1", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("filterZ2", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("part", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("indir", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
