@@ -16,6 +16,9 @@ class jobSubmitterSVJ(jobSubmitter):
         super(jobSubmitterSVJ,self).addDefaultOptions(parser)
         parser.add_option("-y", "--getpy", dest="getpy", default=False, action="store_true", help="make python file list for ntuple production (default = %default)")
         parser.add_option("--actualEvents", dest="actualEvents", default=False, action="store_true", help="count actual number of events from each input file (for python file list) (default = %default)")
+        self.modes.update({
+            "getpy": 1,
+        })
 
     def addExtraOptions(self,parser):
         super(jobSubmitterSVJ,self).addExtraOptions(parser)
@@ -40,10 +43,7 @@ class jobSubmitterSVJ(jobSubmitter):
             self.doPy(job)
         
     def checkDefaultOptions(self,options,parser):
-        if (options.submit + options.count + options.missing + options.getpy)>1:
-            parser.error("Options -c, -s, -m, -g are exclusive, pick one!")
-        if (options.submit + options.count + options.missing + options.prepare + options.getpy)==0:
-            parser.error("No operation mode selected! (-c, -p, -s, -m, -g)")
+        super(jobSubmitterSVJ,self).checkDefaultOptions(options,parser)
         if (options.actualEvents and not options.getpy):
             parser.error("Option --actualEvents only allowed for -y mode")
         if (options.actualEvents and options.skipParts!="auto"):
