@@ -193,8 +193,6 @@ class jobSubmitterSVJ(jobSubmitter):
                     counter += 1
 
         with open(self.getpy_weights,'a') as wfile:
-            # this is somewhat ugly
-            mZprime = int(job.name.split('_')[2].split('-')[-1])
             nEvents = job.actualEvents if self.actualEvents else int(self.maxEvents)*len(job.nums)
-            line = '        MCSample("'+job.name+'", "", "", "Constant", '+str(self.helper.getPythiaXsec(mZprime))+", "+str(nEvents)+'),';
+            line = '        MCSample("'+job.name+'", "", "", "Constant", '+str(nEvents)+'),';
             wfile.write(line+"\n")
