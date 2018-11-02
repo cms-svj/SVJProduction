@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: SVJ/Production/EmptyFragment_cff --python_filename step1_GEN.py --mc --eventcontent RAWSIM --datatier GEN --conditions 93X_mc2017_realistic_v3 --beamspot Realistic25ns13TeVEarly2017Collision --step GEN --nThreads 4 --geometry DB:Extended --era Run2_2017 --fileout file:step0.root --no_exec
+# with command line options: SVJ/Production/2017/EmptyFragment_cff --python_filename step1_GEN.py --mc --eventcontent RAWSIM --datatier GEN --conditions 93X_mc2017_realistic_v3 --beamspot Realistic25ns13TeVEarly2017Collision --step GEN --nThreads 4 --geometry DB:Extended --era Run2_2017 --fileout file:step0.root --no_exec
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
@@ -36,7 +36,7 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('SVJ/Production/EmptyFragment_cff nevts:1'),
+    annotation = cms.untracked.string('SVJ/Production/2017/EmptyFragment_cff nevts:1'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )
@@ -69,14 +69,22 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '93X_mc2017_realistic_v3', '')
 process.generator = cms.EDFilter("Pythia8GeneratorFilter",
     PythiaParameters = cms.PSet(
         parameterSets = cms.vstring('pythia8CommonSettings', 
-            'pythia8CUEP8M1Settings', 
+            'pythia8CP2Settings', 
             'processParameters'),
         processParameters = cms.vstring(),
-        pythia8CUEP8M1Settings = cms.vstring('Tune:pp 14', 
+        pythia8CP2Settings = cms.vstring('Tune:pp 14', 
             'Tune:ee 7', 
-            'MultipartonInteractions:pT0Ref=2.4024', 
-            'MultipartonInteractions:ecmPow=0.25208', 
-            'MultipartonInteractions:expPow=1.6'),
+            'MultipartonInteractions:ecmPow=0.1391', 
+            'PDF:pSet=17', 
+            'MultipartonInteractions:bProfile=2', 
+            'MultipartonInteractions:pT0Ref=2.306', 
+            'MultipartonInteractions:coreRadius=0.3755', 
+            'MultipartonInteractions:coreFraction=0.3269', 
+            'ColourReconnection:range=2.323', 
+            'SigmaTotal:zeroAXB=off', 
+            'SpaceShower:rapidityOrder=off', 
+            'SpaceShower:alphaSvalue=0.13', 
+            'TimeShower:alphaSvalue=0.13'),
         pythia8CommonSettings = cms.vstring('Tune:preferLHAPDF = 2', 
             'Main:timesAllowErrors = 10000', 
             'Check:epTolErr = 0.01', 
