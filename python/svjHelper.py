@@ -126,9 +126,8 @@ class svjHelper(object):
         self.mZprime = mZprime
         self.mDark = mDark
         self.rinv = rinv
-        if alpha[0].isalpha(): self.setAlpha(alpha)
+        if isinstance(alpha,str) and alpha[0].isalpha(): self.setAlpha(alpha)
         else: self.alpha = float(alpha)
-        print self.alpha
 
         # get more parameters
         self.xsec = self.getPythiaXsec(self.mZprime)
