@@ -200,6 +200,7 @@ class svjHelper(object):
             '4900023:mMax = {:g}'.format(self.mMax),
             '4900023:mWidth = 0.01',
             '4900023:oneChannel = 1 0.982 102 4900101 -4900101',
+            # SM quark couplings needed to produce Zprime from pp initial state
             '4900023:addChannel = 1 0.003 102 1 -1',
             '4900023:addChannel = 1 0.003 102 2 -2',
             '4900023:addChannel = 1 0.003 102 3 -3',
