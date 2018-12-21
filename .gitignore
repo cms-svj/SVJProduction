@@ -3,6 +3,7 @@
 *.png
 *.pdf
 *.pyc
+*.tar.gz
 
 # Compiled Object files
 *.slo
@@ -42,4 +43,4 @@ __init__.py
 *.stdout
 *.stderr
 *.condor
-
+/batch/jobExecCondor_*.jdl
