@@ -138,6 +138,9 @@ if [ -n "$WHICH_CMSSW" ]; then
 	eval `scramv1 runtime -sh`
 	cd src
 	git cms-init
+	if [[ $WHICH_CMSSW = CMSSW_9_4_* ]]; then
+		git cms-merge-topic -u kpedro88:debugEventSetupMultithreaded9410
+	fi
 
 	if [ -n "$INSTALL_ANALYSIS" ]; then
 		git clone git@github.com:kpedro88/Analysis -b SVJ2017-gen

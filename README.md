@@ -119,6 +119,10 @@ RECO:
 ```
 python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/2016/DIGI/ --inpre step2_DIGI --outpre step3_RECO --config SVJ.Production.2016.step3_RECO -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/2016/RECO/ --cpus 4 --memory 3000 -s
 ```
+DIGI-RECO: (alternative, only for 2017)
+```
+python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/2016/GEN-SIM/ --inpre step1_GEN-SIM --outpre step3_DIGI-RECO --config SVJ.Production.2016.step3_DIGI-RECO -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/2016/RECO/ --cpus 4 --memory 3000 -s
+```
 MINIAOD:
 ```
 python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV2/2016/RECO/ --inpre step3_RECO --outpre step4_MINIAOD --config SVJ.Production.2016.step4_MINIAOD -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV2/2016/MINIAOD/ --cpus 4 -s

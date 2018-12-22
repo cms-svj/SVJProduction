@@ -54,14 +54,15 @@ if len(_inname)>0: process.source.fileNames = cms.untracked.vstring(_inname)
 else: process.source.firstEvent = cms.untracked.uint32((options.part-1)*options.maxEvents+1)
 
 # output settings
-if len(options.output)==0: options.output = sorted(process.outputModules_())
+oprocess = process if len(process.subProcesses)==0 else process.subProcesses[-1].process()
+if len(options.output)==0: options.output = sorted(oprocess.outputModules_())
 if len(options.outpre)!=len(options.output):
     raise ValueError("Mismatch between # of output prefixes and # of output modules\n\tOutput modules are: "+", ".join(options.output))
 for iout,output in enumerate(options.output):
     if len(output)==0: continue
-    if not hasattr(process,output):
+    if not hasattr(oprocess,output):
         raise ValueError("Unavailable output module: "+output)
-    getattr(process,output).fileName = 'file:'+_outname.replace("outpre",options.outpre[iout])
+    getattr(oprocess,output).fileName = 'file:'+_outname.replace("outpre",options.outpre[iout])
 
 # reset all random numbers to ensure statistically distinct but reproducible jobs
 from IOMC.RandomEngine.RandomServiceHelper import RandomNumberServiceHelper
@@ -114,7 +115,7 @@ if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNo
     process.genJetParticles += process.genParticlesForJetsNoNu
     for output in options.output:
         if len(output)==0: continue
-        output_attr = getattr(process,output)
+        output_attr = getattr(oprocess,output)
         if hasattr(output_attr,"outputCommands"):
             output_attr.outputCommands.extend([
                 'keep *_genParticlesForJets_*_*',
