@@ -144,7 +144,7 @@ class svjHelper(object):
         else:
             self.lambdaHV = self.calcLambda(self.alpha)
 
-    def getOutName(self,events,signal=True,outpre="outpre",part=None):
+    def getOutName(self,events=0,signal=True,outpre="outpre",part=None):
         _outname = outpre
         if signal:
             _outname += "_mZprime-{:g}".format(self.mZprime)
@@ -152,7 +152,7 @@ class svjHelper(object):
             _outname += "_rinv-{:g}".format(self.rinv)
             if len(self.alphaName)>0: _outname += "_alpha-"+(self.alphaName)
             else: _outname += "_alpha-{:g}".format(self.alpha)
-        _outname += "_n-{:g}".format(events)
+        if events>0: _outname += "_n-{:g}".format(events)
         if part is not None:
             _outname += "_part-{:g}".format(part)
         return _outname
