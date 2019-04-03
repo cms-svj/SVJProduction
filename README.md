@@ -151,6 +151,7 @@ N.B. these commands uses `submitJobs.py` from TreeMaker, not from this repositor
 The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run any CMSSW config file. Options:
 * `maxEvents=[num]`: number of events to process (default = -1)
 * `signal=[bool]`: whether this is a signal sample (default = True)
+* `scan=[string]`: name of scan fragment
 * `mZprime=[val]`: Zprime mass value (default = 2000.0)
 * `mDark=[val]`: dark meson mass value (default = 20.0)
 * `rinv=[val]`: invisible fraction value (default = 0.3)

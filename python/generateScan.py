@@ -108,7 +108,7 @@ for point in points:
         processParameters = cms.vstring(point['processParameters']),
         parameterSets = cms.vstring(
             'pythia8CommonSettings',
-            '{0}', 
+            '{1}',
             'processParameters',
         )
     )
@@ -138,7 +138,7 @@ darkquarkFilter = cms.EDFilter("MCParticleModuloFilter",
 )
 
 ProductionFilterSequence = cms.Sequence(generator+darkhadronZ2filter+darkquarkFilter)
-""".format(tune_block)
+""".format(tune_block,tune_block.replace("Block",""))
 
 with open("SVJ_Scan_"+str(args.year)+"_"+tune_suff+"_cff.py",'w') as ofile:
     ofile.write(first_part)
