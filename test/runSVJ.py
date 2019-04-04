@@ -64,7 +64,7 @@ else: process.source.firstEvent = cms.untracked.uint32((options.part-1)*options.
 if len(options.scan)>0: process.source.numberEventsInLuminosityBlock = cms.untracked.uint32(200)
 
 # output settings
-oprocess = process if len(process.subProcesses)==0 else process.subProcesses[-1].process()
+oprocess = process if (not hasattr(process,'subProcesses') or len(process.subProcesses)==0) else process.subProcesses[-1].process()
 if len(options.output)==0: options.output = sorted(oprocess.outputModules_())
 if len(outpre)!=len(options.output):
     raise ValueError("Mismatch between # of output prefixes and # of output modules\n\tOutput prefixes are: "+", ".join(outpre)+"\n\tOutput modules are: "+", ".join(options.output))
