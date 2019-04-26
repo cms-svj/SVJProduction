@@ -33,8 +33,8 @@ else:
     parser.error("Unknown year: "+str(args.year))
 
 params = OrderedDict([
-    ("mZprime", range(1000,4100,100)),
-    ("mDark", [1] + range(10,110,10)),
+    ("mZprime", range(1000,5100,100)),
+    ("mDark", [1,5] + range(10,110,10)),
     ("rinv", [float(x)/10 for x in range(0,11,1)]),
     ("alpha", ["peak", "high", "low"]),
 ])
