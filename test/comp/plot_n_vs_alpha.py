@@ -73,7 +73,7 @@ nbins = 10
 haxis = TH1F("axis","",nbins,alphamin,alphamax)
 haxis.GetXaxis().SetNdivisions(210)
 haxis.GetXaxis().SetTitle("#alpha")
-haxis.GetYaxis().SetTitle("#LTn_{HV}#GT")
+haxis.GetYaxis().SetTitle("#LTN_{dark hadrons}#GT")
 haxis.GetYaxis().SetRangeUser(0,ymax)
 haxis.GetYaxis().SetTitleOffset(0.9)
 haxis.Draw()
@@ -97,4 +97,8 @@ ax_lambda.SetTitle("#Lambda [GeV]")
 ax_lambda.SetLabelOffset(0.025)
 ax_lambda.Draw()
 
-can.Print("n_vs_alpha_mDark_mZprime-"+str(mZprime)+".png","png")
+oname = "n_vs_alpha_mDark_mZprime-"+str(mZprime)
+can.Print(oname+".png","png")
+can.Print(oname+".eps","eps")
+import os
+os.popen("epstopdf "+oname+".eps")
