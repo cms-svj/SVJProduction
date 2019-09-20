@@ -44,7 +44,7 @@ _helper = svjHelper()
 _helper.setModel(options.mZprime,options.mDark,options.rinv,options.alpha)
 
 # output name definition
-_outname = _helper.getOutName(options.maxEvents,part=options.part,signal=options.signal and len(options.scan)>0)
+_outname = _helper.getOutName(options.maxEvents,part=options.part,signal=options.signal and len(options.scan)==0)
 _outname += ".root"
 
 _inname = ""
