@@ -31,10 +31,12 @@ if args.year==2016:
     tune_loc = "Configuration.Generator.Pythia8CUEP8M1Settings_cfi"
     tune_block = "pythia8CUEP8M1SettingsBlock"
     tune_suff = "TuneCUETP8M1_13TeV_pythia8"
+    gen_tag = "cms.InputTag('generator')"
 elif args.year==2017 or args.year==2018:
     tune_loc = "Configuration.Generator.MCTunes2017.PythiaCP2Settings_cfi"
     tune_block = "pythia8CP2SettingsBlock"
     tune_suff = "TuneCP2_13TeV_pythia8"
+    gen_tag = "cms.InputTag('generator','unsmeared')"
 else:
     parser.error("Unknown year: "+str(args.year))
 
@@ -101,6 +103,7 @@ import FWCore.ParameterSet.Config as cms
 
 from Configuration.Generator.Pythia8CommonSettings_cfi import *
 from {0} import * 
+from Configuration.Generator.PSweightsPythia.PythiaPSweightsSettings_cfi import *
 
 generator = cms.EDFilter("Pythia8GeneratorFilter",
     maxEventsToPrint = cms.untracked.int32(1),
@@ -158,10 +161,12 @@ for point in points:
     basePythiaParameters = cms.PSet(
         pythia8CommonSettingsBlock, 
         {0},
+        pythia8PSweightsSettingsBlock,
         processParameters = cms.vstring(point['processParameters']),
         parameterSets = cms.vstring(
             'pythia8CommonSettings',
             '{1}',
+            'pythia8PSweightsSettings',
             'processParameters',
         )
     )
@@ -175,14 +180,14 @@ for point in points:
     )
 
 darkhadronZ2filter = cms.EDFilter("MCParticleModuloFilter",
-    moduleLabel = cms.InputTag('generator','unsmeared'),
+    moduleLabel = {2},
     particleIDs = cms.vint32(51,53),
     multipleOf = cms.uint32(4),
     absID = cms.bool(True),
 )
 
 darkquarkFilter = cms.EDFilter("MCParticleModuloFilter",
-    moduleLabel = cms.InputTag('generator','unsmeared'),
+    moduleLabel = {2},
     particleIDs = cms.vint32(4900101),
     multipleOf = cms.uint32(2),
     absID = cms.bool(True),
@@ -191,7 +196,7 @@ darkquarkFilter = cms.EDFilter("MCParticleModuloFilter",
 )
 
 ProductionFilterSequence = cms.Sequence(generator+darkhadronZ2filter+darkquarkFilter)
-""".format(tune_block,tune_block.replace("Block",""))
+""".format(tune_block,tune_block.replace("Block",""),gen_tag)
 
 with open("SVJ_Scan_"+str(args.year)+"_"+tune_suff+"_cff.py",'w') as ofile:
     ofile.write(first_part)
