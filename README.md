@@ -6,12 +6,12 @@ All of the necessary setup (including checkout of this repo, dependencies, and C
 
 ### GEN-SIM production (2016)
 
-To make GEN or GEN-SIM samples, `CMSSW_7_1_38` is used (which includes Pythia8.226).
+To make GEN or GEN-SIM samples, `CMSSW_7_1_38_patch1` is used (which includes Pythia8.226).
 ```
 wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/setup.sh
 chmod +x setup.sh
-./setup.sh -c CMSSW_7_1_38
-cd CMSSW_7_1_38/src
+./setup.sh -c CMSSW_7_1_38_patch1
+cd CMSSW_7_1_38_patch1/src
 cmsenv
 cd SVJ/Production
 ```
@@ -30,12 +30,12 @@ cd SVJ/Production
 
 ### GEN-SIM production (2017)
 
-To make GEN or GEN-SIM samples, `CMSSW_9_3_12` is used (which includes Pythia8.230).
+To make GEN or GEN-SIM samples, `CMSSW_9_3_14` is used (which includes Pythia8.230).
 ```
 wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/setup.sh
 chmod +x setup.sh
-./setup.sh -c CMSSW_9_3_12
-cd CMSSW_9_3_12/src
+./setup.sh -c CMSSW_9_3_14
+cd CMSSW_9_3_14/src
 cmsenv
 cd SVJ/Production
 ```
