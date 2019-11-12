@@ -62,7 +62,6 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 			vector<double> GenJetsAK8_MomentGirth;
 			vector<double> GenJetsAK8_MomentHalf;
 			vector<int> GenJetsAK8_Multiplicity;
-			vector<double> GenJetsAK8_Overflow;
 			vector<double> GenJetsAK8_PtD;
 			vector<double> GenJetsAK8_Tau1;
 			vector<double> GenJetsAK8_Tau2;
@@ -98,7 +97,6 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 		edm::EDGetTokenT<vector<reco::GenMET>> tok_met;
 		edm::EDGetTokenT<vector<reco::GenJet>> tok_jet;
 		edm::EDGetTokenT<vector<reco::GenParticle>> tok_part;
-		edm::EDGetTokenT<reco::GenParticleRefVector> tok_partnonu;
 };
 
 //
@@ -112,8 +110,7 @@ GenMassAnalyzer::GenMassAnalyzer(const edm::ParameterSet& iConfig) :
 #endif
 	tok_met(consumes<vector<reco::GenMET>>(iConfig.getParameter<edm::InputTag>("METTag"))),
 	tok_jet(consumes<vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("JetTag"))),
-	tok_part(consumes<vector<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("PartTag"))),
-	tok_partnonu(consumes<reco::GenParticleRefVector>(iConfig.getParameter<edm::InputTag>("PartTagNoNu")))
+	tok_part(consumes<vector<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("PartTag")))
 {
 	usesResource("TFileService");
 #ifndef FASTJET_VERSION_NUMBER
@@ -144,7 +141,6 @@ void GenMassAnalyzer::beginJob()
 	tree->Branch("GenJetsAK8_MomentGirth" , "vector<double>", &entry.GenJetsAK8_MomentGirth, 32000, 0);
 	tree->Branch("GenJetsAK8_MomentHalf" , "vector<double>", &entry.GenJetsAK8_MomentHalf, 32000, 0);
 	tree->Branch("GenJetsAK8_Multiplicity" , "vector<int>", &entry.GenJetsAK8_Multiplicity, 32000, 0);
-	tree->Branch("GenJetsAK8_Overflow" , "vector<double>", &entry.GenJetsAK8_Overflow, 32000, 0);
 	tree->Branch("GenJetsAK8_PtD" , "vector<double>", &entry.GenJetsAK8_PtD, 32000, 0);
 	tree->Branch("GenJetsAK8_Tau1" , "vector<double>", &entry.GenJetsAK8_Tau1, 32000, 0);
 	tree->Branch("GenJetsAK8_Tau2" , "vector<double>", &entry.GenJetsAK8_Tau2, 32000, 0);
@@ -174,11 +170,7 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 	edm::Handle<vector<reco::GenParticle>> h_part;
 	iEvent.getByToken(tok_part,h_part);
 	
-	edm::Handle<reco::GenParticleRefVector> h_partnonu;
-	iEvent.getByToken(tok_partnonu,h_partnonu);
-	
 	entry.GenJetsAK8.reserve(h_jet->size());
-	entry.GenJetsAK8_Overflow.reserve(h_jet->size());
 	entry.GenJetsAK8_MomentGirth.reserve(h_jet->size());
 	entry.GenJetsAK8_MomentHalf.reserve(h_jet->size());
 	entry.GenJetsAK8_Multiplicity.reserve(h_jet->size());
@@ -194,17 +186,6 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 	entry.GenJetsAK8_ECF3.reserve(h_jet->size());
 	for(const auto& i_jet : *(h_jet.product())){
 		entry.GenJetsAK8.emplace_back(i_jet.px(),i_jet.py(),i_jet.pz(),i_jet.energy());
-
-		//calculate jet "overflow": 1 - (scalar sum of pT w/ dR<0.4 over scalar sum of pT w/ dR<0.8)
-		double denom = 0.0;
-		double numer = 0.0;
-		for(const auto& i_part : *(h_partnonu.product())){
-			double dR = reco::deltaR(i_jet.p4(),i_part->p4());
-			if(dR < 0.8) denom += i_part->pt();
-			if(dR < 0.4) numer += i_part->pt();
-		}
-		double underflow = denom > 0.0 ? numer/denom : 0.0;
-		entry.GenJetsAK8_Overflow.push_back(1.0-underflow);
 
 		//calculate jet moments & other vars
 		//some borrowed from RecoJets/JetProducers/plugins/QGTagger.cc
@@ -344,7 +325,6 @@ void GenMassAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descripti
 	desc.add<edm::InputTag>("METTag",edm::InputTag("genMetTrue"));
 	desc.add<edm::InputTag>("JetTag",edm::InputTag("ak8GenJetsNoNu"));
 	desc.add<edm::InputTag>("PartTag",edm::InputTag("genParticles"));
-	desc.add<edm::InputTag>("PartTagNoNu",edm::InputTag("genParticlesForJetsNoNu"));
 	
 	edm::ParameterSetDescription desc_nj;
 	desc_nj.add<unsigned>("measureDefinition",0);
