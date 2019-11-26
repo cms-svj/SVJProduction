@@ -10,8 +10,8 @@ To make GEN or GEN-SIM samples, `CMSSW_7_1_38_patch1` is used (which includes Py
 ```
 wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/setup.sh
 chmod +x setup.sh
-./setup.sh -c CMSSW_7_1_38_patch1
-cd CMSSW_7_1_38_patch1/src
+./setup.sh -c CMSSW_7_1_44
+cd CMSSW_7_1_44/src
 cmsenv
 cd SVJ/Production
 ```
