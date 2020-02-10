@@ -137,6 +137,19 @@ if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNo
                 'keep *_genParticlesForJetsNoNu_*_*',
             ])
 
+# DIGI settings
+if hasattr(process,"mixData"):
+    if ".2016." in options.config: puname = "Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.pkl"
+    elif ".2017." in options.config: puname = "Neutrino_E-10_gun_RunIISummer17PrePremix-MCv2_correctPU_94X_mc2017_realistic_v9-v1_GEN-SIM-DIGI-RAW.pkl"
+    elif ".2018." in options.config: puname = "Neutrino_E-10_gun_RunIISummer17PrePremix-PUAutumn18_102X_upgrade2018_realistic_v15-v1_GEN-SIM-DIGI-RAW.pkl"
+    if not os.path.isfile(puname):
+        print "retrieving "+puname
+        os.system("xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/"+puname+" .")
+        if not os.path.isfile(puname):
+            raise Exception("Could not retrieve pileup input list.")
+    import cPickle as pickle
+    process.mixData.input.fileNames = cms.untracked.vstring(*pickle.load(open(puname,"rb")))
+
 # miniAOD settings
 _pruned = ["prunedGenParticlesWithStatusOne","prunedGenParticles"]
 for _prod in _pruned:

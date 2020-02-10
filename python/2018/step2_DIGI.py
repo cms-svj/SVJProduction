@@ -82,15 +82,7 @@ process.PREMIXRAWoutput = cms.OutputModule("PoolOutputModule",
 # Additional output definition
 
 # Other statements
-import os
-puname = "Neutrino_E-10_gun_RunIISummer17PrePremix-PUAutumn18_102X_upgrade2018_realistic_v15-v1_GEN-SIM-DIGI-RAW.pkl"
-if not os.path.isfile(puname):
-	print "retrieving "+puname
-	os.system("xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/"+puname+" .")
-	if not os.path.isfile(puname):
-		raise Exception("Could not retrieve pileup input list.")
-import cPickle as pickle
-process.mixData.input.fileNames = cms.untracked.vstring(*pickle.load(open(puname,"rb")))
+process.mixData.input.fileNames = cms.untracked.vstring()
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '102X_upgrade2018_realistic_v15', '')
 
