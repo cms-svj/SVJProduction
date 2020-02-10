@@ -2,12 +2,13 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: step2 --python_filename step2_DIGI.py --mc --eventcontent PREMIXRAW --datatier GEN-SIM-RAW --conditions 94X_mc2017_realistic_v10 --step DIGIPREMIX_S2,DATAMIX,L1,DIGI2RAW,HLT:2e34v40 --nThreads 8 --datamix PreMix --era Run2_2017 --filein file:step1.root --fileout file:step2.root --pileup_input pileup.root --no_exec
+# with command line options: step2 --mc --eventcontent PREMIXRAW --datatier GEN-SIM-RAW --conditions 102X_upgrade2018_realistic_v15 --step DIGI,DATAMIX,L1,DIGI2RAW,HLT:@relval2018 --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2018 --filein file:step1.root --fileout file:step2.root --pileup_input pileup.root --no_exec
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
+from Configuration.ProcessModifiers.premix_stage2_cff import premix_stage2
 
-process = cms.Process('HLT',eras.Run2_2017)
+process = cms.Process('HLT',eras.Run2_2018,premix_stage2)
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -17,12 +18,11 @@ process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
-process.load('Configuration.StandardSequences.DigiDMPreMix_cff')
-process.load('SimGeneral.MixingModule.digi_MixPreMix_cfi')
+process.load('Configuration.StandardSequences.DigiDM_cff')
 process.load('Configuration.StandardSequences.DataMixerPreMix_cff')
 process.load('Configuration.StandardSequences.SimL1EmulatorDM_cff')
 process.load('Configuration.StandardSequences.DigiToRawDM_cff')
-process.load('HLTrigger.Configuration.HLT_2e34v40_cff')
+process.load('HLTrigger.Configuration.HLT_2018v32_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
@@ -32,7 +32,27 @@ process.maxEvents = cms.untracked.PSet(
 
 # Input source
 process.source = cms.Source("PoolSource",
+    dropDescendantsOfDroppedBranches = cms.untracked.bool(False),
     fileNames = cms.untracked.vstring('file:step1.root'),
+    inputCommands = cms.untracked.vstring(
+        'keep *', 
+        'drop *_genParticles_*_*', 
+        'drop *_genParticlesForJets_*_*', 
+        'drop *_kt4GenJets_*_*', 
+        'drop *_kt6GenJets_*_*', 
+        'drop *_iterativeCone5GenJets_*_*', 
+        'drop *_ak4GenJets_*_*', 
+        'drop *_ak7GenJets_*_*', 
+        'drop *_ak8GenJets_*_*', 
+        'drop *_ak4GenJetsNoNu_*_*', 
+        'drop *_ak8GenJetsNoNu_*_*', 
+        'drop *_genCandidatesForMET_*_*', 
+        'drop *_genParticlesForMETAllVisible_*_*', 
+        'drop *_genMetCalo_*_*', 
+        'drop *_genMetCaloAndNonPrompt_*_*', 
+        'drop *_genMetTrue_*_*', 
+        'drop *_genMetIC5GenJs_*_*'
+    ),
     secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -62,9 +82,8 @@ process.PREMIXRAWoutput = cms.OutputModule("PoolOutputModule",
 # Additional output definition
 
 # Other statements
-process.mix.digitizers = cms.PSet(process.theDigitizersMixPreMix)
 import os
-puname = "Neutrino_E-10_gun_RunIISummer17PrePremix-MCv2_correctPU_94X_mc2017_realistic_v9-v1_GEN-SIM-DIGI-RAW.pkl"
+puname = "Neutrino_E-10_gun_RunIISummer17PrePremix-PUAutumn18_102X_upgrade2018_realistic_v15-v1_GEN-SIM-DIGI-RAW.pkl"
 if not os.path.isfile(puname):
 	print "retrieving "+puname
 	os.system("xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/"+puname+" .")
@@ -73,7 +92,7 @@ if not os.path.isfile(puname):
 import cPickle as pickle
 process.mixData.input.fileNames = cms.untracked.vstring(*pickle.load(open(puname,"rb")))
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '94X_mc2017_realistic_v10', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '102X_upgrade2018_realistic_v15', '')
 
 # Path and EndPath definitions
 process.digitisation_step = cms.Path(process.pdigi)

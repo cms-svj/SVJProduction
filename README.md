@@ -54,6 +54,18 @@ cd SVJ/Production
 
 2016 AOD samples can also be reprocessed in this release to get "miniAOD v3" output.
 
+### GEN-SIM/MINIAOD production (2018)
+
+To make GEN, GEN-SIM, MINIAOD (or DIGI/RECO/AOD) samples, `CMSSW_10_2_20` is used:
+```
+wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/setup.sh
+chmod +x setup.sh
+./setup.sh -c CMSSW_10_2_20
+cd CMSSW_10_2_20/src
+cmsenv
+cd SVJ/Production
+```
+
 ## Condor submission
 
 Condor submission is supported for the LPC batch system or for the global pool via [CMS Connect](https://connect.uscms.org/).
@@ -103,6 +115,7 @@ Shell (in [step2.sh](./batch/step2.sh)):
 These examples are for generating 50,000 events with selected signal models, after profiling with 100 events.
 They assume the basic [CondorProduction](https://github.com/kpedro88/CondorProduction) setup has already been performed.
 To run for 2017, replace `.2016.` with `.2017.` in the argument of `--config` and `/2016/` with `/2017/` in the arguments of `--indir` and `-o`.
+(A similar procedure can be used for 2018.)
 
 <details>
 <summary>Commands:</summary>
@@ -290,6 +303,43 @@ specifically:
 [RunIIFall17MiniAODv2](https://cms-pdmv.cern.ch/mcm/public/restapi/requests/get_setup/BTV-RunIIFall17MiniAODv2-00024),
 [RunIISummer16MiniAODv3](https://cms-pdmv.cern.ch/mcm/public/restapi/requests/get_setup/B2G-RunIISummer16MiniAODv3-00003).
 
+## cmsDriver commands (2018)
+
+<details>
+<summary>Commands:</summary>
+
+GEN only:
+```
+cmsDriver.py SVJ/Production/2017/EmptyFragment_cff --python_filename step1_GEN.py --mc --eventcontent RAWSIM --conditions 102X_upgrade2018_realistic_v9 --beamspot Realistic25ns13TeVEarly2018Collision --step GEN --nThreads 4 --geometry DB:Extended --era Run2_2018 --fileout file:step0.root --no_exec
+```
+
+GEN-SIM:
+```
+cmsDriver.py SVJ/Production/2017/EmptyFragment_cff --python_filename step1_GEN-SIM.py --mc --eventcontent RAWSIM --conditions 102X_upgrade2018_realistic_v9 --beamspot Realistic25ns13TeVEarly2018Collision --step GEN,SIM --nThreads 4 --geometry DB:Extended --era Run2_2018 --fileout file:step0.root --no_exec
+```
+
+DIGI:
+```
+cmsDriver.py step2 --python_filename step2_DIGI.py --mc --eventcontent PREMIXRAW --datatier GEN-SIM-RAW --conditions 102X_upgrade2018_realistic_v15 --step DIGI,DATAMIX,L1,DIGI2RAW,HLT:@relval2018 --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2018  --filein file:step1.root --fileout file:step2.root --pileup_input pileup.root --no_exec
+```
+
+RECO:
+```
+cmsDriver.py step3 --python_filename step3_RECO.py --mc --eventcontent AODSIM --runUnscheduled --datatier AODSIM --conditions 102X_upgrade2018_realistic_v15 --step RAW2DIGI,L1Reco,RECO,RECOSIM,EI --procModifiers premix_stage2 --nThreads 8 --era Run2_2018  --fileout file:step3.root --filein file:step2.root --no_exec
+```
+
+MINIAOD:
+```
+cmsDriver.py step4 --python_filename step4_MINIAOD.py --mc --eventcontent MINIAODSIM --runUnscheduled --datatier MINIAODSIM --conditions 102X_upgrade2018_realistic_v15 --step PAT --nThreads 8 --geometry DB:Extended --era Run2_2018  --filein file:step3.root --fileout file:step4.root --no_exec
+```
+</details>
+
+
+These commands are based on the [PdmVMcCampaigns twiki](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMcCampaigns), specifically:
+[RunIIFall18GS](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVCampaignRunIIFall18GS),
+[RunIIAutumn18DRPremix](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVCampaignRunIIAutumn18DRPremix),
+[RunIIAutumn18MiniAOD](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVCampaignRunIIAutumn18MiniAOD).
+
 ### Pileup input files
 
 To download the premixed pileup input file list for 2016:
@@ -310,4 +360,8 @@ The config [step2_DIGI.py](./python/2016/step2_DIGI.py) will try to retrieve it 
 This procedure can be repeated for 2017 using the dataset:
 ```
 /Neutrino_E-10_gun/RunIISummer17PrePremix-MCv2_correctPU_94X_mc2017_realistic_v9-v1/GEN-SIM-DIGI-RAW
+```
+or 2018 using the dataset:
+```
+/Neutrino_E-10_gun/RunIISummer17PrePremix-PUAutumn18_102X_upgrade2018_realistic_v15-v1/GEN-SIM-DIGI-RAW
 ```
