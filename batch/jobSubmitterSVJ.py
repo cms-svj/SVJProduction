@@ -1,5 +1,6 @@
 from Condor.Production.jobSubmitter import *
 from SVJ.Production.svjHelper import svjHelper
+from glob import glob
 
 def makeNameSVJ(self,num):
     return self.name+"_part-"+str(num)
@@ -118,7 +119,7 @@ class jobSubmitterSVJ(jobSubmitter):
             if self.skipParts=="auto":
                 injob = protoJob()
                 injob.name = self.helper.getOutName(int(self.maxEvents),outpre=self.inpre)
-                infiles = {x.split('/')[-1].replace(".root","") for x in filter(None,os.popen("xrdfs "+self.redir+" ls "+self.indir).read().split('\n'))}
+                infiles = {x.split('/')[-1].replace(".root","") for x in filter(None,os.popen("xrdfs "+self.redir+" ls "+self.indir).read().split('\n')) if self.indir.startswith("/store/") else glob(self.indir+"/*.root")}
 
             # write job options to file - will be transferred with job
             if self.prepare:
