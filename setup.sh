@@ -5,6 +5,8 @@ case `uname` in
 	*) ECHO="echo" ;;
 esac
 
+ACCESS=https
+
 usage() {
 	$ECHO "setup.sh [options]"
 	$ECHO
@@ -14,6 +16,7 @@ usage() {
 	$ECHO "-b [branch]   \tclone specified branch (default = master)"
 	$ECHO "-p            \tinstall Pythia 8.230 w/ ME correction"
 	$ECHO "-a            \tinstall analysis code"
+	$ECHO "-s            \tuse protocol to clone (default = ${ACCESS}, alternative = ssh)"
 	$ECHO "-h            \tprint this message and exit"
 	exit $1
 }
@@ -79,13 +82,15 @@ BRANCH=master
 INSTALL_PYTHIA=""
 INSTALL_ANALYSIS=""
 #check arguments
-while getopts "c:f:b:pah" opt; do
+while getopts "c:f:b:s:pah" opt; do
 	case "$opt" in
 	c) WHICH_CMSSW=$OPTARG
 	;;
 	f) FORK=$OPTARG
 	;;
 	b) BRANCH=$OPTARG
+	;;
+	s) ACCESS=$OPTARG
 	;;
 	p) INSTALL_PYTHIA=yes
 	;;
@@ -97,6 +102,16 @@ while getopts "c:f:b:pah" opt; do
 done
 
 if [ -z "$WHICH_CMSSW" ] && [ -z "$INSTALL_PYTHIA" ]; then
+	usage 1
+fi
+
+if [ "$ACCESS" = "ssh" ]; then
+	export ACCESS_GITHUB=git@github.com:
+	export ACCESS_CMSSW=--ssh
+elif [ "$ACCESS" = "https" ]; then
+	export ACCESS_GITHUB=https://github.com/
+	export ACCESS_CMSSW=--https
+else
 	usage 1
 fi
 
@@ -140,13 +155,13 @@ if [ -n "$WHICH_CMSSW" ]; then
 	# reinitialize environment
 	eval `scramv1 runtime -sh`
 	cd src
-	git cms-init
+	git cms-init $ACCESS_CMSSW
 	if [[ $WHICH_CMSSW = CMSSW_9_4_* ]]; then
-		git cms-merge-topic -u kpedro88:debugEventSetupMultithreaded9410
+		git cms-merge-topic -u $ACCESS_CMSSW kpedro88:debugEventSetupMultithreaded9410
 	fi
 
 	if [ -n "$INSTALL_ANALYSIS" ]; then
-		git clone git@github.com:kpedro88/Analysis -b SVJ2017-gen
+		git clone ${ACCESS_GITHUB}kpedro88/Analysis -b SVJ2017-gen
 	fi
 
 	# get packages
@@ -154,9 +169,10 @@ if [ -n "$WHICH_CMSSW" ]; then
 		installPythia
 		eval `scramv1 runtime -sh`
 	fi
-	git clone git@github.com:kpedro88/CondorProduction Condor/Production
-	git clone git@github.com:${FORK}/SVJProduction SVJ/Production -b ${BRANCH}
+	git clone ${ACCESS_GITHUB}kpedro88/CondorProduction Condor/Production
+	git clone ${ACCESS_GITHUB}${FORK}/SVJProduction SVJ/Production -b ${BRANCH}
 	scram b -j 8
 	cd SVJ/Production/batch
-	ln -s $CMSSW_BASE/src/Condor/Production/scripts/* .
+	python $CMSSW_BASE/src/Condor/Production/python/linkScripts.py
+	ln -s $CMSSW_BASE/src/Condor/Production/python/manageJobs.py .
 fi
