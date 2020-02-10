@@ -65,8 +65,8 @@ class jobSubmitterSVJ(jobSubmitter):
             if len(options.config)==0:
                 parser.error("Required option: --config [str]")
 
-        if options.skipParts=="auto" and (len(options.inpre)==0 or len(options.indir)==0 or len(options.redir)==0):
-            parser.error("Option auto skipParts requires inpre, indir, redir")
+        if options.skipParts=="auto" and (len(options.inpre)==0 or len(options.indir)==0 or (options.indir.startswith("/store/") and len(options.redir)==0)):
+            parser.error("Option auto skipParts requires inpre, indir, (redir)")
 
         if len(options.skipParts)>0 and options.skipParts!="auto":
             options.skipParts = {int(x) for x in options.skipParts.split(',')}
@@ -119,7 +119,7 @@ class jobSubmitterSVJ(jobSubmitter):
             if self.skipParts=="auto":
                 injob = protoJob()
                 injob.name = self.helper.getOutName(int(self.maxEvents),outpre=self.inpre)
-                infiles = {x.split('/')[-1].replace(".root","") for x in filter(None,os.popen("xrdfs "+self.redir+" ls "+self.indir).read().split('\n')) if self.indir.startswith("/store/") else glob(self.indir+"/*.root")}
+                infiles = {x.split('/')[-1].replace(".root","") for x in (filter(None,os.popen("xrdfs "+self.redir+" ls "+self.indir).read().split('\n')) if self.indir.startswith("/store/") else glob(self.indir+"/*.root"))}
 
             # write job options to file - will be transferred with job
             if self.prepare:
