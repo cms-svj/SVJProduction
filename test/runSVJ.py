@@ -126,6 +126,27 @@ for _prod in _particles:
         getattr(process,_prod).ignoreParticleIDs.extend([51,52,53])
 if hasattr(process,'recoGenJets') and hasattr(process,'recoAllGenJetsNoNu'):
     process.recoGenJets += process.recoAllGenJetsNoNu
+	# to get hadronFlavour at gen level
+    if not ".2016." in options.config:
+        process.load("PhysicsTools.PatAlgos.slimming.genParticles_cff")
+        process.recoGenJets += process.prunedGenParticlesWithStatusOne
+        process.recoGenJets += process.prunedGenParticles
+        process.load("PhysicsTools.JetMCAlgos.HadronAndPartonSelector_cfi")
+        process.recoGenJets += process.selectedHadronsAndPartonsForGenJetsFlavourInfos
+        process.load("PhysicsTools.JetMCAlgos.AK4GenJetFlavourInfos_cfi")
+        process.ak8GenJetFlavourInfos = process.ak4GenJetFlavourInfos.clone(
+            jets = "ak8GenJetsNoNu"
+        )
+        process.recoGenJets += process.ak4GenJetFlavourInfos
+        process.recoGenJets += process.ak8GenJetFlavourInfos
+        for output in options.output:
+            if len(output)==0: continue
+            output_attr = getattr(oprocess,output)
+            if hasattr(output_attr,"outputCommands"):
+                output_attr.outputCommands.extend([
+                    'keep *_ak4GenJetFlavourInfos_*_*',
+                    'keep *_ak8GenJetFlavourInfos_*_*',
+                ])
 if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNoNu'):
     process.genJetParticles += process.genParticlesForJetsNoNu
     for output in options.output:
