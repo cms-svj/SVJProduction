@@ -46,9 +46,8 @@ CMSEXIT=$?
 
 # cleanup
 rm runSVJ.py
-PUFILE=Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.pkl
-if [ -e $PUFILE ]; then
-	rm $PUFILE
+if ls *.pkl >& /dev/null; then
+	rm *.pkl
 fi
 
 if [[ $CMSEXIT -ne 0 ]]; then
@@ -57,16 +56,22 @@ if [[ $CMSEXIT -ne 0 ]]; then
 	exit $CMSEXIT
 fi
 
+# check for gfal case
+CMDSTR="xrdcp"
+GFLAG=""
+if [[ "$OUTDIR" == "gsiftp://"* ]]; then
+	CMDSTR="gfal-copy"
+	GFLAG="-g"
+fi
 # copy output to eos
 echo "xrdcp output for condor"
-for FILE in *.root
-do
-	echo "xrdcp -f ${FILE} ${OUTDIR}/${FILE}"
-	xrdcp -f ${FILE} ${OUTDIR}/${FILE} 2>&1
+for FILE in *.root; do
+	echo "${CMDSTR} -f ${FILE} ${OUTDIR}/${FILE}"
+	stageOut ${GFLAG} -x "-f" -i ${FILE} -o ${OUTDIR}/${FILE} 2>&1
 	XRDEXIT=$?
 	if [[ $XRDEXIT -ne 0 ]]; then
 		rm *.root
-		echo "exit code $XRDEXIT, failure in xrdcp"
+		echo "exit code $XRDEXIT, failure in ${CMDSTR}"
 		exit $XRDEXIT
 	fi
 	rm ${FILE}
