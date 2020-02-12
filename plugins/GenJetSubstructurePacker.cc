@@ -1,5 +1,6 @@
-// this is a really terrible hack to avoid compiling this in CMSSW_7_1_X
-#ifdef FASTJET_VERSION_NUMBER
+// compiling this in CMSSW_7_1_X
+#include "SVJ/Production/interface/common.h"
+#ifndef CMSSW71X
 
 // system include files
 #include <memory>

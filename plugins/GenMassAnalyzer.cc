@@ -19,7 +19,6 @@
 #include "DataFormats/METReco/interface/GenMET.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "DataFormats/Math/interface/deltaR.h"
-#include "fastjet/config.h"
 
 //ROOT headers
 #include <TTree.h>
@@ -33,6 +32,7 @@
 using std::vector;
 
 //user headers
+#include "SVJ/Production/interface/common.h"
 #include "SVJ/Production/interface/lester_mt2_bisect.h"
 #include "SVJ/Production/interface/NjettinessHelper.h"
 #include "SVJ/Production/interface/ECFHelper.h"
@@ -89,7 +89,7 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 		TTree* tree;
 		//for tree branches
 		GenNtuple entry;
-#ifdef FASTJET_VERSION_NUMBER
+#ifndef CMSSW71X
 		NjettinessHelper njhelper;
 		ECFHelper echelper;
 #endif
@@ -104,7 +104,7 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 //
 GenMassAnalyzer::GenMassAnalyzer(const edm::ParameterSet& iConfig) :
 	tree(NULL),
-#ifdef FASTJET_VERSION_NUMBER
+#ifndef CMSSW71X
 	njhelper(iConfig.getParameter<edm::ParameterSet>("Nsubjettiness")),
 	echelper(iConfig.getParameter<edm::ParameterSet>("ECF")),
 #endif
@@ -113,7 +113,7 @@ GenMassAnalyzer::GenMassAnalyzer(const edm::ParameterSet& iConfig) :
 	tok_part(consumes<vector<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("PartTag")))
 {
 	usesResource("TFileService");
-#ifndef FASTJET_VERSION_NUMBER
+#ifdef CMSSW71X
 	std::cout << "GenMassAnalyzer: Warning - Nsubjettiness and ECF variables not available!" << std::endl;
 #endif
 }
@@ -238,7 +238,7 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 		entry.GenJetsAK8_AxisAverage.push_back(axisA);
 		
 		//calculate nsubjettiness & ECFs
-#ifdef FASTJET_VERSION_NUMBER
+#ifndef CMSSW71X
 		entry.GenJetsAK8_Tau1.push_back(njhelper.getTau(1,i_jet));
 		entry.GenJetsAK8_Tau2.push_back(njhelper.getTau(2,i_jet));
 		entry.GenJetsAK8_Tau3.push_back(njhelper.getTau(3,i_jet));

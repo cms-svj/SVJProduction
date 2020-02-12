@@ -118,10 +118,12 @@ fi
 # -------------------------------------------------------------------------------------
 # CMSSW release area
 # -------------------------------------------------------------------------------------
+CMSSW71X=""
 if [ -n "$WHICH_CMSSW" ]; then
 	case $WHICH_CMSSW in
 	CMSSW_7_1_*)
 		export SCRAM_ARCH=slc6_amd64_gcc481
+		CMSSW71X=true
 	;;
 	CMSSW_8_0_*)
 		export SCRAM_ARCH=slc6_amd64_gcc530
@@ -171,6 +173,28 @@ if [ -n "$WHICH_CMSSW" ]; then
 	fi
 	git clone ${ACCESS_GITHUB}kpedro88/CondorProduction Condor/Production
 	git clone ${ACCESS_GITHUB}${FORK}/SVJProduction SVJ/Production -b ${BRANCH}
+
+	# setup preprocessor flag for old CMSSW version
+	cd SVJ/Production/interface
+	if [ -n "$CMSSW71X" ]; then
+		cat << EOF > common.h
+#ifndef SVJ_Production_common_h
+#define SVJ_Production_common_h
+
+#define CMSSW71X
+
+#endif
+		EOF
+	else
+		cat << EOF > common.h
+#ifndef SVJ_Production_common_h
+#define SVJ_Production_common_h
+
+#endif
+		EOF
+	fi
+	cd $CMSSW_BASE/src
+
 	scram b -j 8
 	cd SVJ/Production/batch
 	python $CMSSW_BASE/src/Condor/Production/python/linkScripts.py

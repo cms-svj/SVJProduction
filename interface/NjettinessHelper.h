@@ -1,10 +1,10 @@
 #ifndef NjettinessHelper_h
 #define NjettinessHelper_h
 
-#include "fastjet/config.h"
+#include "common.h"
 
 //deal with incompatible interfaces
-#ifdef FASTJET_VERSION_NUMBER
+#ifndef CMSSW71X
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "fastjet/contrib/Njettiness.hh"
