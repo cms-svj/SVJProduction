@@ -184,14 +184,14 @@ if [ -n "$WHICH_CMSSW" ]; then
 #define CMSSW71X
 
 #endif
-		EOF
+EOF
 	else
 		cat << EOF > common.h
 #ifndef SVJ_Production_common_h
 #define SVJ_Production_common_h
 
 #endif
-		EOF
+EOF
 	fi
 	cd $CMSSW_BASE/src
 
