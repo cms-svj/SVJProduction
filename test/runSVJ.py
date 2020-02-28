@@ -1,47 +1,6 @@
 import FWCore.ParameterSet.Config as cms
-from FWCore.ParameterSet.VarParsing import VarParsing
 import sys, os
-from SVJ.Production.svjHelper import svjHelper
-
-options = VarParsing("analysis")
-options.register("signal", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
-options.register("scan", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
-options.register("mZprime", 2000.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
-options.register("mDark", 20.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
-options.register("rinv", 0.3, VarParsing.multiplicity.singleton, VarParsing.varType.float)
-options.register("alpha", "0.1", VarParsing.multiplicity.singleton, VarParsing.varType.string)
-options.register("filterZ2", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
-options.register("part", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
-options.register("indir", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
-options.register("inpre", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
-options.register("outpre", "step1", VarParsing.multiplicity.list, VarParsing.varType.string)
-options.register("output", "", VarParsing.multiplicity.list, VarParsing.varType.string)
-options.register("config", "SVJ.Production.2016.step1_GEN", VarParsing.multiplicity.singleton, VarParsing.varType.string)
-options.register("threads", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
-options.register("streams", 0, VarParsing.multiplicity.singleton, VarParsing.varType.int)
-options.register("redir", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
-options.register("tmi", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
-options.register("dump", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
-options.parseArguments()
-
-# safety checks to handle multiple years
-cmssw_version = os.getenv("CMSSW_VERSION")
-cmssw_major = int(cmssw_version.split('_')[1])
-if ".2016." in options.config and not (cmssw_major==7 or cmssw_major==8):
-	raise ValueError("2016 config ("+options.config+") should not be used in non-2016 CMSSW version ("+cmssw_version+")")
-elif ".2017." in options.config and not (cmssw_major==9):
-	raise ValueError("2017 config ("+options.config+") should not be used in non-2017 CMSSW version ("+cmssw_version+")")
-elif ".2018." in options.config and not (cmssw_major==10):
-	raise ValueError("2018 config ("+options.config+") should not be used in non-2018 CMSSW version ("+cmssw_version+")")
-
-# this is needed because options.outpre is not really a list
-outpre = [x for x in options.outpre]
-if len(options.scan)>0:
-    outpre = [x+"_"+options.scan for x in outpre]
-    if len(options.inpre)>0: options.inpre += "_"+options.scan
-
-_helper = svjHelper()
-_helper.setModel(options.mZprime,options.mDark,options.rinv,options.alpha)
+from SVJ.Production.optSVJ import options, _helper
 
 # output name definition
 _outname = _helper.getOutName(options.maxEvents,part=options.part,signal=options.signal and len(options.scan)==0)
@@ -51,28 +10,35 @@ _inname = ""
 if len(options.inpre)>0:
     _inname = _outname.replace("outpre",options.inpre)
     if len(options.indir)>0: _inname = options.indir+"/"+_inname
-    if len(options.redir)>0 and _inname[0:6]=="/store": _inname = options.redir+_inname
-    if _inname[0:6]!="/store" and _inname[0:5]!="root:": _inname = "file:"+_inname
+    if len(options.redir)>0 and _inname.startswith("/store"): _inname = options.redir+_inname
+    if not _inname.startswith("/store") and not _inname.startswith("root:"): _inname = "file:"+_inname
 
 # import process
 process = getattr(__import__(options.config,fromlist=["process"]),"process")
 
 # input settings
 process.maxEvents.input = cms.untracked.int32(options.maxEvents)
-if len(_inname)>0: process.source.fileNames = cms.untracked.vstring(_inname)
+if len(_inname)>0:
+    if hasattr(process.source,"fileNames"): process.source.fileNames = cms.untracked.vstring(_inname)
+	elif hasattr(process,"externalLHEProducer"):
+        # fetch the gridpack file from xrootd
+        if _inname.startswith("root:"):
+            os.system("xrdcp "+_inname+" .")
+            _inname = "file:"+_inname.split('/')[-1]
+        process.externalLHEProducer.args = cms.vstring(_inname)
 else: process.source.firstEvent = cms.untracked.uint32((options.part-1)*options.maxEvents+1)
 if len(options.scan)>0: process.source.numberEventsInLuminosityBlock = cms.untracked.uint32(200)
 
 # output settings
 oprocess = process if (not hasattr(process,'subProcesses') or len(process.subProcesses)==0) else process.subProcesses[-1].process()
 if len(options.output)==0: options.output = sorted(oprocess.outputModules_())
-if len(outpre)!=len(options.output):
-    raise ValueError("Mismatch between # of output prefixes and # of output modules\n\tOutput prefixes are: "+", ".join(outpre)+"\n\tOutput modules are: "+", ".join(options.output))
+if len(options.outpre)!=len(options.output):
+    raise ValueError("Mismatch between # of output prefixes and # of output modules\n\tOutput prefixes are: "+", ".join(options.outpre)+"\n\tOutput modules are: "+", ".join(options.output))
 for iout,output in enumerate(options.output):
     if len(output)==0: continue
     if not hasattr(oprocess,output):
         raise ValueError("Unavailable output module: "+output)
-    getattr(oprocess,output).fileName = 'file:'+_outname.replace("outpre",outpre[iout])
+    getattr(oprocess,output).fileName = 'file:'+_outname.replace("outpre",options.outpre[iout])
 
 # reset all random numbers to ensure statistically distinct but reproducible jobs
 from IOMC.RandomEngine.RandomServiceHelper import RandomNumberServiceHelper
@@ -89,6 +55,8 @@ if options.signal:
             process.generator.crossSection = cms.untracked.double(_helper.xsec)
             process.generator.PythiaParameters.processParameters = cms.vstring(_helper.getPythiaSettings())
             process.generator.maxEventsToPrint = cms.untracked.int32(1)
+            if hasattr(process.generator.PythiaParameters,"JetMatchingParameters"):
+                process.generator.PythiaParameters.JetMatchingParameters = cms.vstring(_helper.getJetMatchSettings())
 
     # gen filter settings
     # pythia implementation of model has 4900111/211 -> -51 51 and 4900113/213 -> -53 53
@@ -127,7 +95,7 @@ for _prod in _particles:
 if hasattr(process,'recoGenJets') and hasattr(process,'recoAllGenJetsNoNu'):
     process.recoGenJets += process.recoAllGenJetsNoNu
 	# to get hadronFlavour at gen level
-    if not ".2016." in options.config:
+    if options.year!=2016:
         process.load("PhysicsTools.PatAlgos.slimming.genParticles_cff")
         process.recoGenJets += process.prunedGenParticlesWithStatusOne
         process.recoGenJets += process.prunedGenParticles
@@ -160,9 +128,9 @@ if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNo
 
 # DIGI settings
 if hasattr(process,"mixData"):
-    if ".2016." in options.config: puname = "Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.pkl"
-    elif ".2017." in options.config: puname = "Neutrino_E-10_gun_RunIISummer17PrePremix-MCv2_correctPU_94X_mc2017_realistic_v9-v1_GEN-SIM-DIGI-RAW.pkl"
-    elif ".2018." in options.config: puname = "Neutrino_E-10_gun_RunIISummer17PrePremix-PUAutumn18_102X_upgrade2018_realistic_v15-v1_GEN-SIM-DIGI-RAW.pkl"
+    if options.year==2016: puname = "Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.pkl"
+    elif options.year==2017: puname = "Neutrino_E-10_gun_RunIISummer17PrePremix-MCv2_correctPU_94X_mc2017_realistic_v9-v1_GEN-SIM-DIGI-RAW.pkl"
+    elif options.year==2018: puname = "Neutrino_E-10_gun_RunIISummer17PrePremix-PUAutumn18_102X_upgrade2018_realistic_v15-v1_GEN-SIM-DIGI-RAW.pkl"
     if not os.path.isfile(puname):
         print "retrieving "+puname
         os.system("xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/"+puname+" .")

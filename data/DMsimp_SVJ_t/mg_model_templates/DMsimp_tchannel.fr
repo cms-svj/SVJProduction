@@ -1,0 +1,153 @@
+(***************** This is the FeynRules model file for QCD-inspired t-channel dark quark production ************************)
+
+M$ModelName = "Semivisible";
+
+M$Information = {Authors -> "T. Lou",
+                 Institutions -> "UC Berkeley",
+                 Emails -> "hlou@berkeley.edu",
+                 Date -> "06. 04. 2017",
+		 Version -> "1.0.0" };
+
+
+
+(********** Index definition *********)
+
+IndexRange[ Index[Hidden] ] = Unfold[Range[4]]
+IndexStyle[Hidden, h]
+
+(***** Parameter list ******)
+
+M$Parameters = {
+
+  ls == {
+     InteractionOrder -> {QCD, 1},
+     Value -> 1.0,
+     TeX -> Subscript[l, s]}
+
+}
+
+(***** Gauge list group ******)
+
+
+(***** Particle classes list ******)
+
+M$ClassesDescription = {
+
+  S[101] == {
+      ClassName -> sd,
+      ClassMembers -> {sd11, sd12, sd21, sd22},
+      SelfConjugate -> False,
+      Indices -> {Index[Hidden], Index[Colour]},
+      FlavorIndex -> Hidden,
+      QuantumNumbers -> {Q -> -1/3},
+      Mass -> {Msd, {Msd11, 1000},{Msd12, 1000},{Msd21, 1000},{Msd22,1000}},
+      Width -> {MWsd, {MWsd11, 1}, {MWsd12, 1}, {MWsd21, 1}, {MWsd22, 1} }
+      },
+
+  S[102] == {
+      ClassName -> ss,
+      ClassMembers -> {ss11, ss12, ss21, ss22},
+      SelfConjugate -> False,
+      Indices -> {Index[Hidden], Index[Colour]},
+      FlavorIndex -> Hidden,
+      QuantumNumbers -> {Q -> -1/3},
+      Mass -> {Mss, {Mss11, 1000},{Mss12, 1000},{Mss21, 1000},{Mss22,1000}},
+      Width -> {MWss, {MWss11, 1}, {MWss12, 1}, {MWss21, 1}, {MWss22, 1} }
+      },
+
+  S[103] == {
+      ClassName -> sb,
+      ClassMembers -> {sb11, sb12, sb21, sb22},
+      SelfConjugate -> False,
+      Indices -> {Index[Hidden], Index[Colour]},
+      FlavorIndex -> Hidden,
+      QuantumNumbers -> {Q -> -1/3},
+      Mass -> {Msb, {Msb11, 1000},{Msb12, 1000},{Msb21, 1000},{Msb22,1000}},
+      Width -> {MWsb, {MWsb11, 1}, {MWsb12, 1}, {MWsb21, 1}, {MWsb22, 1} }
+
+      },
+
+  S[201] == {
+      ClassName -> su,
+      ClassMembers -> {su11, su12, su21, su22},
+      SelfConjugate -> False,
+      Indices -> {Index[Hidden], Index[Colour]},
+      FlavorIndex -> Hidden,
+      QuantumNumbers -> {Q -> 2/3},
+      Mass -> {Msu, {Msu11, 1000},{Msu12, 1000},{Msu21, 1000},{Msu22,1000}},
+      Width -> {MWsu, {MWsu11, 1}, {MWsu12, 1}, {MWsu21, 1}, {MWsu22, 1} }
+      },
+
+  S[202] == {
+      ClassName -> sc,
+      ClassMembers -> {sc11, sc12, sc21, sc22},
+      SelfConjugate -> False,
+      Indices -> {Index[Hidden], Index[Colour]},
+      FlavorIndex -> Hidden,
+      QuantumNumbers -> {Q -> 2/3},
+      Mass -> {Msc, {Msc11, 1000},{Msc12, 1000},{Msc21, 1000},{Msc22,1000}},
+      Width -> {MWsc, {MWsc11, 1}, {MWsc12, 1}, {MWsc21, 1}, {MWsc22, 1} }
+      },
+
+  S[203] == {
+      ClassName -> st,
+      ClassMembers -> {st11, st12, st21, st22},
+      SelfConjugate -> False,
+      Indices -> {Index[Hidden], Index[Colour]},
+      FlavorIndex -> Hidden,
+      QuantumNumbers -> {Q -> 2/3},
+      Mass -> {Mst, {Mst11, 1000},{Mst12, 1000},{Mst21, 1000},{Mst22,1000}},
+      Width -> {MWst, {MWst11, 1}, {MWst12, 1}, {MWst21, 1}, {MWst22, 1} }
+      },
+
+
+  S[301] == { 
+    ClassName      -> sqd, 
+    Unphysical     -> True, 
+    Indices        -> {Index[Hidden], Index[Generation], Index[Color]},
+    FlavorIndex    -> Hidden,
+    SelfConjugate  -> False,
+    QuantumNumbers -> {Y -> -1/3},
+    Definitions    -> { sqd[h_,1,ff_] :> sd[h,ff],
+       		      	sqd[h_,2,ff_] :> ss[h,ff],
+			sqd[h_,3,ff_] :> sb[h,ff] }
+  },
+
+  S[302] == { 
+    ClassName      -> squ, 
+    Unphysical     -> True, 
+    Indices        -> {Index[Hidden], Index[Generation], Index[Color]},
+    FlavorIndex    -> Hidden,
+    SelfConjugate  -> False,
+    QuantumNumbers -> {Y -> 2/3},
+    Definitions    -> { squ[h_,1,ff_] :> su[h,ff],
+       		      	squ[h_,2,ff_] :> sc[h,ff],
+			squ[h_,3,ff_] :> st[h,ff] }
+  },
+
+  
+  F[201] == {
+      ClassName -> gv,
+      ClassMembers -> {gv11, gv12, gv21, gv22},
+      SelfConjugate -> False,
+      PDG -> {49001011, 49001012, 49001013, 49001014},
+      Indices -> {Index[Hidden]},
+      FlavorIndex -> Hidden,
+      Mass -> {Mgv, {Mgv11, 10},{Mgv12, 10},{Mgv21, 10},{Mgv22, 10}},
+      Width -> 0
+      },
+
+  F[211] == { 
+    ClassName      -> gvR, 
+    Unphysical     -> True, 
+    Indices        -> {Index[Hidden]},
+    FlavorIndex    -> Hidden,
+    SelfConjugate  -> False,
+    Definitions    -> { gvR[sp1_,ff_] :> Module[{sp2}, ProjM[sp1,sp2] gv[sp2,ff]] }
+  }
+
+      
+}
+
+LHScalar :=  DC[sdbar[i,c], mu] DC[sd[i,c], mu] + DC[ssbar[i,c], mu] DC[ss[i,c], mu] + DC[sbbar[i,c], mu] DC[sb[i,c], mu] + DC[sqdbar[h,f,i],mu]DC[sqd[h,f,i],mu] + DC[subar[i,c], mu] DC[su[i,c], mu] + DC[scbar[i,c], mu] DC[sc[i,c], mu] + DC[stbar[i,c], mu] DC[st[i,c], mu] + DC[squbar[h,f,i],mu]DC[squ[h,f,i],mu] 
+LHFermion := I gvbar[sp, h].Ga[mu].del[gv[sp, h],mu] - ls (sqd[h,ff,i] dRbar[sp, ff, i].gvR[sp,h] + squ[h,ff,i] uRbar[sp, ff, i].gvR[sp,h]) - ls HC[(sqd[h,ff,i] dRbar[sp, ff, i].gvR[sp,h] + squ[h,ff,i] uRbar[sp, ff, i].gvR[sp,h])] 

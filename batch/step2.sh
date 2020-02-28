@@ -4,10 +4,11 @@ export JOBNAME=""
 export PART=""
 export OUTDIR=""
 export REDIR=""
+export DOMG=""
 export OPTIND=1
 while [[ $OPTIND -lt $# ]]; do
 	# getopts in silent mode, don't exit on errors
-	getopts ":j:p:o:x:" opt || status=$?
+	getopts ":j:p:o:x:m" opt || status=$?
 	case "$opt" in
 		j) export JOBNAME=$OPTARG
 		;;
@@ -16,6 +17,8 @@ while [[ $OPTIND -lt $# ]]; do
 		o) export OUTDIR=$OPTARG
 		;;
 		x) export REDIR=$OPTARG
+		;;
+		m) export DOMG=true
 		;;
 		# keep going if getopts had an error
 		\? | :) OPTIND=$((OPTIND+1))
@@ -28,10 +31,21 @@ echo "OUTDIR:     $OUTDIR"
 echo "JOBNAME:    $JOBNAME"
 echo "PART:       $PART"
 echo "REDIR:      $REDIR"
+echo "DOMG:       $DOMG"
 echo ""
 
+if [ -n "$DOMG" ]; then
+	EXE=python
+	SCRIPT=runMG.py
+	FTYPE=.tar.xz
+else
+	EXE=cmsRun
+	SCRIPT=runSVJ.py
+	FTYPE=.root
+fi
+
 # link files from CMSSW dir
-ln -fs ${CMSSWVER}/src/SVJ/Production/test/runSVJ.py
+ln -fs ${CMSSWVER}/src/SVJ/Production/test/${SCRIPT}
 
 # run CMSSW
 ARGS=$(cat args_${JOBNAME}.txt)
@@ -39,19 +53,19 @@ ARGS="$ARGS part=$PART"
 if [[ -n "$REDIR" ]]; then
 	ARGS="$ARGS redir=${REDIR}"
 fi
-echo "cmsRun runSVJ.py ${ARGS} 2>&1"
-cmsRun runSVJ.py ${ARGS} 2>&1
+echo "${EXE} ${SCRIPT} ${ARGS} 2>&1"
+${EXE} ${SCRIPT} ${ARGS} 2>&1
 
 CMSEXIT=$?
 
 # cleanup
-rm runSVJ.py
+rm ${SCRIPT}
 if ls *.pkl >& /dev/null; then
 	rm *.pkl
 fi
 
 if [[ $CMSEXIT -ne 0 ]]; then
-	rm *.root
+	rm *${FTYPE}
 	echo "exit code $CMSEXIT, skipping xrdcp"
 	exit $CMSEXIT
 fi
@@ -64,16 +78,15 @@ if [[ "$OUTDIR" == "gsiftp://"* ]]; then
 	GFLAG="-g"
 fi
 # copy output to eos
-echo "xrdcp output for condor"
-for FILE in *.root; do
+echo "$CMDSTR output for condor"
+for FILE in *${FTYPE}; do
 	echo "${CMDSTR} -f ${FILE} ${OUTDIR}/${FILE}"
 	stageOut ${GFLAG} -x "-f" -i ${FILE} -o ${OUTDIR}/${FILE} 2>&1
 	XRDEXIT=$?
 	if [[ $XRDEXIT -ne 0 ]]; then
-		rm *.root
+		rm *${FTYPE}
 		echo "exit code $XRDEXIT, failure in ${CMDSTR}"
 		exit $XRDEXIT
 	fi
 	rm ${FILE}
 done
-
