@@ -295,6 +295,16 @@ specifically:
 <details>
 <summary>Commands:</summary>
 
+LHE-GEN only:
+```
+cmsDriver.py SVJ/Production/python/2017/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions  93X_mc2017_realistic_v3 --beamspot Realistic25ns13TeVEarly2017Collision --step LHE,GEN --nThreads 4 --geometry DB:Extended --era Run2_2017 --fileout file:step1.root --python_filename step1_LHE-GEN.py --no_exec
+```
+
+LHE-GEN-SIM:
+```
+cmsDriver.py SVJ/Production/python/2017/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions  93X_mc2017_realistic_v3 --beamspot Realistic25ns13TeVEarly2017Collision --step LHE,GEN,SIM --nThreads 4 --geometry DB:Extended --era Run2_2017 --fileout file:step1.root --python_filename step1_LHE-GEN-SIM.py --no_exec
+```
+
 GEN only:
 ```
 cmsDriver.py SVJ/Production/2017/EmptyFragment_cff --python_filename step1_GEN.py --mc --eventcontent RAWSIM --datatier GEN --conditions 93X_mc2017_realistic_v3 --beamspot Realistic25ns13TeVEarly2017Collision --step GEN --nThreads 4 --geometry DB:Extended --era Run2_2017 --fileout file:step0.root --no_exec
@@ -329,6 +339,7 @@ cmsDriver.py step4 --python_filename step4_MINIAOD_2016.py --mc --eventcontent M
 
 These commands are based on the [PdmVMcCampaigns twiki](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMcCampaigns) and [McM](https://cms-pdmv.cern.ch/mcm/),
 specifically:
+[RunIIFall17wmLHEGS](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMCcampaignRunIIFall17wmLHEGS),
 [RunIIFall17GS](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMCcampaignRunIIFall17GS),
 [RunIIFall17DRPremix](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMCcampaignRunIIFall17DRPremix),
 [RunIIFall17MiniAODv2](https://cms-pdmv.cern.ch/mcm/public/restapi/requests/get_setup/BTV-RunIIFall17MiniAODv2-00024),
