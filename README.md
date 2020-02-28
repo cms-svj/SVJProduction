@@ -246,12 +246,12 @@ cmsRun runSVJ.py config=softdropanalyzer_cfg outpre=softdropana output=TFileServ
 
 LHE-GEN only:
 ```
-cmsDriver.py SVJ/Production/python/2016/HadronizerFragment_cff.py --fileout file:step1.root --mc --eventcontent RAWSIM --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1,Configuration/DataProcessing/Utils.addMonitoring --datatier GEN --conditions MCRUN2_71_V1::All --beamspot Realistic50ns13TeVCollision --step LHE,GEN --magField 38T_PostLS1 --python_filename step1_LHE-GEN.py --no_exec
+cmsDriver.py SVJ/Production/python/2016/HadronizerFragment_cff.py --fileout file:step1.root --mc --eventcontent RAWSIM --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1 --datatier GEN --conditions MCRUN2_71_V1::All --beamspot Realistic50ns13TeVCollision --step LHE,GEN --magField 38T_PostLS1 --python_filename step1_LHE-GEN.py --no_exec
 ```
 
 LHE-GEN-SIM:
 ```
-cmsDriver.py SVJ/Production/python/2016/HadronizerFragment_cff.py --fileout file:step1.root --mc --eventcontent RAWSIM --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1,Configuration/DataProcessing/Utils.addMonitoring --datatier GEN-SIM --conditions MCRUN2_71_V1::All --beamspot Realistic50ns13TeVCollision --step LHE,GEN,SIM --magField 38T_PostLS1 --python_filename step1_LHE-GEN-SIM.py --no_exec
+cmsDriver.py SVJ/Production/python/2016/HadronizerFragment_cff.py --fileout file:step1.root --mc --eventcontent RAWSIM --customise SLHCUpgradeSimulations/Configuration/postLS1Customs.customisePostLS1 --datatier GEN-SIM --conditions MCRUN2_71_V1::All --beamspot Realistic50ns13TeVCollision --step LHE,GEN,SIM --magField 38T_PostLS1 --python_filename step1_LHE-GEN-SIM.py --no_exec
 ```
 
 GEN only:
