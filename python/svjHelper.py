@@ -153,10 +153,10 @@ class svjHelper(object):
         else:
             self.lambdaHV = self.calcLambda(self.alpha)
 
-    def getOutName(self,events=0,signal=True,outpre="outpre",part=None):
+    def getOutName(self,events=0,signal=True,outpre="outpre",part=None,sanitize=False):
         _outname = outpre
         if signal:
-            _outname += "_{}-channel_".format(self.channel)
+            _outname += "_{}-channel".format(self.channel)
             _outname += "_mMed-{:g}".format(self.mMediator)
             _outname += "_mDark-{:g}".format(self.mDark)
             _outname += "_rinv-{:g}".format(self.rinv)
@@ -170,6 +170,8 @@ class svjHelper(object):
         if events>0: _outname += "_n-{:g}".format(events)
         if part is not None:
             _outname += "_part-{:g}".format(part)
+        if sanitize:
+            _outname = _outname.replace("-","_").replace(".","p")
         return _outname
 
     # allow access to all xsecs
@@ -342,14 +344,15 @@ class svjHelper(object):
         if base_dir[-1]!='/': base_dir = base_dir+'/'
 
         # helper for templates
-        def fill_template(filename, **kwargs):
-            with open(filename,'r') as temp:
+        def fill_template(inname, outname=None, **kwargs):
+            if outname is None: outname = inname
+            with open(inname,'r') as temp:
                 old_lines = Template(temp.read())
                 new_lines = old_lines.substitute(**kwargs)
-            with open(filename,'w') as temp:
+            with open(outname,'w') as temp:
                 temp.write(new_lines)
 
-        mg_model_dir = os.path.expand(base_dir+"mg_model")
+        mg_model_dir = os.path.expandvars(base_dir+"mg_model_templates")
 
         # replace parameters in relevant file
         fill_template(
@@ -364,12 +367,13 @@ class svjHelper(object):
         param_card_file = os.path.join(mg_model_dir,"param_card.dat")
         ParamCardWriter(param_card_file, generic=True)
 
-        mg_input_dir = os.path.expand(base_dir+"mg_input")
-        
-        for template in glob(mg_input_dir, "*.dat"):
+        mg_input_dir = os.path.expandvars(base_dir+"mg_input_templates")
+        modname = self.getOutName(outpre="SVJ",sanitize=True)
+        for template in glob(os.path.join(mg_input_dir, "*.dat")):
             fill_template(
                 os.path.join(mg_input_dir,template),
-                modelName = self.getOutName(),
+                os.path.join(mg_input_dir,template.replace("modelname",modname)),
+                modelName = modname,
                 totalEvents = "{:g}".format(events),
                 lhaid = "{:g}".format(lhaid),
                 htCut = "{:g}".format(self.ht_cut),

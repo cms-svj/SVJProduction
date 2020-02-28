@@ -95,7 +95,7 @@
 #                                                                    
 #
 #*********************************************************************
-# BW cutoff (M+/-bwcutoff*Gamma) ! Define on/off-shell for "$" and decay  
+# BW cutoff (M+/-bwcutoff*Gamma) ! Define on/off-shell for "" and decay  
 #*********************************************************************
   15.0	= bwcutoff ! (M+/-bwcutoff*Gamma)
 #*********************************************************************

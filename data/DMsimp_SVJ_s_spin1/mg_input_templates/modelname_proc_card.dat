@@ -19,10 +19,10 @@
 #*                                                          *
 #************************************************************
 
-import model {modelName}
+import model $modelName
 define j = g u c t d b s g u~ c~ t~ d~ b~ s~
 generate p p > xd xd~
 add process p p > xd xd~ j
 add process p p > xd xd~ j j
 # Output directory
-output {modelName}
+output $modelName

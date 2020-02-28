@@ -1,13 +1,15 @@
 import FWCore.ParameterSet.Config as cms
 import sys, os, shutil, subprocess
+from glob import glob
 from SVJ.Production.optSVJ import options, _helper
 
 # model name
-_outname = _helper.getOutName(options.maxEvents)
+_outname = _helper.getOutName()
 _outname = _outname.replace("outpre",options.outpre[0])
+_modname = _helper.getOutName(outpre="SVJ",sanitize=True)
 
 # copy template files
-data_path = os.path.expand("$CMSSW_BASE/src/SVJ/Production/data/"+_helper.mg_name)
+data_path = os.path.expandvars("$CMSSW_BASE/src/SVJ/Production/data/"+_helper.mg_name)
 mg_dir = os.path.join(os.getcwd(),_outname)
 # remove output directory if it already exists
 if os.path.isdir(mg_dir):
@@ -22,17 +24,22 @@ elif options.year==2018: lhaid = 315200 # NNPDF31_lo_as_0130 for CP2
 # populate parameters in cards
 mg_model_dir, mg_input_dir = _helper.getMadGraphCards(mg_dir,lhaid,events=options.maxEvents)
 
-# make tarball for madgraph
+# make tarball for madgraph (w/ correct folder name to be imported later)
+mg_model_dir_new = os.path.join(mg_dir,_modname)
+shutil.move(mg_model_dir,mg_model_dir_new)
 shutil.make_archive(
-    base_name = mg_input_dir,
+    base_name = os.path.join(mg_input_dir,_modname),
     format = "tar",
     root_dir = mg_dir,
-	base_dir = os.path.basename(mg_model_dir),
+	base_dir = os.path.basename(mg_model_dir_new),
 )
 
 # run gridpack in genproductions dir (creates separate env)
-gen_prod_dir = os.path.expand("$CMSSW_BASE/src/Configuration/GenProductions/bin/MadGraph5_aMCatNLO/")
+gen_prod_dir = os.path.expandvars("$CMSSW_BASE/src/Configuration/GenProduction/bin/MadGraph5_aMCatNLO/")
+# cleanup previous dir just in case
+shutil.rmtree(os.path.join(gen_prod_dir,_modname),ignore_errors=True)
 cmd = '''
+set -e
 cd {0}
 ln -sf {1} .
 eval `scram unsetenv -sh`
@@ -44,7 +51,7 @@ cd {4}
 '''.format(
     gen_prod_dir,
     mg_input_dir,
-    _outname,
+    _modname,
     os.path.basename(mg_input_dir),
     os.getcwd(),
     "echo" if options.dump else "rm -rf", # use options.dump to keep gridpack dir
@@ -52,3 +59,8 @@ cd {4}
 )
 if options.dump: print cmd
 subprocess.check_call(cmd, shell=True)
+
+# move output to desired name
+for tfile in glob("*.tar.xz"):
+    tfile2 = tfile.replace(_modname,_outname)
+    shutil.move(tfile,tfile2)

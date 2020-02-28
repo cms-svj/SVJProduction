@@ -5,6 +5,7 @@
 *.pyc
 *.tar.gz
 *.eps
+*.tar.xz
 
 # Compiled Object files
 *.slo
