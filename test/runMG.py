@@ -3,6 +3,9 @@ import sys, os, shutil, subprocess
 from glob import glob
 from SVJ.Production.optSVJ import options, _helper
 
+# make sure number of events is > 0 (otherwise madgraph crashes)
+options.maxEvents = max(1,options.maxEvents)
+
 # model name
 _outname = _helper.getOutName()
 _outname = _outname.replace("outpre",options._outpre[0])
