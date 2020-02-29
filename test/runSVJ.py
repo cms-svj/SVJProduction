@@ -9,9 +9,12 @@ _outname += ".root"
 _inname = ""
 if len(options.inpre)>0:
     _inname = _outname.replace("outpre",options.inpre)
-    if len(options.indir)>0: _inname = options.indir+"/"+_inname
-    if len(options.redir)>0 and _inname.startswith("/store"): _inname = options.redir+_inname
-    if not _inname.startswith("/store") and not _inname.startswith("root:"): _inname = "file:"+_inname
+
+def fix_inname(inname,options,lhe=False):
+    if len(options.indir)>0: inname = options.indir+"/"+inname
+    if len(options.redir)>0 and inname.startswith("/store"): inname = options.redir+inname
+    if not lhe and not inname.startswith("/store") and not inname.startswith("root:"): inname = "file:"+inname
+    return inname
 
 # import process
 process = getattr(__import__(options.config,fromlist=["process"]),"process")
@@ -19,26 +22,31 @@ process = getattr(__import__(options.config,fromlist=["process"]),"process")
 # input settings
 process.maxEvents.input = cms.untracked.int32(options.maxEvents)
 if len(_inname)>0:
-    if hasattr(process.source,"fileNames"): process.source.fileNames = cms.untracked.vstring(_inname)
-	elif hasattr(process,"externalLHEProducer"):
+    if hasattr(process.source,"fileNames"):
+        _inname = fix_inname(_inname,options)
+        process.source.fileNames = cms.untracked.vstring(_inname)
+    elif hasattr(process,"externalLHEProducer"):
+        _inname = _helper.getOutName(outpre=options.inpre)+".tar.xz"
+        _inname = fix_inname(_inname,options,True)
         # fetch the gridpack file from xrootd
         if _inname.startswith("root:"):
             os.system("xrdcp "+_inname+" .")
-            _inname = "file:"+_inname.split('/')[-1]
-        process.externalLHEProducer.args = cms.vstring(_inname)
-else: process.source.firstEvent = cms.untracked.uint32((options.part-1)*options.maxEvents+1)
+            _inname = _inname.split('/')[-1]
+        process.externalLHEProducer.args = cms.vstring(os.path.join(os.getcwd(),_inname))
+        process.externalLHEProducer.nEvents = cms.untracked.uint32(options.maxEvents)
+if process.source.type_()=='EmptySource': process.source.firstEvent = cms.untracked.uint32((options.part-1)*options.maxEvents+1)
 if len(options.scan)>0: process.source.numberEventsInLuminosityBlock = cms.untracked.uint32(200)
 
 # output settings
 oprocess = process if (not hasattr(process,'subProcesses') or len(process.subProcesses)==0) else process.subProcesses[-1].process()
 if len(options.output)==0: options.output = sorted(oprocess.outputModules_())
-if len(options.outpre)!=len(options.output):
-    raise ValueError("Mismatch between # of output prefixes and # of output modules\n\tOutput prefixes are: "+", ".join(options.outpre)+"\n\tOutput modules are: "+", ".join(options.output))
+if len(options._outpre)!=len(options.output):
+    raise ValueError("Mismatch between # of output prefixes and # of output modules\n\tOutput prefixes are: "+", ".join(options._outpre)+"\n\tOutput modules are: "+", ".join(options.output))
 for iout,output in enumerate(options.output):
     if len(output)==0: continue
     if not hasattr(oprocess,output):
         raise ValueError("Unavailable output module: "+output)
-    getattr(oprocess,output).fileName = 'file:'+_outname.replace("outpre",options.outpre[iout])
+    getattr(oprocess,output).fileName = 'file:'+_outname.replace("outpre",options._outpre[iout])
 
 # reset all random numbers to ensure statistically distinct but reproducible jobs
 from IOMC.RandomEngine.RandomServiceHelper import RandomNumberServiceHelper

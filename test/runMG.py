@@ -5,7 +5,7 @@ from SVJ.Production.optSVJ import options, _helper
 
 # model name
 _outname = _helper.getOutName()
-_outname = _outname.replace("outpre",options.outpre[0])
+_outname = _outname.replace("outpre",options._outpre[0])
 _modname = _helper.getOutName(outpre="SVJ",sanitize=True)
 
 # copy template files
@@ -61,6 +61,9 @@ if options.dump: print cmd
 subprocess.check_call(cmd, shell=True)
 
 # move output to desired name
-for tfile in glob("*.tar.xz"):
-    tfile2 = tfile.replace(_modname,_outname)
-    shutil.move(tfile,tfile2)
+tfiles = glob(_modname+"*.tar.xz")
+if len(tfiles)==1: shutil.move(tfiles[0],_outname+".tar.xz")
+else:
+    for tfile in tfiles:
+        tfile2 = tfile.replace(_modname,_outname)
+        shutil.move(tfile,tfile2)

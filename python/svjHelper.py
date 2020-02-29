@@ -324,8 +324,8 @@ class svjHelper(object):
 
         return lines
 
-	def getJetMatchSettings(self):
-		lines = [
+    def getJetMatchSettings(self):
+        lines = [
             'JetMatching:setMad = off', # if 'on', merging parameters are set according to LHE file
             'JetMatching:scheme = 1', # 1 = scheme inspired by Madgraph matching code
             'JetMatching:merge = on', # master switch to activate parton-jet matching. when off, all external events accepted
@@ -336,9 +336,9 @@ class svjHelper(object):
             'JetMatching:qCut = 125.', # this is the actual merging scale. should be roughly equal to xqcut in MadGraph
             'JetMatching:nJetMax = 2', # number of partons in born matrix element for highest multiplicity
             'JetMatching:doShowerKt = off', # off for MLM matching, turn on for shower-kT matching
-		]
+        ]
 
-		return lines
+        return lines
 
     def getMadGraphCards(self,base_dir,lhaid,events=1):
         if base_dir[-1]!='/': base_dir = base_dir+'/'

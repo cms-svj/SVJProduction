@@ -43,9 +43,9 @@ elif options.year==2018 and not (cmssw_major==10):
 options.config = "SVJ.Production."+(str(options.year)+"." if options.year>0 else "")+options.config
 
 # this is needed because options.outpre is not really a list
-options.outpre = [x for x in options.outpre]
+setattr(options,"_outpre",[x for x in options.outpre])
 if len(options.scan)>0:
-    options.outpre = [x+"_"+options.scan for x in options.outpre]
+    options._outpre = [x+"_"+options.scan for x in options._outpre]
     if len(options.inpre)>0: options.inpre += "_"+options.scan
 
 _helper = svjHelper()
