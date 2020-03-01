@@ -183,6 +183,7 @@ if [ -n "$WHICH_CMSSW" ]; then
 		echo '/Utilities'
 		echo '/bin/MadGraph5_aMCatNLO'
 		echo '!/bin/MadGraph5_aMCatNLO/cards'
+		echo '/MetaData'
 	} > .git/info/sparse-checkout
 	git read-tree -mu HEAD
 	cd $CMSSW_BASE/src
