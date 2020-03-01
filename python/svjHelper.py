@@ -1,4 +1,4 @@
-import os, math, sys
+import os, math, sys, shutil
 from string import Template
 from glob import glob
 
@@ -349,8 +349,10 @@ class svjHelper(object):
             with open(inname,'r') as temp:
                 old_lines = Template(temp.read())
                 new_lines = old_lines.substitute(**kwargs)
-            with open(outname,'w') as temp:
+            with open(inname,'w') as temp:
                 temp.write(new_lines)
+            if inname!=outname:
+                shutil.move(inname,outname)
 
         mg_model_dir = os.path.expandvars(base_dir+"mg_model_templates")
 
