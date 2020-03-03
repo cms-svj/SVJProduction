@@ -83,7 +83,7 @@ if options.signal:
         if ".2017." in options.config or ".2018." in options.config: process.darkhadronZ2filter.moduleLabel = cms.InputTag('generator','unsmeared')
 
     # also filter out events with Zprime -> SM quarks
-    if hasattr(process,'ProductionFilterSequence'):
+    if options.channel=="s" and hasattr(process,'ProductionFilterSequence'):
         process.darkquarkFilter = cms.EDFilter("MCParticleModuloFilter",
             moduleLabel = cms.InputTag('generator'),
             particleIDs = cms.vint32(4900101),
@@ -94,6 +94,14 @@ if options.signal:
         )
         process.ProductionFilterSequence += process.darkquarkFilter
         if ".2017." in options.config or ".2018." in options.config: process.darkquarkFilter.moduleLabel = cms.InputTag('generator','unsmeared')
+
+    # apply HT cut for boosted search, including dark quarks
+    if options.boost and hasattr(process,'ProductionFilterSequence'):
+        process.bsmHtFilter = cms.EDFilter("BSMHTFilter",
+            particleIDs = cms.vint32(4900101),
+            htMin = cms.double(_helper.htCut),
+        )
+        process.ProductionFilterSequence += process.bsmHtFilter
 
 # genjet/met settings - treat DM stand-ins as invisible
 _particles = ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandidatesForMET","genParticlesForMETAllVisible"]
@@ -132,6 +140,7 @@ if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNo
             output_attr.outputCommands.extend([
                 'keep *_genParticlesForJets_*_*',
                 'keep *_genParticlesForJetsNoNu_*_*',
+                'keep *_bsmHtFilter_*_*',
             ])
 
 # DIGI settings

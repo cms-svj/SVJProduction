@@ -123,7 +123,7 @@ class svjHelper(object):
         return 1000*math.exp(-math.pi/(self.b0*alpha))
 
     # has to be "lambdaHV" because "lambda" is a keyword
-    def setModel(self,channel,mMediator,mDark,rinv,alpha,lambdaHV=None,generate=True,boost=False):
+    def setModel(self,channel,mMediator,mDark,rinv,alpha,lambdaHV=None,generate=True,boost=0):
         # check for issues
         if channel!="s" and channel!="t": raise ValueError("Unknown channel: "+channel)
         # store the basic parameters
@@ -135,8 +135,8 @@ class svjHelper(object):
         self.rinv = rinv
         if isinstance(alpha,str) and alpha[0].isalpha(): self.setAlpha(alpha)
         else: self.alpha = float(alpha)
-        # ht cut for boosted search
-        self.ht_cut = 400 if boost else 0
+        if boost: self.htCut = 400
+        else: self.htCut = 0
 
         # get more parameters
         self.xsec = self.getPythiaXsec(self.mMediator)
@@ -162,6 +162,7 @@ class svjHelper(object):
             _outname += "_rinv-{:g}".format(self.rinv)
             if len(self.alphaName)>0: _outname += "_alpha-{}".format(self.alphaName)
             else: _outname += "_alpha-{:g}".format(self.alpha)
+            if self.htCut>0: _outname += "_HT{:g}".format(self.htCut)
         # todo: include tune in name? depends on year
         if self.generate:
             _outname += "_13TeV-pythia8"
@@ -378,7 +379,6 @@ class svjHelper(object):
                 modelName = modname,
                 totalEvents = "{:g}".format(events),
                 lhaid = "{:g}".format(lhaid),
-                htCut = "{:g}".format(self.ht_cut),
             )
 
         return mg_model_dir, mg_input_dir
