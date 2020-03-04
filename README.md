@@ -101,7 +101,8 @@ Python:
 * `--outpre [str]`: output file prefix (required)
 * `--config [str]`: CMSSW config to run (required unless madgraph)
 * `--year [num]`: which year to simulate
-* `--madgraph`: madgraph gridpack production
+* `--gridpack`: gridpack production
+* `--madgraph`: sample generated w/ madgraph (rather than pythia)
 * `--actualEvents`: count actual number of events from each input file (for python file list, requires `-K auto`)
 * `-A, --args [list]`: additional common args to use for all jobs (passed to [runSVJ.py](./Production/test/runSVJ.py))
 * `-v, --verbose`: enable verbose output (default = False)
@@ -120,7 +121,7 @@ They assume the basic [CondorProduction](https://github.com/kpedro88/CondorProdu
 To run for 2017, replace `2016` with `2017` in the argument of `--year` and `/2016/` with `/2017/` in the arguments of `--indir` and `-o`.
 (A similar procedure can be used for 2018.)
 
-If MadGraph generation is used (Gridpack + LHE-GEN-SIM steps), an additional argument should be provided to the subsequent steps: `--args madgraph=1`.
+If MadGraph generation is used (Gridpack + LHE-GEN-SIM steps), an additional argument should be provided to the subsequent steps: `--madgraph`.
 
 <details>
 <summary>Commands:</summary>
@@ -131,7 +132,7 @@ python submitJobs.py -p -d signals2 -E 1 -N 1 --outpre step0_GRIDPACK --year 201
 ```
 LHE-GEN-SIM:
 ```
-python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV3/2016/GRIDPACK/ --inpre step0_GRIDPACK --outpre step1_LHE-GEN-SIM --year 2016 --config step1_LHE-GEN-SIM --args madgraph=1 -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV3/2016/GEN-SIM/ -s
+python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV3/2016/GRIDPACK/ --inpre step0_GRIDPACK --outpre step1_LHE-GEN-SIM --year 2016 --config step1_LHE-GEN-SIM --madgraph -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV3/2016/GEN-SIM/ -s
 ```
 GEN-SIM:
 ```

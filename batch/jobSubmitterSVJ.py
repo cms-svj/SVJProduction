@@ -36,7 +36,8 @@ class jobSubmitterSVJ(jobSubmitter):
         parser.add_option("--outpre", dest="outpre", default="", help="output file prefix (required) (default = %default)")
         parser.add_option("--year", dest="year", default=0, help="which year to simulate (default = %default)")
         parser.add_option("--config", dest="config", default="", help="CMSSW config to run (required unless madgraph) (default = %default)")
-        parser.add_option("--madgraph", dest="madgraph", default=False, action="store_true", help="madgraph gridpack production (default = %default)")
+        parser.add_option("--gridpack", dest="gridpack", default=False, action="store_true", help="gridpack production (default = %default)")
+        parser.add_option("--madgraph", dest="madgraph", default=False, action="store_true", help="sample generated w/ madgraph (rather than pythia) (default = %default)")
         parser.add_option("-A", "--args", dest="args", default="", help="additional common args to use for all jobs (default = %default)")
         parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true", help="enable verbose output (default = %default)")
 
@@ -64,7 +65,7 @@ class jobSubmitterSVJ(jobSubmitter):
         if options.prepare or not (options.count or options.getpy):
             if len(options.output)==0:
                 parser.error("Required option: --output [directory]")
-            if len(options.config)==0 and not options.madgraph:
+            if len(options.config)==0 and not options.gridpack:
                 parser.error("Required option: --config [str]")
 
         if options.skipParts=="auto" and (len(options.inpre)==0 or len(options.indir)==0 or (options.indir.startswith("/store/") and len(options.redir)==0)):
@@ -82,7 +83,7 @@ class jobSubmitterSVJ(jobSubmitter):
         job.patterns.update([
             ("JOBNAME",job.name+"_part-$(Process)_$(Cluster)"),
             ("EXTRAINPUTS","input/args_"+job.name+".txt"),
-            ("EXTRAARGS","-j "+job.name+" -p $(Process) -o "+self.output+("-m" if self.madgraph else "")),
+            ("EXTRAARGS","-j "+job.name+" -p $(Process) -o "+self.output+("-m" if self.gridpack else "")),
         ])
         if "cmslpc" in os.uname()[1]:
             job.appends.append(
@@ -111,7 +112,7 @@ class jobSubmitterSVJ(jobSubmitter):
             # extra attribute to store actual events
             if self.actualEvents: job.actualEvents = 0
             # make name from params
-            self.helper.setModel(pdict["mZprime"],pdict["mDark"],pdict["rinv"],pdict["alpha"])
+            self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"],boost=pdict["boost"] if "boost" in pdict else False,generate=not (self.madgraph or self.gridpack))
             job.name = self.helper.getOutName(int(self.maxEvents),outpre=self.outpre)
             if self.verbose:
                 print "Creating job: "+job.name
@@ -127,15 +128,19 @@ class jobSubmitterSVJ(jobSubmitter):
             if self.prepare:
                 with open("input/args_"+job.name+".txt",'w') as argfile:
                     arglist = [
-                        "mZprime="+str(pdict["mZprime"]),
+                        "channel="+str(pdict["channel"]),
+                        "mMediator="+str(pdict["mMediator"]),
                         "mDark="+str(pdict["mDark"]),
                         "rinv="+str(pdict["rinv"]),
                         "alpha="+str(pdict["alpha"]),
+                        "boost="+str(pdict["boost"] if "boost" in pdict else False),
                         "maxEvents="+str(self.maxEvents),
                         "outpre="+self.outpre,
                         "year="+str(self.year),
-                        "config="+self.config if not self.madgraph else "gridpack=1",
+                        "config="+self.config if not self.gridpack else "gridpack=1",
                     ]
+                    if self.madgraph or self.gridpack:
+                        arglist.append("madgraph=1")
                     if len(self.indir)>0:
                         arglist.append("indir="+self.indir)
                     if len(self.inpre)>0:
