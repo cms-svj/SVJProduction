@@ -1,4 +1,6 @@
-import os, math
+import os, math, sys, shutil
+from string import Template
+from glob import glob
 
 class quark(object):
     def __init__(self,id,mass):
@@ -121,18 +123,25 @@ class svjHelper(object):
         return 1000*math.exp(-math.pi/(self.b0*alpha))
 
     # has to be "lambdaHV" because "lambda" is a keyword
-    def setModel(self,mZprime,mDark,rinv,alpha,lambdaHV=None):
+    def setModel(self,channel,mMediator,mDark,rinv,alpha,lambdaHV=None,generate=True,boost=0):
+        # check for issues
+        if channel!="s" and channel!="t": raise ValueError("Unknown channel: "+channel)
         # store the basic parameters
-        self.mZprime = mZprime
+        self.channel = channel
+        self.mg_name = "DMsimp_SVJ_s_spin1" if channel=="s" else "DMsimp_SVJ_t" if channel=="t" else ""
+        self.generate = generate
+        self.mMediator = mMediator
         self.mDark = mDark
         self.rinv = rinv
         if isinstance(alpha,str) and alpha[0].isalpha(): self.setAlpha(alpha)
         else: self.alpha = float(alpha)
+        if boost: self.htCut = 400
+        else: self.htCut = 0
 
         # get more parameters
-        self.xsec = self.getPythiaXsec(self.mZprime)
-        self.mMin = self.mZprime-1
-        self.mMax = self.mZprime+1
+        self.xsec = self.getPythiaXsec(self.mMediator)
+        self.mMin = self.mMediator-1
+        self.mMax = self.mMediator+1
         self.mSqua = self.mDark/2. # dark scalar quark mass (also used for pTminFSR)
 
         # get limited set of quarks for decays (check mDark against quark masses, compute running)
@@ -144,24 +153,35 @@ class svjHelper(object):
         else:
             self.lambdaHV = self.calcLambda(self.alpha)
 
-    def getOutName(self,events=0,signal=True,outpre="outpre",part=None):
+    def getOutName(self,events=0,signal=True,outpre="outpre",part=None,sanitize=False):
         _outname = outpre
         if signal:
-            _outname += "_mZprime-{:g}".format(self.mZprime)
+            _outname += "_{}-channel".format(self.channel)
+            _outname += "_mMed-{:g}".format(self.mMediator)
             _outname += "_mDark-{:g}".format(self.mDark)
             _outname += "_rinv-{:g}".format(self.rinv)
-            if len(self.alphaName)>0: _outname += "_alpha-"+(self.alphaName)
+            if len(self.alphaName)>0: _outname += "_alpha-{}".format(self.alphaName)
             else: _outname += "_alpha-{:g}".format(self.alpha)
+            if self.htCut>0: _outname += "_HT{:g}".format(self.htCut)
+        # todo: include tune in name? depends on year
+        if self.generate:
+            _outname += "_13TeV-pythia8"
+        else:
+            _outname += "_13TeV-madgraphMLM-pythia8"
         if events>0: _outname += "_n-{:g}".format(events)
         if part is not None:
             _outname += "_part-{:g}".format(part)
+        if sanitize:
+            _outname = _outname.replace("-","_").replace(".","p")
         return _outname
 
     # allow access to all xsecs
-    def getPythiaXsec(self,mZprime):
-        xsec = 1.0 
-        # a function of mZprime
-        if mZprime in self.xsecs: xsec = self.xsecs[mZprime]
+    def getPythiaXsec(self,mMediator):
+        xsec = 1.0
+        # todo: get t-channel cross sections
+        if self.channel=="t": return xsec
+        # a function of mMediator
+        if mMediator in self.xsecs: xsec = self.xsecs[mMediator]
         return xsec
 
     def invisibleDecay(self,mesonID,dmID):
@@ -191,11 +211,10 @@ class svjHelper(object):
 
     def getPythiaSettings(self):
         # todo: include safety/sanity checks
-        
-        lines = [
-            'HiddenValley:ffbar2Zv = on',
+
+        lines_schan = [
             # parameters for leptophobic Z'
-            '4900023:m0 = {:g}'.format(self.mZprime),
+            '4900023:m0 = {:g}'.format(self.mMediator),
             '4900023:mMin = {:g}'.format(self.mMin),
             '4900023:mMax = {:g}'.format(self.mMax),
             '4900023:mWidth = 0.01',
@@ -207,6 +226,64 @@ class svjHelper(object):
             '4900023:addChannel = 1 0.003 102 4 -4',
             '4900023:addChannel = 1 0.003 102 5 -5',
             '4900023:addChannel = 1 0.003 102 6 -6',
+            # decouple
+            '4900001:m0 = 50000',
+            '4900002:m0 = 50000',
+            '4900003:m0 = 50000',
+            '4900004:m0 = 50000',
+            '4900005:m0 = 50000',
+            '4900006:m0 = 50000',
+            '4900011:m0 = 50000',
+            '4900012:m0 = 50000',
+            '4900013:m0 = 50000',
+            '4900014:m0 = 50000',
+            '4900015:m0 = 50000',
+            '4900016:m0 = 50000',
+        ]
+
+        # parameters for bifundamental mediators
+        # (keep default flavor-diagonal couplings)
+        bifunds = [4900001,4900002,4900003,4900004,4900005,4900006]
+        lines_tchan = []
+        for bifund in bifunds:
+            lines_tchan.extend([
+                '{:d}:m0 = {:g}'.format(bifund,self.mMediator),
+                '{:d}:mMin = {:g}'.format(bifund,self.mMin),
+                '{:d}:mMax = {:g}'.format(bifund,self.mMax),
+                '{:d}:mWidth = 0.01'.format(bifund),
+            ])
+        lines_tchan.extend([
+            # decouple
+            '4900011:m0 = 50000',
+            '4900012:m0 = 50000',
+            '4900013:m0 = 50000',
+            '4900014:m0 = 50000',
+            '4900015:m0 = 50000',
+            '4900016:m0 = 50000',
+            '4900023:m0 = 50000',
+        ])
+
+        if self.generate:
+            line_schan.extend([
+                'HiddenValley:ffbar2Zv = on',
+            ])
+            # pythia can only generate pair prod of bifundamental
+            line_tchan.extend([
+                'HiddenValley:gg2DvDvbar = on',
+                'HiddenValley:gg2UvUvbar = on',
+                'HiddenValley:gg2SvSvbar = on',
+                'HiddenValley:gg2CvCvbar = on',
+                'HiddenValley:gg2BvBvbar = on',
+                'HiddenValley:gg2TvTvbar = on',
+                'HiddenValley:qqbar2DvDvbar = on',
+                'HiddenValley:qqbar2UvUvbar = on',
+                'HiddenValley:qqbar2SvSvbar = on',
+                'HiddenValley:qqbar2CvCvbar = on',
+                'HiddenValley:qqbar2BvBvbar = on',
+                'HiddenValley:qqbar2TvTvbar = on',
+            ])
+
+        lines_decay = [
             # hidden spectrum:
             # fermionic dark quark,
             # diagonal pseudoscalar meson, off-diagonal pseudoscalar meson, DM stand-in particle,
@@ -230,30 +307,78 @@ class svjHelper(object):
             'HiddenValley:Lambda = {:g}'.format(self.lambdaHV),
             'HiddenValley:nFlav = {:d}'.format(self.n_f),
             'HiddenValley:probVector = 0.75',
-            # decouple
-            '4900001:m0 = 5000',
-            '4900002:m0 = 5000',
-            '4900003:m0 = 5000',
-            '4900004:m0 = 5000',
-            '4900005:m0 = 5000',
-            '4900006:m0 = 5000',
-            '4900011:m0 = 5000',
-            '4900012:m0 = 5000',
-            '4900013:m0 = 5000',
-            '4900014:m0 = 5000',
-            '4900015:m0 = 5000',
-            '4900016:m0 = 5000',
         ]
         # branching - effective rinv (applies to all meson species b/c n_f >= 2)
         # pseudoscalars have mass insertion decay, vectors have democratic decay
-        lines += self.invisibleDecay(4900111,51)
-        lines += self.visibleDecay("massInsertion",4900111,51)
-        lines += self.invisibleDecay(4900211,51)
-        lines += self.visibleDecay("massInsertion",4900211,51)
-        lines += self.invisibleDecay(4900113,53)
-        lines += self.visibleDecay("democratic",4900113,53)
-        lines += self.invisibleDecay(4900213,53)
-        lines += self.visibleDecay("democratic",4900213,53)
+        lines_decay += self.invisibleDecay(4900111,51)
+        lines_decay += self.visibleDecay("massInsertion",4900111,51)
+        lines_decay += self.invisibleDecay(4900211,51)
+        lines_decay += self.visibleDecay("massInsertion",4900211,51)
+        lines_decay += self.invisibleDecay(4900113,53)
+        lines_decay += self.visibleDecay("democratic",4900113,53)
+        lines_decay += self.invisibleDecay(4900213,53)
+        lines_decay += self.visibleDecay("democratic",4900213,53)
+
+        lines = []
+        if self.channel=="s": lines = lines_schan + lines_decay
+        elif self.channel=="t": lines = lines_tchan + lines_decay
 
         return lines
 
+    def getJetMatchSettings(self):
+        lines = [
+            'JetMatching:setMad = off', # if 'on', merging parameters are set according to LHE file
+            'JetMatching:scheme = 1', # 1 = scheme inspired by Madgraph matching code
+            'JetMatching:merge = on', # master switch to activate parton-jet matching. when off, all external events accepted
+            'JetMatching:jetAlgorithm = 2', # 2 = SlowJet clustering
+            'JetMatching:etaJetMax = 5.', # max eta of any jet
+            'JetMatching:coneRadius = 1.0', # gives the jet R parameter
+            'JetMatching:slowJetPower = 1', # -1 = anti-kT algo, 1 = kT algo. Only kT w/ SlowJet is supported for MadGraph-style matching
+            'JetMatching:qCut = 125.', # this is the actual merging scale. should be roughly equal to xqcut in MadGraph
+            'JetMatching:nJetMax = 2', # number of partons in born matrix element for highest multiplicity
+            'JetMatching:doShowerKt = off', # off for MLM matching, turn on for shower-kT matching
+        ]
+
+        return lines
+
+    def getMadGraphCards(self,base_dir,lhaid,events=1):
+        if base_dir[-1]!='/': base_dir = base_dir+'/'
+
+        # helper for templates
+        def fill_template(inname, outname=None, **kwargs):
+            if outname is None: outname = inname
+            with open(inname,'r') as temp:
+                old_lines = Template(temp.read())
+                new_lines = old_lines.substitute(**kwargs)
+            with open(inname,'w') as temp:
+                temp.write(new_lines)
+            if inname!=outname:
+                shutil.move(inname,outname)
+
+        mg_model_dir = os.path.expandvars(base_dir+"mg_model_templates")
+
+        # replace parameters in relevant file
+        fill_template(
+            os.path.join(mg_model_dir,"parameters.py"),
+            mediator_mass = "{:g}".format(self.mMediator),
+            dark_quark_mass = "{:g}".format(self.mSqua),
+        )
+
+        # use parameters to generate card
+        sys.path.append(mg_model_dir)
+        from write_param_card import ParamCardWriter
+        param_card_file = os.path.join(mg_model_dir,"param_card.dat")
+        ParamCardWriter(param_card_file, generic=True)
+
+        mg_input_dir = os.path.expandvars(base_dir+"mg_input_templates")
+        modname = self.getOutName(outpre="SVJ",sanitize=True)
+        for template in glob(os.path.join(mg_input_dir, "*.dat")):
+            fill_template(
+                os.path.join(mg_input_dir,template),
+                os.path.join(mg_input_dir,template.replace("modelname",modname)),
+                modelName = modname,
+                totalEvents = "{:g}".format(events),
+                lhaid = "{:g}".format(lhaid),
+            )
+
+        return mg_model_dir, mg_input_dir

@@ -174,6 +174,20 @@ if [ -n "$WHICH_CMSSW" ]; then
 	git clone ${ACCESS_GITHUB}kpedro88/CondorProduction Condor/Production
 	git clone ${ACCESS_GITHUB}${FORK}/SVJProduction SVJ/Production -b ${BRANCH}
 
+	# use as little of genproductions as possible
+	git clone --depth 1 --no-checkout ${ACCESS_GITHUB}kpedro88/genproductions -b run2 Configuration/GenProduction
+	# setup sparse checkout
+	cd Configuration/GenProduction
+	git config core.sparsecheckout true
+	{
+		echo '/Utilities'
+		echo '/bin/MadGraph5_aMCatNLO'
+		echo '!/bin/MadGraph5_aMCatNLO/cards'
+		echo '/MetaData'
+	} > .git/info/sparse-checkout
+	git read-tree -mu HEAD
+	cd $CMSSW_BASE/src
+
 	# setup preprocessor flag for old CMSSW version
 	cd SVJ/Production/interface
 	if [ -n "$CMSSW71X" ]; then

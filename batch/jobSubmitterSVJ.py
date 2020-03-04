@@ -34,7 +34,9 @@ class jobSubmitterSVJ(jobSubmitter):
         parser.add_option("--redir", dest="redir", default="root://cmseos.fnal.gov/", help="input file redirector (default = %default)")
         parser.add_option("--inpre", dest="inpre", default="", help="input file prefix (default = %default)")
         parser.add_option("--outpre", dest="outpre", default="", help="output file prefix (required) (default = %default)")
-        parser.add_option("--config", dest="config", default="", help="CMSSW config to run (required) (default = %default)")
+        parser.add_option("--year", dest="year", default=0, help="which year to simulate (default = %default)")
+        parser.add_option("--config", dest="config", default="", help="CMSSW config to run (required unless madgraph) (default = %default)")
+        parser.add_option("--madgraph", dest="madgraph", default=False, action="store_true", help="madgraph gridpack production (default = %default)")
         parser.add_option("-A", "--args", dest="args", default="", help="additional common args to use for all jobs (default = %default)")
         parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true", help="enable verbose output (default = %default)")
 
@@ -62,7 +64,7 @@ class jobSubmitterSVJ(jobSubmitter):
         if options.prepare or not (options.count or options.getpy):
             if len(options.output)==0:
                 parser.error("Required option: --output [directory]")
-            if len(options.config)==0:
+            if len(options.config)==0 and not options.madgraph:
                 parser.error("Required option: --config [str]")
 
         if options.skipParts=="auto" and (len(options.inpre)==0 or len(options.indir)==0 or (options.indir.startswith("/store/") and len(options.redir)==0)):
@@ -80,7 +82,7 @@ class jobSubmitterSVJ(jobSubmitter):
         job.patterns.update([
             ("JOBNAME",job.name+"_part-$(Process)_$(Cluster)"),
             ("EXTRAINPUTS","input/args_"+job.name+".txt"),
-            ("EXTRAARGS","-j "+job.name+" -p $(Process) -o "+self.output),
+            ("EXTRAARGS","-j "+job.name+" -p $(Process) -o "+self.output+("-m" if self.madgraph else "")),
         ])
         if "cmslpc" in os.uname()[1]:
             job.appends.append(
@@ -131,7 +133,8 @@ class jobSubmitterSVJ(jobSubmitter):
                         "alpha="+str(pdict["alpha"]),
                         "maxEvents="+str(self.maxEvents),
                         "outpre="+self.outpre,
-                        "config="+self.config,
+                        "year="+str(self.year),
+                        "config="+self.config if not self.madgraph else "gridpack=1",
                     ]
                     if len(self.indir)>0:
                         arglist.append("indir="+self.indir)
