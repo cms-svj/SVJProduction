@@ -128,7 +128,7 @@ If MadGraph generation is used (Gridpack + LHE-GEN-SIM steps), an additional arg
 
 Gridpack:
 ```
-python submitJobs.py -p -d signals2 -E 1 -N 1 --outpre step0_GRIDPACK --year 2016 --madgraph -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV3/2016/GRIDPACK/ -s
+python submitJobs.py -p -d signals2 -E 1 -N 1 --outpre step0_GRIDPACK --year 2016 --gridpack -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV3/2016/GRIDPACK/ -s
 ```
 LHE-GEN-SIM:
 ```
