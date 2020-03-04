@@ -137,8 +137,9 @@ class jobSubmitterSVJ(jobSubmitter):
                         "maxEvents="+str(self.maxEvents),
                         "outpre="+self.outpre,
                         "year="+str(self.year),
-                        "config="+self.config if not self.gridpack else "gridpack=1",
                     ]
+                    if not self.gridpack:
+                        arglist.append("config="+self.config)
                     if self.madgraph or self.gridpack:
                         arglist.append("madgraph=1")
                     if len(self.indir)>0:
