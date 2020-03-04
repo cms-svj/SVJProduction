@@ -4,11 +4,12 @@ export JOBNAME=""
 export PART=""
 export OUTDIR=""
 export REDIR=""
-export DOMG=""
+export MODE=""
 export OPTIND=1
 while [[ $OPTIND -lt $# ]]; do
 	# getopts in silent mode, don't exit on errors
-	getopts ":j:p:o:x:m" opt || status=$?
+	getopts ":j:p:o:x:m:" opt || status=$?
+	echo "$opt"
 	case "$opt" in
 		j) export JOBNAME=$OPTARG
 		;;
@@ -18,7 +19,7 @@ while [[ $OPTIND -lt $# ]]; do
 		;;
 		x) export REDIR=$OPTARG
 		;;
-		m) export DOMG=true
+		m) export MODE=$OPTARG
 		;;
 		# keep going if getopts had an error
 		\? | :) OPTIND=$((OPTIND+1))
@@ -31,10 +32,10 @@ echo "OUTDIR:     $OUTDIR"
 echo "JOBNAME:    $JOBNAME"
 echo "PART:       $PART"
 echo "REDIR:      $REDIR"
-echo "DOMG:       $DOMG"
+echo "MODE:       $MODE"
 echo ""
 
-if [ -n "$DOMG" ]; then
+if [[ "$MODE" == "madgraph" ]]; then
 	EXE=python
 	SCRIPT=runMG.py
 	FTYPE=.tar.xz

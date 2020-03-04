@@ -83,7 +83,7 @@ class jobSubmitterSVJ(jobSubmitter):
         job.patterns.update([
             ("JOBNAME",job.name+"_part-$(Process)_$(Cluster)"),
             ("EXTRAINPUTS","input/args_"+job.name+".txt"),
-            ("EXTRAARGS","-j "+job.name+" -p $(Process) -o "+self.output+(" -m" if self.gridpack else "")),
+            ("EXTRAARGS","-j "+job.name+" -p $(Process) -o "+self.output+(" -m madgraph" if self.gridpack else "")),
         ])
         if "cmslpc" in os.uname()[1]:
             job.appends.append(
