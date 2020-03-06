@@ -9,7 +9,6 @@ export OPTIND=1
 while [[ $OPTIND -lt $# ]]; do
 	# getopts in silent mode, don't exit on errors
 	getopts ":j:p:o:x:m:" opt || status=$?
-	echo "$opt"
 	case "$opt" in
 		j) export JOBNAME=$OPTARG
 		;;
