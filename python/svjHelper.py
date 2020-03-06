@@ -264,11 +264,11 @@ class svjHelper(object):
         ])
 
         if self.generate:
-            line_schan.extend([
+            lines_schan.extend([
                 'HiddenValley:ffbar2Zv = on',
             ])
             # pythia can only generate pair prod of bifundamental
-            line_tchan.extend([
+            lines_tchan.extend([
                 'HiddenValley:gg2DvDvbar = on',
                 'HiddenValley:gg2UvUvbar = on',
                 'HiddenValley:gg2SvSvbar = on',
