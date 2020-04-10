@@ -104,7 +104,7 @@ Python:
 * `--gridpack`: gridpack production
 * `--madgraph`: sample generated w/ madgraph (rather than pythia)
 * `--actualEvents`: count actual number of events from each input file (for python file list, requires `-K auto`)
-* `-A, --args [list]`: additional common args to use for all jobs (passed to [runSVJ.py](./Production/test/runSVJ.py))
+* `-A, --args [list]`: additional common args to use for all jobs (passed to [runSVJ.py](./test/runSVJ.py))
 * `-v, --verbose`: enable verbose output (default = False)
 
 Shell (in [step2.sh](./batch/step2.sh)):
@@ -409,7 +409,7 @@ The pickled file can be retrieved from EOS:
 ```
 xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.pkl
 ```
-[runSVJ.py](./Production/test/runSVJ.py) will try to retrieve it automatically when any DIGI step is run.
+[runSVJ.py](./test/runSVJ.py) will try to retrieve it automatically when any DIGI step is run.
 
 This procedure can be repeated for 2017 using the dataset:
 ```
