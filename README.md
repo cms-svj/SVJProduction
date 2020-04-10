@@ -409,7 +409,7 @@ The pickled file can be retrieved from EOS:
 ```
 xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.pkl
 ```
-The config [step2_DIGI.py](./python/2016/step2_DIGI.py) will try to retrieve it automatically when it is run.
+[runSVJ.py](./Production/test/runSVJ.py) will try to retrieve it automatically when any DIGI step is run.
 
 This procedure can be repeated for 2017 using the dataset:
 ```
