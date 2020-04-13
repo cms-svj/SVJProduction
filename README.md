@@ -207,7 +207,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 To run the sample production interactively with example parameters:
 ```
 cd SVJ/Production/test
-cmsRun runSVJ.py year=2016 config=step1_GEN outpre=step1 mZprime=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
+cmsRun runSVJ.py year=2016 config=step1_GEN outpre=step1 mMediator=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
 ```
 
 To generate background samples for GEN-level analysis:
@@ -223,7 +223,7 @@ Rerun the setup script as follows (the `-a` flag installs the analysis code depe
 
 To run the GEN-level analyzer:
 ```
-cmsRun runSVJ.py config=genmassanalyzer_cfg output=TFileService outpre=genmassanalysis inpre=step1 mZprime=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
+cmsRun runSVJ.py config=genmassanalyzer_cfg output=TFileService outpre=genmassanalysis inpre=step1 mMediator=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
 cmsRun runSVJ.py config=genmassanalyzer_cfg output=TFileService outpre=genmassanalysis_QCD inpre=step1_QCD signal=0 part=1 maxEvents=10
 ```
 
@@ -231,13 +231,13 @@ For more ways to analyzer the output of the GEN-level analyzer, see the [Analysi
 
 An alternative example of a semi-standalone macro is available in this repo:
 ```
-root -l 'plotMasses.C+("genmassanalysis_mZprime-3000_mDark-20_rinv-0.3_alpha-0.1_n-10_part-1.root","input_masses.txt")'
+root -l 'plotMasses.C+("genmassanalysis_mMediator-3000_mDark-20_rinv-0.3_alpha-0.1_n-10_part-1.root","input_masses.txt")'
 ```
 
 To run the softdrop algorithm on GenJets/GenParticles from an existing sample, and analyze the result:
 ```
-cmsRun runSVJ.py config=softDropGenJets outpre=softdropgen indir=/store/user/lpcsusyhad/SVJ2017/ProductionV3/GEN-SIM/ inpre=step1_GEN-SIM redir=root://cmseos.fnal.gov/ mZprime=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
-cmsRun runSVJ.py config=softdropanalyzer_cfg outpre=softdropana output=TFileService inpre=softdropgen mZprime=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
+cmsRun runSVJ.py config=softDropGenJets outpre=softdropgen indir=/store/user/lpcsusyhad/SVJ2017/ProductionV3/GEN-SIM/ inpre=step1_GEN-SIM redir=root://cmseos.fnal.gov/ mMediator=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
+cmsRun runSVJ.py config=softdropanalyzer_cfg outpre=softdropana output=TFileService inpre=softdropgen mMediator=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
 ```
 
 ## cmsDriver commands (2016)
