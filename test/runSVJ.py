@@ -119,7 +119,8 @@ if hasattr(process,'recoGenJets') and hasattr(process,'recoAllGenJetsNoNu'):
         process.recoGenJets += process.selectedHadronsAndPartonsForGenJetsFlavourInfos
         process.load("PhysicsTools.JetMCAlgos.AK4GenJetFlavourInfos_cfi")
         process.ak8GenJetFlavourInfos = process.ak4GenJetFlavourInfos.clone(
-            jets = "ak8GenJetsNoNu"
+            jets = "ak8GenJetsNoNu",
+            rParam = cms.double(0.8),
         )
         process.recoGenJets += process.ak4GenJetFlavourInfos
         process.recoGenJets += process.ak8GenJetFlavourInfos
