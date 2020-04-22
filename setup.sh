@@ -115,6 +115,25 @@ else
 	usage 1
 fi
 
+# OS check
+if [[ `uname -r` == *"el6"* ]]; then
+	SLC_VERSION="slc6"
+elif [[ `uname -r` == *"el7"* ]]; then
+	SLC_VERSION="slc7"
+elif [[ -f "/etc/redhat-release" ]]; then
+	VERSION_TMP=`awk -F'[ .]' '{print $4}' "/etc/redhat-release"`
+	POSSIBLE_VERSIONS=( 6 7 )
+	if [[ "${POSSIBLE_VERSIONS[@]} " =~ " ${VERSION_TMP}" ]]; then
+		SLC_VERSION="slc${VERSION_TMP}"
+	else
+		echo "WARNING::Unknown SLC version. Defaulting to SLC6."
+		SLC_VERSION="slc6"
+	fi
+else
+	echo "WARNING::Unknown SLC version. Defaulting to SLC6."
+SLC_VERSION="slc6"
+fi
+
 # -------------------------------------------------------------------------------------
 # CMSSW release area
 # -------------------------------------------------------------------------------------
@@ -122,20 +141,24 @@ CMSSW71X=""
 if [ -n "$WHICH_CMSSW" ]; then
 	case $WHICH_CMSSW in
 	CMSSW_7_1_*)
+		if [[ $SLC_VERSION == slc7 ]]; then
+			echo "CMSSW_7_1_X not available on slc7"
+			exit 1
+		fi
 		export SCRAM_ARCH=slc6_amd64_gcc481
 		CMSSW71X=true
 	;;
 	CMSSW_8_0_*)
-		export SCRAM_ARCH=slc6_amd64_gcc530
+		export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc530
 	;;
 	CMSSW_9_3_*)
-		export SCRAM_ARCH=slc6_amd64_gcc630
+		export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc630
 	;;
 	CMSSW_9_4_*)
-		export SCRAM_ARCH=slc6_amd64_gcc630
+		export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc630
 	;;
 	CMSSW_10_2_*)
-		export SCRAM_ARCH=slc6_amd64_gcc700
+		export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc700
 	;;
 	*)
 		$ECHO "Unknown architecture for release $WHICH_CMSSW"

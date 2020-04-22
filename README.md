@@ -56,12 +56,12 @@ cd SVJ/Production
 
 ### GEN-SIM/MINIAOD production (2018)
 
-To make GEN, GEN-SIM, MINIAOD (or DIGI/RECO/AOD) samples, `CMSSW_10_2_20` is used:
+To make GEN, GEN-SIM, MINIAOD (or DIGI/RECO/AOD) samples, `CMSSW_10_2_21` is used:
 ```
 wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/setup.sh
 chmod +x setup.sh
-./setup.sh -c CMSSW_10_2_20
-cd CMSSW_10_2_20/src
+./setup.sh -c CMSSW_10_2_21
+cd CMSSW_10_2_21/src
 cmsenv
 cd SVJ/Production
 ```
