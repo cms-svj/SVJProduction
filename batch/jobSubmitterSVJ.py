@@ -39,6 +39,7 @@ class jobSubmitterSVJ(jobSubmitter):
         parser.add_option("--config", dest="config", default="", help="CMSSW config to run (required unless madgraph) (default = %default)")
         parser.add_option("--gridpack", dest="gridpack", default=False, action="store_true", help="gridpack production (default = %default)")
         parser.add_option("--madgraph", dest="madgraph", default=False, action="store_true", help="sample generated w/ madgraph (rather than pythia) (default = %default)")
+        parser.add_option("--suep", dest="suep", default=False, action="store_true", help="run SUEP simulation (default = %default)")
         parser.add_option("-A", "--args", dest="args", default="", help="additional common args to use for all jobs (default = %default)")
         parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true", help="enable verbose output (default = %default)")
 
@@ -144,6 +145,12 @@ class jobSubmitterSVJ(jobSubmitter):
                     if "fragment" in pdict:
                         arglist = [
                             "fragment="+str(pdict["fragment"]),
+                    elif self.suep:
+                        arglist = [
+                            "suep=1",
+                            "mMediator="+str(pdict["mMediator"]),
+                            "mDark="+str(pdict["mDark"]),
+                            "temperature="+str(pdict["temperature"]),
                         ]
                     else:
                         arglist = [
