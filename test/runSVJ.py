@@ -65,6 +65,8 @@ if options.signal:
             process.generator.maxEventsToPrint = cms.untracked.int32(1)
             if hasattr(process.generator.PythiaParameters,"JetMatchingParameters"):
                 process.generator.PythiaParameters.JetMatchingParameters = cms.vstring(_helper.getJetMatchSettings())
+            if options.suep:
+                process.generator.suep = _helper.getHookSettings()
 
     # gen filter settings
     # pythia implementation of model has 4900111/211 -> -51 51 and 4900113/213 -> -53 53
@@ -159,13 +161,12 @@ if hasattr(process,"mixData"):
 
 # miniAOD settings
 _pruned = ["prunedGenParticlesWithStatusOne","prunedGenParticles"]
+_keeps = ["keep (4900001 <= abs(pdgId) <= 4900991 )", "keep (51 <= abs(pdgId) <= 53)"]
+if options.suep: _keeps = ["keep 999998 <= abs(pdgId) <= 999999"]
 for _prod in _pruned:
     if hasattr(process,_prod):
         # keep HV & DM particles
-        getattr(process,_prod).select.extend([
-            "keep (4900001 <= abs(pdgId) <= 4900991 )",
-            "keep (51 <= abs(pdgId) <= 53)",
-        ])
+        getattr(process,_prod).select.extend(_keeps)
 
 # multithreading options
 if options.threads>0:

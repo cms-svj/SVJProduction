@@ -1,6 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 from FWCore.ParameterSet.VarParsing import VarParsing
 from SVJ.Production.svjHelper import svjHelper
+from SVJ.Production.suepHelper import suepHelper
 import os
 
 options = VarParsing("analysis")
@@ -8,12 +9,14 @@ options.register("signal", True, VarParsing.multiplicity.singleton, VarParsing.v
 options.register("scan", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("madgraph", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("syst", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
+options.register("suep", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("channel", "s", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("boost", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("mMediator", 3000.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("mDark", 20.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("rinv", 0.3, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("alpha", "peak", VarParsing.multiplicity.singleton, VarParsing.varType.string)
+options.register("temperature", 2.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("filterZ2", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("part", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("indir", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
@@ -48,5 +51,11 @@ if len(options.scan)>0:
     options._outpre = [x+"_"+options.scan for x in options._outpre]
     if len(options.inpre)>0: options.inpre += "_"+options.scan
 
-_helper = svjHelper()
-_helper.setModel(options.channel,options.mMediator,options.mDark,options.rinv,options.alpha,generate=not options.madgraph,boost=options.boost)
+if options.suep:
+    _helper = suepHelper()
+    _helper.setModel(options.mMediator,options.mDark,options.temperature)
+    options.filterZ2 = False
+    options.channel = ""
+else:
+    _helper = svjHelper()
+    _helper.setModel(options.channel,options.mMediator,options.mDark,options.rinv,options.alpha,generate=not options.madgraph,boost=options.boost)
