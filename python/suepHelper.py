@@ -53,7 +53,6 @@ class suepHelper(object):
             'Check:event = off',
             # parameters for mediator (Higgs)
             'HiggsSM:all = on',
-            '{}:mayDecay = off'.format(self.idMediator),
             '{}:m0 = {:g}'.format(self.idMediator,self.mMediator),
             # parameters for dark meson (simple decay to u ubar)
             '{}:all = GeneralResonance void 0 0 0 {:g} 0.001 0.0 0.0 0.0'.format(self.idDark,self.mDark),
