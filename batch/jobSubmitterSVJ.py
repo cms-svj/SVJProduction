@@ -176,7 +176,7 @@ class jobSubmitterSVJ(jobSubmitter):
                 job.nums.append(iActualJob)
             
             # append queue comment
-            job.queue = "-queue Process in "+','.join(map(str,job.nums))
+            job.queue = '-queue "Process in '+','.join(map(str,job.nums))+'"'
 
             # store protojob
             self.protoJobs.append(job)
