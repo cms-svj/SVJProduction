@@ -195,6 +195,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `alpha=[val]`: hidden sector force coupling value (default = peak)
 * `yukawa=[val]`: Yukawa coupling for bifundamental mediator (t channel) (default = 1.0)
 * `temperature=[val]`: temperature for SUEP model (default = 2.0)
+* `decay=[str]`: decay mode for SUEP model (default = generic)
 * `filterZ2=[bool]`: only keep events with `N(4900211)%4==0` (default = True)
 * `part=[num]`: part number when producing a sample in multiple jobs (default = 1)
 * `indir=[str]`: directory for input file (local or logical)
@@ -254,7 +255,7 @@ cmsRun runSVJ.py config=softdropanalyzer_cfg outpre=softdropana output=TFileServ
 To run the sample production interactively for SUEP with example parameters:
 ```
 cd SVJ/Production/test
-cmsRun runSVJ.py suep=1 year=2018 config=step1_GEN outpre=step1 mMediator=125 mDark=2.0 temperature=2.0 part=1 maxEvents=10
+cmsRun runSVJ.py suep=1 year=2018 config=step1_GEN outpre=step1 mMediator=125 mDark=2.0 temperature=2.0 decay=generic part=1 maxEvents=10
 ```
 
 ## cmsDriver commands (2016)
