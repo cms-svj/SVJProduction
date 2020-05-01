@@ -11,6 +11,7 @@ class suepHelper(object):
         self.idPho = 999998
         pass
 
+
     def setModel(self,mMediator,mDark,temperature,decay):
         # store the basic parameters
         self.mMediator = mMediator
