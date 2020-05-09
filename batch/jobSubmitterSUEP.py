@@ -1,20 +1,20 @@
 from Condor.Production.jobSubmitter import *
-from SVJ.Production.svjHelper import svjHelper
+from SVJ.Production.suepHelper import suepHelper
 from glob import glob
 
-def makeNameSVJ(self,num):
+def makeNameSUEP(self,num):
     return self.name+"_part-"+str(num)
 
-protoJob.makeName = makeNameSVJ
+protoJob.makeName = makeNameSUEP
 
-class jobSubmitterSVJ(jobSubmitter):
+class jobSubmitterSUEP(jobSubmitter):
     def __init__(self):
-        super(jobSubmitterSVJ,self).__init__()
+        super(jobSubmitterSUEP,self).__init__()
         
-        self.helper = svjHelper()
+        self.helper = suepHelper()
 
     def addDefaultOptions(self,parser):
-        super(jobSubmitterSVJ,self).addDefaultOptions(parser)
+        super(jobSubmitterSUEP,self).addDefaultOptions(parser)
         parser.add_option("-y", "--getpy", dest="getpy", default=False, action="store_true", help="make python file list for ntuple production (default = %default)")
         parser.add_option("--actualEvents", dest="actualEvents", default=False, action="store_true", help="count actual number of events from each input file (for python file list) (default = %default)")
         self.modes.update({
@@ -22,12 +22,11 @@ class jobSubmitterSVJ(jobSubmitter):
         })
 
     def addExtraOptions(self,parser):
-        super(jobSubmitterSVJ,self).addExtraOptions(parser)
+        super(jobSubmitterSUEP,self).addExtraOptions(parser)
         
         parser.add_option("-d", "--dicts", dest="dicts", default="", help="file with list of input dicts; each dict contains signal parameters (required) (default = %default)")
         parser.add_option("-o", "--output", dest="output", default="", help="path to output directory in which root files will be stored (required) (default = %default)")
         parser.add_option("-E", "--maxEvents", dest="maxEvents", default=1, help="number of events to process per job (default = %default)")
-        parser.add_option("-I", "--maxEventsIn", dest="maxEventsIn", default=-1, help="number of events from input file (if different from -E) (default = %default)")
         parser.add_option("-F", "--firstPart", dest="firstPart", default=1, help="first part to process, in case extending a sample (default = %default)")
         parser.add_option("-N", "--nParts", dest="nParts", default=1, help="number of parts to process (default = %default)")
         parser.add_option("-K", "--skipParts", dest="skipParts", default="", help="comma-separated list of parts to skip, or auto (default = %default)")
@@ -44,19 +43,19 @@ class jobSubmitterSVJ(jobSubmitter):
         parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true", help="enable verbose output (default = %default)")
 
     def runPerJob(self,job):
-        super(jobSubmitterSVJ,self).runPerJob(job)
+        super(jobSubmitterSUEP,self).runPerJob(job)
         if self.getpy:
             self.doPy(job)
         
     def checkDefaultOptions(self,options,parser):
-        super(jobSubmitterSVJ,self).checkDefaultOptions(options,parser)
+        super(jobSubmitterSUEP,self).checkDefaultOptions(options,parser)
         if (options.actualEvents and not options.getpy):
             parser.error("Option --actualEvents only allowed for -y mode")
         if (options.actualEvents and options.skipParts!="auto"):
             parser.error("Option --actualEvents requires auto skipParts")
 
     def checkExtraOptions(self,options,parser):
-        super(jobSubmitterSVJ,self).checkExtraOptions(options,parser)
+        super(jobSubmitterSUEP,self).checkExtraOptions(options,parser)
     
         if options.dicts is None or len(options.dicts)==0:
             parser.error("Required option: --dicts [dict]")
@@ -79,12 +78,9 @@ class jobSubmitterSVJ(jobSubmitter):
         self.getpy_weights = "weights_"+options.dicts.replace(".py","")+".txt"
         if options.getpy and os.path.isfile(self.getpy_weights):
             os.remove(self.getpy_weights)
-
-        options.maxEvents = int(options.maxEvents)
-        options.maxEventsIn = int(options.maxEventsIn)
             
     def generateExtra(self,job):
-        super(jobSubmitterSVJ,self).generateExtra(job)
+        super(jobSubmitterSUEP,self).generateExtra(job)
         job.patterns.update([
             ("JOBNAME",job.name+"_part-$(Process)_$(Cluster)"),
             ("EXTRAINPUTS","input/args_"+job.name+".txt"),
@@ -116,18 +112,9 @@ class jobSubmitterSVJ(jobSubmitter):
             job = protoJob()
             # extra attribute to store actual events
             if self.actualEvents: job.actualEvents = 0
-            # make name from params or fragment
-            if "fragment" in pdict:
-                self.helper.generate = True
-                outpre = self.outpre+"_"+pdict["fragment"]
-                inpre = self.inpre+"_"+pdict["fragment"]
-                signal = False
-            else:
-                self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"],boost=pdict["boost"] if "boost" in pdict else 0.0,generate=not (self.madgraph or self.gridpack),yukawa=pdict["yukawa"] if "yukawa" in pdict else None)
-                outpre = self.outpre
-                inpre = self.inpre
-                signal = True
-            job.name = self.helper.getOutName(events=self.maxEvents,outpre=outpre,signal=signal)
+            # make name from params
+            self.helper.setModel(pdict["mMediator"],pdict["mDark"],pdict["temperature"],pdict["decay"])        
+            job.name = self.helper.getOutName(int(self.maxEvents),outpre=self.outpre)
             if self.verbose:
                 print "Creating job: "+job.name
             self.generatePerJob(job)
@@ -135,41 +122,25 @@ class jobSubmitterSVJ(jobSubmitter):
             # for auto skipping
             if self.skipParts=="auto":
                 injob = protoJob()
-                injob.name = self.helper.getOutName(events=self.maxEventsIn if self.maxEventsIn>0 else self.maxEvents,outpre=inpre,signal=signal)
+                injob.name = self.helper.getOutName(int(self.maxEvents),outpre=self.inpre)
                 infiles = {x.split('/')[-1].replace(".root","") for x in (filter(None,os.popen("xrdfs "+self.redir+" ls "+self.indir).read().split('\n')) if self.indir.startswith("/store/") else glob(self.indir+"/*.root"))}
 
             # write job options to file - will be transferred with job
             if self.prepare:
                 with open("input/args_"+job.name+".txt",'w') as argfile:
-                    arglist = []
-                    if "fragment" in pdict:
-                        arglist = [
-                            "fragment="+str(pdict["fragment"]),
-                    elif self.suep:
-                        arglist = [
-                            "suep=1",
-                            "mMediator="+str(pdict["mMediator"]),
-                            "mDark="+str(pdict["mDark"]),
-                            "temperature="+str(pdict["temperature"]),
-                            "decay="+str(pdict["decay"]),
-                        ]
-                    else:
-                        arglist = [
-                            "channel="+str(pdict["channel"]),
-                            "mMediator="+str(pdict["mMediator"]),
-                            "mDark="+str(pdict["mDark"]),
-                            "rinv="+str(pdict["rinv"]),
-                            "alpha="+str(pdict["alpha"]),
-                            "boost="+str(pdict["boost"] if "boost" in pdict else 0.0),
-                            "yukawa="+str(pdict["yukawa"] if "yukawa" in pdict else 0.0),
-                        ]
+                    arglist = [
+                        "suep=1",
+                        "mMediator="+str(pdict["mMediator"]),
+                        "mDark="+str(pdict["mDark"]),
+                        "temperature="+str(pdict["temperature"]),
+                        "decay="+str(pdict["decay"]),
+                    ]
                     arglist.extend([
                         "maxEvents="+str(self.maxEvents),
                         "outpre="+self.outpre,
                         "year="+str(self.year),
                     ])
-                    if "filterZ2" in pdict:
-                        arglist.append("filterZ2="+str(pdict["filterZ2"]))
+
                     if not self.gridpack:
                         arglist.append("config="+self.config)
                     if self.madgraph or self.gridpack:
@@ -184,8 +155,6 @@ class jobSubmitterSVJ(jobSubmitter):
                         arglist.append("threads="+str(self.cpus))
                     if len(self.redir)>1:
                         arglist.append("redir="+self.redir)
-                    if self.maxEventsIn>0:
-                        arglist.append("maxEventsIn="+str(self.maxEventsIn))
                     argfile.write(" ".join(arglist))
             
             # start loop over N jobs
@@ -194,7 +163,7 @@ class jobSubmitterSVJ(jobSubmitter):
                 iActualJob = iJob+self.firstPart
 
                 if (self.skipParts=="auto" and injob.makeName(iActualJob) not in infiles) or (type(self.skipParts)==set and iActualJob in self.skipParts):
-                    if self.verbose: print "  skipping part "+str(iActualJob)+" ("+injob.makeName(iActualJob)+")"
+                    if self.verbose: print "  skipping part "+str(iActualJob)
                     continue
 
                 if self.actualEvents:
@@ -210,7 +179,7 @@ class jobSubmitterSVJ(jobSubmitter):
                 job.nums.append(iActualJob)
             
             # append queue comment
-            job.queue = '-queue "Process in '+','.join(map(str,job.nums))+'"'
+            job.queue = "-queue Process in "+','.join(map(str,job.nums))
 
             # store protojob
             self.protoJobs.append(job)
@@ -238,5 +207,5 @@ class jobSubmitterSVJ(jobSubmitter):
 
         with open(self.getpy_weights,'a') as wfile:
             nEvents = job.actualEvents if self.actualEvents else int(self.maxEvents)*len(job.nums)
-            line = '    MCSample("'+job.name+'", "", "", "Constant", '+str(nEvents)+'),';
+            line = '        MCSample("'+job.name+'", "", "", "Constant", '+str(nEvents)+'),';
             wfile.write(line+"\n")
