@@ -9,7 +9,7 @@ options.register("scan", "", VarParsing.multiplicity.singleton, VarParsing.varTy
 options.register("madgraph", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("syst", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("channel", "s", VarParsing.multiplicity.singleton, VarParsing.varType.string)
-options.register("boost", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
+options.register("boost", 0.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("mMediator", 3000.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("mDark", 20.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("rinv", 0.3, VarParsing.multiplicity.singleton, VarParsing.varType.float)
