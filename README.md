@@ -182,7 +182,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `madgraph=[bool]`: generation with MadGraph (instead of default Pythia8)
 * `syst=[bool]`: enable systematics for generation with MadGraph (default = False)
 * `channel=[string]`: process to generate (default = s, alternative = t)
-* `boost=[bool]`: use boosted s-channel process (default = False)
+* `boost=[float]`: applies a minimum HT cut of whatever value was passed (default = 0.0)
 * `mMediator=[val]`: mediator mass value (default = 3000.0)
 * `mDark=[val]`: dark hadron mass value (default = 20.0)
 * `rinv=[val]`: invisible fraction value (default = 0.3)
