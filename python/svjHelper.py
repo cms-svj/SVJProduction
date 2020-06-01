@@ -135,8 +135,7 @@ class svjHelper(object):
         self.rinv = rinv
         if isinstance(alpha,str) and alpha[0].isalpha(): self.setAlpha(alpha)
         else: self.alpha = float(alpha)
-        if boost: self.htCut = 400
-        else: self.htCut = 0
+        self.htCut = boost
 
         # get more parameters
         self.xsec = self.getPythiaXsec(self.mMediator)
