@@ -371,6 +371,11 @@ GEN-SIM:
 cmsDriver.py SVJ/Production/2017/EmptyFragment_cff --python_filename step1_GEN-SIM.py --mc --eventcontent RAWSIM --conditions 102X_upgrade2018_realistic_v9 --beamspot Realistic25ns13TeVEarly2018Collision --step GEN,SIM --nThreads 4 --geometry DB:Extended --era Run2_2018 --fileout file:step0.root --no_exec
 ```
 
+SIM only:
+```
+cmsDriver.py --python_filename step1_SIM.py --mc --eventcontent RAWSIM --conditions 102X_upgrade2018_realistic_v9 --beamspot Realistic25ns13TeVEarly2018Collision --step SIM --nThreads 4 --geometry DB:Extended --era Run2_2018 --fileout file:step0.root --no_exec
+```
+
 DIGI:
 ```
 cmsDriver.py step2 --python_filename step2_DIGI.py --mc --eventcontent PREMIXRAW --datatier GEN-SIM-RAW --conditions 102X_upgrade2018_realistic_v15 --step DIGI,DATAMIX,L1,DIGI2RAW,HLT:@relval2018 --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2018  --filein file:step1.root --fileout file:step2.root --pileup_input pileup.root --no_exec
