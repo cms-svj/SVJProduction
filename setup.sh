@@ -198,7 +198,7 @@ if [ -n "$WHICH_CMSSW" ]; then
 	git clone ${ACCESS_GITHUB}${FORK}/SVJProduction SVJ/Production -b ${BRANCH}
 
 	# use as little of genproductions as possible
-	git clone --depth 1 --no-checkout ${ACCESS_GITHUB}kpedro88/genproductions -b run2 Configuration/GenProduction
+	git clone --depth 1 --no-checkout ${ACCESS_GITHUB}kpedro88/genproductions -b run2_oldmg Configuration/GenProduction
 	# setup sparse checkout
 	cd Configuration/GenProduction
 	git config core.sparsecheckout true
