@@ -112,7 +112,7 @@ class jobSubmitterSVJ(jobSubmitter):
             # extra attribute to store actual events
             if self.actualEvents: job.actualEvents = 0
             # make name from params
-            self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"],boost=pdict["boost"] if "boost" in pdict else False,generate=not (self.madgraph or self.gridpack))
+            self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"],boost=pdict["boost"] if "boost" in pdict else 0.0,generate=not (self.madgraph or self.gridpack))
             job.name = self.helper.getOutName(int(self.maxEvents),outpre=self.outpre)
             if self.verbose:
                 print "Creating job: "+job.name
@@ -133,7 +133,7 @@ class jobSubmitterSVJ(jobSubmitter):
                         "mDark="+str(pdict["mDark"]),
                         "rinv="+str(pdict["rinv"]),
                         "alpha="+str(pdict["alpha"]),
-                        "boost="+str(pdict["boost"] if "boost" in pdict else False),
+                        "boost="+str(pdict["boost"] if "boost" in pdict else 0.0),
                         "maxEvents="+str(self.maxEvents),
                         "outpre="+self.outpre,
                         "year="+str(self.year),
