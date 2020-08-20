@@ -376,7 +376,7 @@ class svjHelper(object):
         ParamCardWriter(param_card_file, generic=True)
 
         mg_input_dir = os.path.expandvars(base_dir+"mg_input_templates")
-        modname = self.getOutName(outpre="SVJ",sanitize=True)
+        modname = self.getOutName(events=events,outpre="SVJ",sanitize=True)
         template_paths = [p for ftype in ["dat","patch"] for p in glob(os.path.join(mg_input_dir, "*."+ftype))]
         for template in template_paths:
             fill_template(
