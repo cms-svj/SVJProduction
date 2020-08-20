@@ -22,6 +22,7 @@ options.register("outpre", "step1", VarParsing.multiplicity.list, VarParsing.var
 options.register("output", "", VarParsing.multiplicity.list, VarParsing.varType.string)
 options.register("year", 0, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("config", "step1_GEN", VarParsing.multiplicity.singleton, VarParsing.varType.string)
+options.register("maxEventsIn", -1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("threads", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("streams", 0, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("redir", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
@@ -38,6 +39,9 @@ elif options.year==2017 and not (cmssw_major==9):
 	raise ValueError("2017 config should not be used in non-2017 CMSSW version ("+cmssw_version+")")
 elif options.year==2018 and not (cmssw_major==10):
 	raise ValueError("2018 config should not be used in non-2018 CMSSW version ("+cmssw_version+")")
+
+# check events
+if options.maxEventsIn==-1: options.maxEventsIn = options.maxEvents
 
 # make full config name using year
 options.config = "SVJ.Production."+(str(options.year)+"." if options.year>0 else "")+options.config
