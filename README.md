@@ -92,6 +92,7 @@ Python:
 * `-d, --dicts [file]`: file with list of input dicts; each dict contains signal parameters (required)
 * `-o, --output [dir]`: path to output directory in which root files will be stored (required)
 * `-E, --maxEvents [num]`: number of events to process per job (default = 1)
+* `-I, --maxEventsIn [num]`: number of events from input file (if different from `-E`) (default = 1)
 * `-F, --firstPart [num]`: first part to process in case extending a sample (default = 1)
 * `-N, --nParts [num]`: number of parts to process
 * `-K, --skipParts [n1,n2,... or auto]`: comma-separated list of parts to skip (or auto, which checks existence of input files)
@@ -128,11 +129,11 @@ If MadGraph generation is used (Gridpack + LHE-GEN-SIM steps), an additional arg
 
 Gridpack:
 ```
-python submitJobs.py -p -d signals2 -E 1 -N 2000 --outpre step0_GRIDPACK --year 2016 --gridpack -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV3/2016/GRIDPACK/ -s
+python submitJobs.py -p -d signals2 -E 50000 -N 1 --outpre step0_GRIDPACK --year 2016 --gridpack -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV3/2016/GRIDPACK/ -s
 ```
 LHE-GEN-SIM:
 ```
-python submitJobs.py -p -d signals2 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV3/2016/GRIDPACK/ --inpre step0_GRIDPACK --outpre step1_LHE-GEN-SIM --year 2016 --config step1_LHE-GEN-SIM --madgraph -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV3/2016/GEN-SIM/ -s
+python submitJobs.py -p -d signals2 -E 1000 -N 100 -I 50000 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV3/2016/GRIDPACK/ --inpre step0_GRIDPACK --outpre step1_LHE-GEN-SIM --year 2016 --config step1_LHE-GEN-SIM --madgraph -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV3/2016/GEN-SIM/ -s
 ```
 GEN-SIM:
 ```
@@ -177,6 +178,7 @@ N.B. these commands uses `submitJobs.py` from TreeMaker, not from this repositor
 
 The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run any CMSSW config file. An alternative script [runMG.py](./test/runMG.py) handles MadGraph gridpack generation. These scripts share the same options:
 * `maxEvents=[num]`: number of events to process (default = -1)
+* `maxEventsIn=[num]`: number of events from input file (if different from `maxEvents`) (default = -1)
 * `signal=[bool]`: whether this is a signal sample (default = True)
 * `scan=[string]`: name of scan fragment
 * `madgraph=[bool]`: generation with MadGraph (instead of default Pythia8)

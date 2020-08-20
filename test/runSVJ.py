@@ -26,7 +26,7 @@ if len(_inname)>0:
         _inname = fix_inname(_inname,options)
         process.source.fileNames = cms.untracked.vstring(_inname)
     elif hasattr(process,"externalLHEProducer"):
-        _inname = _helper.getOutName(outpre=options.inpre)+".tar.xz"
+        _inname = _helper.getOutName(events=options.maxEventsIn,outpre=options.inpre)+".tar.xz"
         _inname = fix_inname(_inname,options,True)
         # fetch the gridpack file from xrootd
         if _inname.startswith("root:"):
