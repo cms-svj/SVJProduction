@@ -182,6 +182,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `signal=[bool]`: whether this is a signal sample (default = True)
 * `scan=[string]`: name of scan fragment
 * `madgraph=[bool]`: generation with MadGraph (instead of default Pythia8)
+* `nogridpack=[bool]`: disable gridpack mode and just generate events (only for `runMG`) (default = False)
 * `syst=[bool]`: enable systematics for generation with MadGraph (default = False)
 * `channel=[string]`: process to generate (default = s, alternative = t)
 * `boost=[float]`: applies a minimum HT cut of whatever value was passed (default = 0.0)
