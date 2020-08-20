@@ -138,6 +138,7 @@ class jobSubmitterSVJ(jobSubmitter):
                         "rinv="+str(pdict["rinv"]),
                         "alpha="+str(pdict["alpha"]),
                         "boost="+str(pdict["boost"] if "boost" in pdict else 0.0),
+                        "yukawa="+str(pdict["yukawa"] if "yukawa" in pdict else 0.0),
                         "maxEvents="+str(self.maxEvents),
                         "outpre="+self.outpre,
                         "year="+str(self.year),

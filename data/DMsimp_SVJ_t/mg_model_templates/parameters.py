@@ -70,7 +70,7 @@ ymtau = Parameter(name = 'ymtau',
 ls = Parameter(name = 'ls',
                nature = 'external',
                type = 'real',
-               value = 1.,
+               value = $dark_yukawa,
                texname = 'l_s',
                lhablock = 'FRBlock',
                lhacode = [ 1 ])

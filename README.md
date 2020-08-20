@@ -189,6 +189,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `mDark=[val]`: dark hadron mass value (default = 20.0)
 * `rinv=[val]`: invisible fraction value (default = 0.3)
 * `alpha=[val]`: hidden sector force coupling value (default = peak)
+* `yukawa=[val]`: Yukawa coupling for bifundamental mediator (t channel) (default = 1.0)
 * `filterZ2=[bool]`: only keep events with `N(4900211)%4==0` (default = True)
 * `part=[num]`: part number when producing a sample in multiple jobs (default = 1)
 * `indir=[str]`: directory for input file (local or logical)
