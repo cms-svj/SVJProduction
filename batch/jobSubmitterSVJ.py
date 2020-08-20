@@ -79,8 +79,8 @@ class jobSubmitterSVJ(jobSubmitter):
         if options.getpy and os.path.isfile(self.getpy_weights):
             os.remove(self.getpy_weights)
 
-        self.maxEvents = int(self.maxEvents)
-        self.maxEventsIn = int(self.maxEventsIn)
+        options.maxEvents = int(options.maxEvents)
+        options.maxEventsIn = int(options.maxEventsIn)
             
     def generateExtra(self,job):
         super(jobSubmitterSVJ,self).generateExtra(job)
@@ -116,7 +116,7 @@ class jobSubmitterSVJ(jobSubmitter):
             # extra attribute to store actual events
             if self.actualEvents: job.actualEvents = 0
             # make name from params
-            self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"],boost=pdict["boost"] if "boost" in pdict else 0.0,generate=not (self.madgraph or self.gridpack))
+            self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"],boost=pdict["boost"] if "boost" in pdict else 0.0,generate=not (self.madgraph or self.gridpack),yukawa=pdict["yukawa"] if "yukawa" in pdict else 0.0)
             job.name = self.helper.getOutName(events=self.maxEvents,outpre=self.outpre)
             if self.verbose:
                 print "Creating job: "+job.name
