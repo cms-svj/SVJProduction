@@ -345,7 +345,7 @@ class svjHelper(object):
 
         return lines
 
-    def getMadGraphCards(self,base_dir,lhaid,events=1):
+    def getMadGraphCards(self,base_dir,lhaid,events=1,cores=1):
         if base_dir[-1]!='/': base_dir = base_dir+'/'
 
         # helper for templates
@@ -384,6 +384,7 @@ class svjHelper(object):
                 os.path.join(mg_input_dir,template.replace("modelname",modname)),
                 modelName = modname,
                 totalEvents = "{:g}".format(events),
+                cores = "{:g}".format(cores),
                 lhaid = "{:g}".format(lhaid),
             )
 
