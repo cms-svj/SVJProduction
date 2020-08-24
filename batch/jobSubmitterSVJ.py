@@ -27,6 +27,7 @@ class jobSubmitterSVJ(jobSubmitter):
         parser.add_option("-d", "--dicts", dest="dicts", default="", help="file with list of input dicts; each dict contains signal parameters (required) (default = %default)")
         parser.add_option("-o", "--output", dest="output", default="", help="path to output directory in which root files will be stored (required) (default = %default)")
         parser.add_option("-E", "--maxEvents", dest="maxEvents", default=1, help="number of events to process per job (default = %default)")
+        parser.add_option("-I", "--maxEventsIn", dest="maxEventsIn", default=-1, help="number of events from input file (if different from -E) (default = %default)")
         parser.add_option("-F", "--firstPart", dest="firstPart", default=1, help="first part to process, in case extending a sample (default = %default)")
         parser.add_option("-N", "--nParts", dest="nParts", default=1, help="number of parts to process (default = %default)")
         parser.add_option("-K", "--skipParts", dest="skipParts", default="", help="comma-separated list of parts to skip, or auto (default = %default)")
@@ -77,6 +78,9 @@ class jobSubmitterSVJ(jobSubmitter):
         self.getpy_weights = "weights_"+options.dicts.replace(".py","")+".txt"
         if options.getpy and os.path.isfile(self.getpy_weights):
             os.remove(self.getpy_weights)
+
+        options.maxEvents = int(options.maxEvents)
+        options.maxEventsIn = int(options.maxEventsIn)
             
     def generateExtra(self,job):
         super(jobSubmitterSVJ,self).generateExtra(job)
@@ -112,8 +116,8 @@ class jobSubmitterSVJ(jobSubmitter):
             # extra attribute to store actual events
             if self.actualEvents: job.actualEvents = 0
             # make name from params
-            self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"],boost=pdict["boost"] if "boost" in pdict else 0.0,generate=not (self.madgraph or self.gridpack))
-            job.name = self.helper.getOutName(int(self.maxEvents),outpre=self.outpre)
+            self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"],boost=pdict["boost"] if "boost" in pdict else 0.0,generate=not (self.madgraph or self.gridpack),yukawa=pdict["yukawa"] if "yukawa" in pdict else 0.0)
+            job.name = self.helper.getOutName(events=self.maxEvents,outpre=self.outpre)
             if self.verbose:
                 print "Creating job: "+job.name
             self.generatePerJob(job)
@@ -121,7 +125,7 @@ class jobSubmitterSVJ(jobSubmitter):
             # for auto skipping
             if self.skipParts=="auto":
                 injob = protoJob()
-                injob.name = self.helper.getOutName(int(self.maxEvents),outpre=self.inpre)
+                injob.name = self.helper.getOutName(events=self.maxEventsIn if self.maxEventsIn>0 else self.maxEvents,outpre=self.inpre)
                 infiles = {x.split('/')[-1].replace(".root","") for x in (filter(None,os.popen("xrdfs "+self.redir+" ls "+self.indir).read().split('\n')) if self.indir.startswith("/store/") else glob(self.indir+"/*.root"))}
 
             # write job options to file - will be transferred with job
@@ -134,6 +138,7 @@ class jobSubmitterSVJ(jobSubmitter):
                         "rinv="+str(pdict["rinv"]),
                         "alpha="+str(pdict["alpha"]),
                         "boost="+str(pdict["boost"] if "boost" in pdict else 0.0),
+                        "yukawa="+str(pdict["yukawa"] if "yukawa" in pdict else 0.0),
                         "maxEvents="+str(self.maxEvents),
                         "outpre="+self.outpre,
                         "year="+str(self.year),
@@ -152,6 +157,8 @@ class jobSubmitterSVJ(jobSubmitter):
                         arglist.append("threads="+str(self.cpus))
                     if len(self.redir)>1:
                         arglist.append("redir="+self.redir)
+                    if self.maxEventsIn>0:
+                        arglist.append("maxEventsIn="+str(self.maxEventsIn))
                     argfile.write(" ".join(arglist))
             
             # start loop over N jobs

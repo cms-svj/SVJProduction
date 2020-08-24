@@ -123,7 +123,7 @@ class svjHelper(object):
         return 1000*math.exp(-math.pi/(self.b0*alpha))
 
     # has to be "lambdaHV" because "lambda" is a keyword
-    def setModel(self,channel,mMediator,mDark,rinv,alpha,lambdaHV=None,generate=True,boost=0):
+    def setModel(self,channel,mMediator,mDark,rinv,alpha,yukawa=None,lambdaHV=None,generate=True,boost=0):
         # check for issues
         if channel!="s" and channel!="t": raise ValueError("Unknown channel: "+channel)
         # store the basic parameters
@@ -136,6 +136,10 @@ class svjHelper(object):
         if isinstance(alpha,str) and alpha[0].isalpha(): self.setAlpha(alpha)
         else: self.alpha = float(alpha)
         self.htCut = boost
+        self.yukawa = None
+        if self.channel=="t" and not self.generate: # yukawa not used by pythia "t-channel" generation (only includes strong pair prod)
+            self.yukawa = yukawa
+            if self.yukawa is None: raise ValueError("yukawa value must be provided for madgraph t-channel")
 
         # get more parameters
         self.xsec = self.getPythiaXsec(self.mMediator)
@@ -161,6 +165,7 @@ class svjHelper(object):
             _outname += "_rinv-{:g}".format(self.rinv)
             if len(self.alphaName)>0: _outname += "_alpha-{}".format(self.alphaName)
             else: _outname += "_alpha-{:g}".format(self.alpha)
+            if self.yukawa is not None: _outname += "_yukawa-{:g}".format(self.yukawa)
             if self.htCut>0: _outname += "_HT{:g}".format(self.htCut)
         # todo: include tune in name? depends on year
         if self.generate:
@@ -340,7 +345,7 @@ class svjHelper(object):
 
         return lines
 
-    def getMadGraphCards(self,base_dir,lhaid,events=1):
+    def getMadGraphCards(self,base_dir,lhaid,events=1,cores=1):
         if base_dir[-1]!='/': base_dir = base_dir+'/'
 
         # helper for templates
@@ -361,6 +366,7 @@ class svjHelper(object):
             os.path.join(mg_model_dir,"parameters.py"),
             mediator_mass = "{:g}".format(self.mMediator),
             dark_quark_mass = "{:g}".format(self.mSqua),
+            dark_yukawa = "{:g}".format(self.yukawa),
         )
 
         # use parameters to generate card
@@ -370,13 +376,15 @@ class svjHelper(object):
         ParamCardWriter(param_card_file, generic=True)
 
         mg_input_dir = os.path.expandvars(base_dir+"mg_input_templates")
-        modname = self.getOutName(outpre="SVJ",sanitize=True)
-        for template in glob(os.path.join(mg_input_dir, "*.dat")):
+        modname = self.getOutName(events=events,outpre="SVJ",sanitize=True)
+        template_paths = [p for ftype in ["dat","patch"] for p in glob(os.path.join(mg_input_dir, "*."+ftype))]
+        for template in template_paths:
             fill_template(
                 os.path.join(mg_input_dir,template),
                 os.path.join(mg_input_dir,template.replace("modelname",modname)),
                 modelName = modname,
                 totalEvents = "{:g}".format(events),
+                cores = "{:g}".format(cores),
                 lhaid = "{:g}".format(lhaid),
             )
 

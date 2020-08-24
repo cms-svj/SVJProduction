@@ -7,9 +7,9 @@ from SVJ.Production.optSVJ import options, _helper
 options.maxEvents = max(1,options.maxEvents)
 
 # model name
-_outname = _helper.getOutName()
+_outname = _helper.getOutName(events=options.maxEvents)
 _outname = _outname.replace("outpre",options._outpre[0])
-_modname = _helper.getOutName(outpre="SVJ",sanitize=True)
+_modname = _helper.getOutName(events=options.maxEvents,outpre="SVJ",sanitize=True)
 
 # copy template files
 data_path = os.path.expandvars("$CMSSW_BASE/src/SVJ/Production/data/"+_helper.mg_name)
@@ -25,7 +25,7 @@ elif options.year==2017: lhaid = 315200 # NNPDF31_lo_as_0130 for CP2
 elif options.year==2018: lhaid = 315200 # NNPDF31_lo_as_0130 for CP2
 
 # populate parameters in cards
-mg_model_dir, mg_input_dir = _helper.getMadGraphCards(mg_dir,lhaid,events=options.maxEvents)
+mg_model_dir, mg_input_dir = _helper.getMadGraphCards(mg_dir,lhaid,events=options.maxEvents,cores=options.threads)
 
 # make tarball for madgraph (w/ correct folder name to be imported later)
 mg_model_dir_new = os.path.join(mg_dir,_modname)
@@ -47,6 +47,8 @@ cd {0}
 ln -sf {1} .
 eval `scram unsetenv -sh`
 export DO_MG_SYSTEMATICS={6}
+export GRIDPACK_NEVENTS={7}
+export NO_GRIDPACK={8}
 ./gridpack_generation.sh {2} {3}
 mv {2}_*.tar.xz {4}
 cd {4}
@@ -59,6 +61,8 @@ cd {4}
     os.getcwd(),
     "echo" if options.dump else "rm -rf", # use options.dump to keep gridpack dir
     "true" if options.syst else "",
+    options.maxEvents,
+    "true" if options.nogridpack else "",
 )
 if options.dump: print cmd
 subprocess.check_call(cmd, shell=True)

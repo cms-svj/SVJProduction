@@ -1,0 +1,24 @@
+diff -ruN MG5_aMC_v2_6_5_orig/input/.mg5_configuration_default.txt MG5_aMC_v2_6_5/input/.mg5_configuration_default.txt
+--- MG5_aMC_v2_6_5_orig/input/.mg5_configuration_default.txt	2019-02-04 05:19:42.000000000 -0600
++++ MG5_aMC_v2_6_5/input/.mg5_configuration_default.txt	2020-08-21 11:00:31.016579470 -0500
+@@ -132,7 +132,7 @@
+ 
+ #! Nb_core to use (None = all) This is use only for multicore run
+ #!  This correspond also to the number core used for code compilation for cluster mode
+-# nb_core = None
++nb_core = $cores
+ 
+ #! Pythia-PGS Package
+ #!  relative path start from main directory
+diff -ruN MG5_aMC_v2_6_5_orig/input/mg5_configuration.txt MG5_aMC_v2_6_5/input/mg5_configuration.txt
+--- MG5_aMC_v2_6_5_orig/input/mg5_configuration.txt	2020-08-21 10:36:26.953405035 -0500
++++ MG5_aMC_v2_6_5/input/mg5_configuration.txt	2020-08-21 10:36:36.781175027 -0500
+@@ -132,7 +132,7 @@
+ 
+ #! Nb_core to use (None = all) This is use only for multicore run
+ #!  This correspond also to the number core used for code compilation for cluster mode
+-# nb_core = None
++nb_core = $cores
+ 
+ #! Pythia-PGS Package
+ #!  relative path start from main directory
