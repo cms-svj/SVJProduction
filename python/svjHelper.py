@@ -362,11 +362,14 @@ class svjHelper(object):
         mg_model_dir = os.path.expandvars(base_dir+"mg_model_templates")
 
         # replace parameters in relevant file
-        fill_template(
-            os.path.join(mg_model_dir,"parameters.py"),
+        param_args = dict(
             mediator_mass = "{:g}".format(self.mMediator),
             dark_quark_mass = "{:g}".format(self.mSqua),
-            dark_yukawa = "{:g}".format(self.yukawa),
+        )
+        if self.yukawa is not None: param_args["dark_yukawa"] = "{:g}".format(self.yukawa)
+        fill_template(
+            os.path.join(mg_model_dir,"parameters.py"),
+            **param_args
         )
 
         # use parameters to generate card
