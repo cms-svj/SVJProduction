@@ -37,6 +37,9 @@ shutil.make_archive(
 	base_dir = os.path.basename(mg_model_dir_new),
 )
 
+# in case of tests that don't actually need to run madgraph
+if options.dryrun: sys.exit(0)
+
 # run gridpack in genproductions dir (creates separate env)
 gen_prod_dir = os.path.expandvars("$CMSSW_BASE/src/Configuration/GenProduction/bin/MadGraph5_aMCatNLO/")
 # cleanup previous dir just in case
