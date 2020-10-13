@@ -8,7 +8,7 @@ All of the necessary setup (including checkout of this repo, dependencies, and C
 
 To make GEN or GEN-SIM samples, `CMSSW_7_1_44` is used (which includes Pythia8.226).
 ```
-wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/setup.sh
+wget https://raw.githubusercontent.com/cms-svj/SVJProduction/master/setup.sh
 chmod +x setup.sh
 ./setup.sh -c CMSSW_7_1_44
 cd CMSSW_7_1_44/src
@@ -20,7 +20,7 @@ cd SVJ/Production
 
 To make MINIAOD (or DIGI/RECO/AOD) samples, `CMSSW_8_0_28` is used:
 ```
-wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/setup.sh
+wget https://raw.githubusercontent.com/cms-svj/SVJProduction/master/setup.sh
 chmod +x setup.sh
 ./setup.sh -c CMSSW_8_0_28
 cd CMSSW_8_0_28/src
@@ -32,7 +32,7 @@ cd SVJ/Production
 
 To make GEN or GEN-SIM samples, `CMSSW_9_3_14` is used (which includes Pythia8.230).
 ```
-wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/setup.sh
+wget https://raw.githubusercontent.com/cms-svj/SVJProduction/master/setup.sh
 chmod +x setup.sh
 ./setup.sh -c CMSSW_9_3_14
 cd CMSSW_9_3_14/src
@@ -44,7 +44,7 @@ cd SVJ/Production
 
 To make MINIAOD (or DIGI/RECO/AOD) samples, `CMSSW_9_4_10` is used:
 ```
-wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/setup.sh
+wget https://raw.githubusercontent.com/cms-svj/SVJProduction/master/setup.sh
 chmod +x setup.sh
 ./setup.sh -c CMSSW_9_4_10
 cd CMSSW_9_4_10/src
@@ -58,7 +58,7 @@ cd SVJ/Production
 
 To make GEN, GEN-SIM, MINIAOD (or DIGI/RECO/AOD) samples, `CMSSW_10_2_21` is used:
 ```
-wget https://raw.githubusercontent.com/kpedro88/SVJProduction/master/setup.sh
+wget https://raw.githubusercontent.com/cms-svj/SVJProduction/master/setup.sh
 chmod +x setup.sh
 ./setup.sh -c CMSSW_10_2_21
 cd CMSSW_10_2_21/src

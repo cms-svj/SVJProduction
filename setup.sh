@@ -12,7 +12,7 @@ usage() {
 	$ECHO
 	$ECHO "Options:"
 	$ECHO "-c <RELEASE>  \tCMSSW release to install (e.g. CMSSW_7_1_26)"
-	$ECHO "-f [fork]     \tclone from specified fork (default = kpedro88)"
+	$ECHO "-f [fork]     \tclone from specified fork (default = cms-svj)"
 	$ECHO "-b [branch]   \tclone specified branch (default = master)"
 	$ECHO "-p            \tinstall Pythia 8.230 w/ ME correction"
 	$ECHO "-a            \tinstall analysis code"
@@ -77,7 +77,7 @@ EOF_TOOLFILE
 
 CUR_DIR=`pwd`
 WHICH_CMSSW=""
-FORK=kpedro88
+FORK=cms-svj
 BRANCH=master
 INSTALL_PYTHIA=""
 INSTALL_ANALYSIS=""
