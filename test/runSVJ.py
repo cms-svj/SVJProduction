@@ -3,7 +3,12 @@ import sys, os
 from SVJ.Production.optSVJ import options, _helper
 
 # output name definition
-_outname = _helper.getOutName(options.maxEvents,part=options.part,signal=options.signal and len(options.scan)==0)
+_outname = _helper.getOutName(
+    options.maxEvents,
+    part=options.part,
+    signal=options.signal and len(options.scan)==0 and len(options.fragment)==0,
+    outpre="outpre"+("_"+options.fragment if len(options.fragment)>0 else ""),
+)
 _outname += ".root"
 
 _inname = ""
@@ -57,6 +62,10 @@ if options.signal:
     if len(options.scan)>0:
         if hasattr(process,'generator'):
             process.generator = getattr(__import__("SVJ.Production."+options.scan+"_cff",fromlist=["generator"]),"generator")
+    elif len(options.fragment)>0:
+        if hasattr(process,'generator'):
+            _params = getattr(__import__("SVJ.Production."+options.fragment,fromlist=["processParameters"]),"processParameters")
+            process.generator.PythiaParameters.processParameters = _params
     else:
         # generator settings
         if hasattr(process,'generator'):
