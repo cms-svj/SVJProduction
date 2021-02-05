@@ -129,6 +129,7 @@ process.darkHadronsForJets = cms.EDProducer("GenParticlePruner",
     ),
 )
 process.jet_step += process.darkHadronsForJets
+process.jetoutput.outputCommands.append('keep *_darkHadronsForJets_*_*')
 process = addGenSub(process, process.jet_step, process.jetoutput, size=1.5, prefix="ak15", suffix="Dark", src="darkHadronsForJets")
 
 # Schedule definition
