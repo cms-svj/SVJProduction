@@ -32,6 +32,7 @@
 #include <iostream>
 #include <typeinfo>
 #include <algorithm>
+#include <numeric>
 using std::vector;
 using std::set;
 
@@ -419,25 +420,8 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
                       const vector<const reco::Candidate*>& lastD)
     {
       // looping through the list of dark jets in each event.
-      for (unsigned iad = 0; iad < JetsList.size(); iad++)
-      {
-        TLorentzVector tot4vec;
-        TLorentzVector dark4vec;
-        const reco::GenJet& adj = JetsList[iad];
-        auto anum = adj.numberOfDaughters();
-        // looping through the daughters of each jet
-        for (unsigned ani = 0; ani < anum; ani++)
-        {
-          const reco::Candidate* adj_dau = adj.daughter(ani);
-          TLorentzVector prt = toTLV(*adj_dau);
-          tot4vec += prt;
-          // see if the daughter's TLorentzVector match the TLorentzVector of any last dark particles
-          if (std::find(lastD.begin(),lastD.end(),adj_dau) != lastD.end())
-          {
-            dark4vec += prt;
-          }
-        }
-        double jetDarkF = dark4vec.Pt()/tot4vec.Pt();
+      for (const auto& adj : JetsList) {
+        double jetDarkF = darkPtFract(adj, lastD);
         wdpTFrac.push_back(jetDarkF);
       }
     }
@@ -468,11 +452,8 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
     vector<std::size_t> sort_permutation(
       const vector<TLorentzVector>& vec)
     {
-      vector<std::size_t> p;
-      for (std::size_t i = 0; i < vec.size(); ++i) // this returns [0,1,...,vec.size()-1], indices of vec in original order
-      {                                            // the std::iota function that Colin used gave an error: 'iota' is not a member of 'std'
-        p.push_back(i);
-      }
+      std::vector<std::size_t> p(vec.size());
+      std::iota(p.begin(), p.end(), 0);
       std::sort(p.begin(), p.end(),     // this returns vector p sorted in the descending order of vec.
           [&](std::size_t i, std::size_t j){ return vec[i] > vec[j]; });
       return p;
@@ -543,8 +524,7 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
       vector<int> indDel;
       for (unsigned ai = 0; ai < dPlist.size(); ai ++)
       {
-        set<int> arri = dPlist[ai];
-        if (arri.size() == 0)
+        if (dPlist[ai].empty())
         {
           indDel.push_back(ai);
         }
@@ -562,7 +542,7 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
     {
       usefulConst uc;
       TLorentzVector ujTL = toTLV(uj);
-      for (auto& fP : fPart)
+      for (const auto& fP : fPart)
       {
         if (fP.DeltaR(ujTL) < uc.coneSize)
         {
@@ -573,36 +553,32 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 
     }
     // depending on the content of the jets, classify the jets into different categories
-    void DarkClass(const vector<std::string>& inOnly,const vector<std::string>& notIn,
+    void DarkClass(const set<std::string>& inOnly,
                   const set<std::string>& djlab,
                   const reco::GenJet& djjet,
                   vector<reco::GenJet>& JetList)
     {
-      bool tru = true;
-      for (auto& ii : inOnly)
+      bool jCatMatch = true;
+      if(inOnly.size() != djlab.size()) jCatMatch = false;
+      else
       {
-          if (std::count(djlab.begin(), djlab.end(), ii) == 0)
-          {
-            tru = false;
-          }
+        for (const auto& dj : djlab)
+        {
+            if(inOnly.find(dj)==inOnly.end())
+            {
+              jCatMatch = false;
+            }
+        }
       }
 
-      for (auto& ni : notIn)
-      {
-          if (std::count(djlab.begin(), djlab.end(), ni) > 0)
-          {
-            tru = false;
-          }
-      }
-
-      if (tru == true)
+      if (jCatMatch == true)
       {
         JetList.push_back(djjet);
       }
 
     }
     // same as above, but specific for the LD_lowDF and LD_highDF category. lowDF means dark pT fraction < 0.7
-    void DarkClass(const vector<std::string>& inOnly, const vector<std::string>& notIn,
+    void DarkClass(const set<std::string>& inOnly,
                   const set<std::string>& djlab,
                   const reco::GenJet& djjet,
                   vector<reco::GenJet>& lowDF_JetList,
@@ -610,28 +586,24 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
                   const vector<const reco::Candidate*>& lastD)
     {
       usefulConst uc;
-      bool tru = true;
-      for (auto& ii : inOnly)
+      bool jCatMatch = true;
+      if(inOnly.size() != djlab.size()) jCatMatch = false;
+      else
       {
-          if (std::count(djlab.begin(), djlab.end(), ii) == 0)
-          {
-            tru = false;
-          }
+        for (const auto& dj : djlab)
+        {
+            if(inOnly.find(dj)==inOnly.end())
+            {
+              jCatMatch = false;
+            }
+        }
       }
 
-      for (auto& ni : notIn)
-      {
-          if (std::count(djlab.begin(), djlab.end(), ni) > 0)
-          {
-            tru = false;
-          }
-      }
-
-      if (tru == true && darkPtFract(djjet,lastD) < uc.dpFractCut)
+      if (jCatMatch == true && darkPtFract(djjet,lastD) < uc.dpFractCut)
       {
         lowDF_JetList.push_back(djjet);
       }
-      else if (tru == true && darkPtFract(djjet,lastD) >= uc.dpFractCut)
+      else if (jCatMatch == true && darkPtFract(djjet,lastD) >= uc.dpFractCut)
       {
         highDF_JetList.push_back(djjet);
       }
@@ -760,7 +732,7 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
         }
       }
     }
-    // remove duplicates from vector of TLorentzVector
+    // // remove duplicates from vector of TLorentzVector
     void remove(std::vector<TLorentzVector> &v){
     	auto end = v.end();
     	for (auto i = v.begin(); i != end; ++i) {
@@ -1135,17 +1107,17 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
       const reco::GenJet& djjet = djl.dark_jet;
       set<std::string> djlab = djl.cat_labels;
 
-      DarkClass({"dg","lD"}, {"dq","dqm","SMqm"}, djlab, djjet, G_);
-      DarkClass({"dqm","lD"}, {"dq","dg","SMqm"}, djlab, djjet, QM_);
-      DarkClass({"dq","lD"}, {"dqm","dg","SMqm"}, djlab, djjet, Q_);
-      DarkClass({"dqm","dq","lD"}, {"dg","SMqm"}, djlab, djjet, QM_Q);
-      DarkClass({"dqm","dg","lD"}, {"dq","SMqm"}, djlab, djjet, QM_G);
-      DarkClass({"dq","dg","lD"}, {"dqm","SMqm"}, djlab, djjet, Q_G);
-      DarkClass({"dg","SMqm","lD"}, {"dq","dqm"}, djlab, djjet, G_SM);
-      DarkClass({"dqm","SMqm","lD"}, {"dq","dg"}, djlab, djjet, QM_SM);
-      DarkClass({"dq","SMqm","lD"}, {"dg","dqm"}, djlab, djjet, Q_SM);
-      DarkClass({"lD"}, {"dq","dqm","dg","SMqm"}, djlab, djjet, LD_lowDF, LD_highDF,lastD);
-      DarkClass({"lD","SMqm"}, {"dq","dqm","dg"}, djlab, djjet, LD_SM);
+      DarkClass({"dg","lD"}         , djlab, djjet, G_);
+      DarkClass({"dqm","lD"}        , djlab, djjet, QM_);
+      DarkClass({"dq","lD"}         , djlab, djjet, Q_);
+      DarkClass({"dqm","dq","lD"}   , djlab, djjet, QM_Q);
+      DarkClass({"dqm","dg","lD"}   , djlab, djjet, QM_G);
+      DarkClass({"dq","dg","lD"}    , djlab, djjet, Q_G);
+      DarkClass({"dg","SMqm","lD"}  , djlab, djjet, G_SM);
+      DarkClass({"dqm","SMqm","lD"} , djlab, djjet, QM_SM);
+      DarkClass({"dq","SMqm","lD"}  , djlab, djjet, Q_SM);
+      DarkClass({"lD"}              , djlab, djjet, LD_lowDF, LD_highDF,lastD);
+      DarkClass({"lD","SMqm"}       , djlab, djjet, LD_SM);
     }
   }
 
