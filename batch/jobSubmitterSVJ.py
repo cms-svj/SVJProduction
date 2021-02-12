@@ -160,6 +160,8 @@ class jobSubmitterSVJ(jobSubmitter):
                         "outpre="+self.outpre,
                         "year="+str(self.year),
                     ])
+                    if "filterZ2" in pdict:
+                        arglist.append("filterZ2="+str(pdict["filterZ2"]))
                     if not self.gridpack:
                         arglist.append("config="+self.config)
                     if self.madgraph or self.gridpack:
