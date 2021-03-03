@@ -181,6 +181,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `maxEventsIn=[num]`: number of events from input file (if different from `maxEvents`) (default = -1)
 * `signal=[bool]`: whether this is a signal sample (default = True)
 * `scan=[string]`: name of scan fragment
+* `fragment=[string]`: name of file w/ `processParameters` fragment
 * `madgraph=[bool]`: generation with MadGraph (instead of default Pythia8)
 * `nogridpack=[bool]`: disable gridpack mode and just generate events (only for `runMG`) (default = False)
 * `syst=[bool]`: enable systematics for generation with MadGraph (default = False)

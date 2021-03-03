@@ -115,9 +115,18 @@ class jobSubmitterSVJ(jobSubmitter):
             job = protoJob()
             # extra attribute to store actual events
             if self.actualEvents: job.actualEvents = 0
-            # make name from params
-            self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"],boost=pdict["boost"] if "boost" in pdict else 0.0,generate=not (self.madgraph or self.gridpack),yukawa=pdict["yukawa"] if "yukawa" in pdict else None)
-            job.name = self.helper.getOutName(events=self.maxEvents,outpre=self.outpre)
+            # make name from params or fragment
+            if "fragment" in pdict:
+                self.helper.generate = True
+                outpre = self.outpre+"_"+pdict["fragment"]
+                inpre = self.inpre+"_"+pdict["fragment"]
+                signal = False
+            else:
+                self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"],boost=pdict["boost"] if "boost" in pdict else 0.0,generate=not (self.madgraph or self.gridpack),yukawa=pdict["yukawa"] if "yukawa" in pdict else None)
+                outpre = self.outpre
+                inpre = self.inpre
+                signal = True
+            job.name = self.helper.getOutName(events=self.maxEvents,outpre=outpre,signal=signal)
             if self.verbose:
                 print "Creating job: "+job.name
             self.generatePerJob(job)
@@ -125,24 +134,34 @@ class jobSubmitterSVJ(jobSubmitter):
             # for auto skipping
             if self.skipParts=="auto":
                 injob = protoJob()
-                injob.name = self.helper.getOutName(events=self.maxEventsIn if self.maxEventsIn>0 else self.maxEvents,outpre=self.inpre)
+                injob.name = self.helper.getOutName(events=self.maxEventsIn if self.maxEventsIn>0 else self.maxEvents,outpre=inpre,signal=signal)
                 infiles = {x.split('/')[-1].replace(".root","") for x in (filter(None,os.popen("xrdfs "+self.redir+" ls "+self.indir).read().split('\n')) if self.indir.startswith("/store/") else glob(self.indir+"/*.root"))}
 
             # write job options to file - will be transferred with job
             if self.prepare:
                 with open("input/args_"+job.name+".txt",'w') as argfile:
-                    arglist = [
-                        "channel="+str(pdict["channel"]),
-                        "mMediator="+str(pdict["mMediator"]),
-                        "mDark="+str(pdict["mDark"]),
-                        "rinv="+str(pdict["rinv"]),
-                        "alpha="+str(pdict["alpha"]),
-                        "boost="+str(pdict["boost"] if "boost" in pdict else 0.0),
-                        "yukawa="+str(pdict["yukawa"] if "yukawa" in pdict else 0.0),
+                    arglist = []
+                    if "fragment" in pdict:
+                        arglist = [
+                            "fragment="+str(pdict["fragment"]),
+                        ]
+                    else:
+                        arglist = [
+                            "channel="+str(pdict["channel"]),
+                            "mMediator="+str(pdict["mMediator"]),
+                            "mDark="+str(pdict["mDark"]),
+                            "rinv="+str(pdict["rinv"]),
+                            "alpha="+str(pdict["alpha"]),
+                            "boost="+str(pdict["boost"] if "boost" in pdict else 0.0),
+                            "yukawa="+str(pdict["yukawa"] if "yukawa" in pdict else 0.0),
+                        ]
+                    arglist.extend([
                         "maxEvents="+str(self.maxEvents),
                         "outpre="+self.outpre,
                         "year="+str(self.year),
-                    ]
+                    ])
+                    if "filterZ2" in pdict:
+                        arglist.append("filterZ2="+str(pdict["filterZ2"]))
                     if not self.gridpack:
                         arglist.append("config="+self.config)
                     if self.madgraph or self.gridpack:
@@ -167,7 +186,7 @@ class jobSubmitterSVJ(jobSubmitter):
                 iActualJob = iJob+self.firstPart
 
                 if (self.skipParts=="auto" and injob.makeName(iActualJob) not in infiles) or (type(self.skipParts)==set and iActualJob in self.skipParts):
-                    if self.verbose: print "  skipping part "+str(iActualJob)
+                    if self.verbose: print "  skipping part "+str(iActualJob)+" ("+injob.makeName(iActualJob)+")"
                     continue
 
                 if self.actualEvents:
@@ -211,5 +230,5 @@ class jobSubmitterSVJ(jobSubmitter):
 
         with open(self.getpy_weights,'a') as wfile:
             nEvents = job.actualEvents if self.actualEvents else int(self.maxEvents)*len(job.nums)
-            line = '        MCSample("'+job.name+'", "", "", "Constant", '+str(nEvents)+'),';
+            line = '    MCSample("'+job.name+'", "", "", "Constant", '+str(nEvents)+'),';
             wfile.write(line+"\n")

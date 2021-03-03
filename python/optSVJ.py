@@ -6,6 +6,7 @@ import os
 options = VarParsing("analysis")
 options.register("signal", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("scan", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
+options.register("fragment", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("madgraph", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("nogridpack", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("syst", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
@@ -42,6 +43,10 @@ elif options.year==2017 and not (cmssw_major==9):
 	raise ValueError("2017 config should not be used in non-2017 CMSSW version ("+cmssw_version+")")
 elif options.year==2018 and not (cmssw_major==10):
 	raise ValueError("2018 config should not be used in non-2018 CMSSW version ("+cmssw_version+")")
+
+# incompatible args
+if len(options.scan)>0 and len(options.fragment)>0:
+    raise ValueError("scan and fragment are incompatible options, pick one!")
 
 # check events
 if options.maxEventsIn==-1: options.maxEventsIn = options.maxEvents
