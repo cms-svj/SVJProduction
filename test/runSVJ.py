@@ -65,6 +65,7 @@ if options.signal:
     elif len(options.fragment)>0:
         if hasattr(process,'generator'):
             _params = getattr(__import__("SVJ.Production."+options.fragment,fromlist=["processParameters"]),"processParameters")
+            if isinstance(_params,tuple): _params = _params[0] # handle weird python behavior change
             process.generator.PythiaParameters.processParameters = _params
     else:
         # generator settings
