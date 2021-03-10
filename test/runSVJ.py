@@ -172,7 +172,12 @@ if hasattr(process,"mixData"):
 # miniAOD settings
 _pruned = ["prunedGenParticlesWithStatusOne","prunedGenParticles"]
 _keeps = ["keep (4900001 <= abs(pdgId) <= 4900991 )", "keep (51 <= abs(pdgId) <= 53)"]
-if options.suep: _keeps = ["keep 999998 <= abs(pdgId) <= 999999"]
+if options.suep: 
+    _keeps = ["keep 999998 <= abs(pdgId) <= 999999", "++keep  abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 1 || abs(pdgId) == 211", "keep++ abs(pdgId) == 1" ]
+    # keep dark pions, darkphotons 
+    # higgs already kept
+    # keep SM decay products, electrons, muons, pions, uubar
+    # keep decays of uubar
 for _prod in _pruned:
     if hasattr(process,_prod):
         # keep HV & DM particles
