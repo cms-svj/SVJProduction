@@ -197,6 +197,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `temperature=[val]`: temperature for SUEP model (default = 2.0)
 * `decay=[str]`: decay mode for SUEP model (default = generic)
 * `filterZ2=[bool]`: only keep events with `N(4900211)%4==0` (default = True)
+* `scout=[bool]`: keep scouting collections in miniAOD (default = False)
 * `part=[num]`: part number when producing a sample in multiple jobs (default = 1)
 * `indir=[str]`: directory for input file (local or logical)
 * `inpre=[str]`: prefix for input file name

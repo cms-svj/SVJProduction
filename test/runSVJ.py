@@ -14,6 +14,7 @@ _outname += ".root"
 _inname = ""
 if len(options.inpre)>0:
     _inname = _outname.replace("outpre",options.inpre)
+    if options.maxEvents!=options.maxEventsIn: _inname = _inname.replace("_n-{}_".format(options.maxEvents),"_n-{}_".format(options.maxEventsIn),1)
 
 def fix_inname(inname,options,lhe=False):
     if len(options.indir)>0: inname = options.indir+"/"+inname
@@ -182,6 +183,15 @@ for _prod in _pruned:
     if hasattr(process,_prod):
         # keep HV & DM particles
         getattr(process,_prod).select.extend(_keeps)
+
+if options.scout and "MINIAOD" in options.config:
+    for output in options.output:
+        if len(output)==0: continue
+        output_attr = getattr(oprocess,output)
+        if hasattr(output_attr,"outputCommands"):
+            output_attr.outputCommands.extend([
+                'keep *_hltScouting*_*_*',
+            ])
 
 # multithreading options
 if options.threads>0:
