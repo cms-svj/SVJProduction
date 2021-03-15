@@ -11,7 +11,6 @@ class suepHelper(object):
         self.idPho = 999998
         pass
 
-
     def setModel(self,mMediator,mDark,temperature,decay):
         # store the basic parameters
         self.mMediator = mMediator
@@ -85,10 +84,8 @@ class suepHelper(object):
             lines.append('{}:addChannel = 1 0.70 101 211 -211 '.format(self.idPho))#70% br to pi+ pi-
         else : # "generic" uubar
             lines.append('{}:addChannel = 1 1.0 101 1 -1 '.format(self.idPho)) #100% br to u+ u-
-    
 
         return lines
-
 
     def getHookSettings(self):
         pset = cms.PSet(
