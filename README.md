@@ -259,6 +259,8 @@ cd SVJ/Production/test
 cmsRun runSVJ.py suep=1 year=2018 config=step1_GEN outpre=step1 mMediator=125 mDark=2.0 temperature=2.0 decay=generic part=1 maxEvents=10
 ```
 
+The SUEP simulation currently only works in CMSSW_10_2_X (2018).
+
 ## cmsDriver commands (2016)
 
 <details>
