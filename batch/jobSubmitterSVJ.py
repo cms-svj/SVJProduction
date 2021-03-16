@@ -1,5 +1,6 @@
 from Condor.Production.jobSubmitter import *
 from SVJ.Production.svjHelper import svjHelper
+from SVJ.Production.suepHelper import suepHelper
 from glob import glob
 
 def makeNameSVJ(self,num):
@@ -10,8 +11,11 @@ protoJob.makeName = makeNameSVJ
 class jobSubmitterSVJ(jobSubmitter):
     def __init__(self):
         super(jobSubmitterSVJ,self).__init__()
-        
-        self.helper = svjHelper()
+
+        if self.suep:
+            self.helper = suepHelper()
+        else:
+            self.helper = svjHelper()
 
     def addDefaultOptions(self,parser):
         super(jobSubmitterSVJ,self).addDefaultOptions(parser)
@@ -39,6 +43,7 @@ class jobSubmitterSVJ(jobSubmitter):
         parser.add_option("--config", dest="config", default="", help="CMSSW config to run (required unless madgraph) (default = %default)")
         parser.add_option("--gridpack", dest="gridpack", default=False, action="store_true", help="gridpack production (default = %default)")
         parser.add_option("--madgraph", dest="madgraph", default=False, action="store_true", help="sample generated w/ madgraph (rather than pythia) (default = %default)")
+        parser.add_option("--suep", dest="suep", default=False, action="store_true", help="run SUEP simulation (default = %default)")
         parser.add_option("-A", "--args", dest="args", default="", help="additional common args to use for all jobs (default = %default)")
         parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true", help="enable verbose output (default = %default)")
 
@@ -122,7 +127,10 @@ class jobSubmitterSVJ(jobSubmitter):
                 inpre = self.inpre+"_"+pdict["fragment"]
                 signal = False
             else:
-                self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"],boost=pdict["boost"] if "boost" in pdict else 0.0,generate=not (self.madgraph or self.gridpack),yukawa=pdict["yukawa"] if "yukawa" in pdict else None)
+                if self.suep:
+                    self.helper.setModel(pdict["mMediator"],pdict["mDark"],pdict["temperature"],pdict["decay"])
+                else:
+                    self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"],boost=pdict["boost"] if "boost" in pdict else 0.0,generate=not (self.madgraph or self.gridpack),yukawa=pdict["yukawa"] if "yukawa" in pdict else None)
                 outpre = self.outpre
                 inpre = self.inpre
                 signal = True
@@ -144,6 +152,14 @@ class jobSubmitterSVJ(jobSubmitter):
                     if "fragment" in pdict:
                         arglist = [
                             "fragment="+str(pdict["fragment"]),
+                        ]
+                    elif self.suep:
+                        arglist = [
+                            "suep=1",
+                            "mMediator="+str(pdict["mMediator"]),
+                            "mDark="+str(pdict["mDark"]),
+                            "temperature="+str(pdict["temperature"]),
+                            "decay="+str(pdict["decay"]),
                         ]
                     else:
                         arglist = [

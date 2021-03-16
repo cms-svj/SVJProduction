@@ -14,6 +14,7 @@ _outname += ".root"
 _inname = ""
 if len(options.inpre)>0:
     _inname = _outname.replace("outpre",options.inpre)
+    if options.maxEvents!=options.maxEventsIn: _inname = _inname.replace("_n-{}_".format(options.maxEvents),"_n-{}_".format(options.maxEventsIn),1)
 
 def fix_inname(inname,options,lhe=False):
     if len(options.indir)>0: inname = options.indir+"/"+inname
@@ -75,6 +76,8 @@ if options.signal:
             process.generator.maxEventsToPrint = cms.untracked.int32(1)
             if hasattr(process.generator.PythiaParameters,"JetMatchingParameters"):
                 process.generator.PythiaParameters.JetMatchingParameters = cms.vstring(_helper.getJetMatchSettings())
+            if options.suep:
+                process.generator.suep = _helper.getHookSettings()
 
     # gen filter settings
     # pythia implementation of model has 4900111/211 -> -51 51 and 4900113/213 -> -53 53
@@ -169,13 +172,26 @@ if hasattr(process,"mixData"):
 
 # miniAOD settings
 _pruned = ["prunedGenParticlesWithStatusOne","prunedGenParticles"]
+_keeps = ["keep (4900001 <= abs(pdgId) <= 4900991 )", "keep (51 <= abs(pdgId) <= 53)"]
+if options.suep: 
+    _keeps = ["keep 999998 <= abs(pdgId) <= 999999", "++keep  abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 1 || abs(pdgId) == 211", "keep++ abs(pdgId) == 1" ]
+    # keep dark pions, darkphotons 
+    # higgs already kept
+    # keep SM decay products, electrons, muons, pions, uubar
+    # keep decays of uubar
 for _prod in _pruned:
     if hasattr(process,_prod):
         # keep HV & DM particles
-        getattr(process,_prod).select.extend([
-            "keep (4900001 <= abs(pdgId) <= 4900991 )",
-            "keep (51 <= abs(pdgId) <= 53)",
-        ])
+        getattr(process,_prod).select.extend(_keeps)
+
+if options.scout and "MINIAOD" in options.config:
+    for output in options.output:
+        if len(output)==0: continue
+        output_attr = getattr(oprocess,output)
+        if hasattr(output_attr,"outputCommands"):
+            output_attr.outputCommands.extend([
+                'keep *_hltScouting*_*_*',
+            ])
 
 # multithreading options
 if options.threads>0:
