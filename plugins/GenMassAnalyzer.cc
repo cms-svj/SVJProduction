@@ -57,14 +57,14 @@ class darkIdList{
 
 class usefulConst{
   public:
-    double pTCut = 200;
+    double pTCut = 100;
     double coneSize = 0.8;
     double dpFractCut = 0.7;
 };
 
 class dJetsLab{
   public:
-    reco::GenJet dark_jet;
+    const reco::GenJet* dark_jet;
     set<std::string> cat_labels;
 };
 
@@ -262,8 +262,6 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
     }
 
     // find the last daughters of a given gen particle
-    // So far, it's only been used to find last daughters of last dark hadrons
-    // These last daughters are used for calculating the dark pT of a jet
     template <typename T>
     void lastDau(vector<const reco::Candidate*>& lastD,const T& dHad)
     {
@@ -271,8 +269,9 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
       for (unsigned idH = 0; idH < dHad.numberOfDaughters(); idH++ )
       {
         const reco::Candidate* dauH = dHad.daughter(idH);
+        int dauHID = std::abs(dauH->pdgId());
         // if a daughter doesn't have any more daughter, it is the last descendant
-        if (dauH->numberOfDaughters() == 0) // last particle that is not stable dark hadron
+        if (dauH->numberOfDaughters() == 0 && (dauHID != 51 || dauHID || 52 || dauHID != 53)) // last particle that is not stable dark hadron
         {
           lastD.push_back(dauH);
         }
@@ -298,11 +297,7 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
         TLorentzVector part_i_TL = toTLV(part_i);
         dPartList.push_back(part_i_TL);
         dPartList_label.push_back(part_ind);
-        // if the particle is last dark hadron, we also store its last descendants in "lastD".
-        if (DarkIDList == dil.DarkHadronID_) // find last daughters of the last dark hadrons
-        {
-          lastDau(lastD,part_i);
-        }
+        lastDau(lastD,part_i);
       }
     }
     // store the first daughters from the first dark mediator(s)
@@ -382,176 +377,66 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
     }
     // classify a jet as dark jet if there is a last dark particle within the jet radius
     void checkDark(const reco::GenJet& ijet,
-                  set<int>& dPartSet,
-                  vector<int>& dPart_label,
-                  const vector<TLorentzVector>& dPart,
+                  vector<const reco::Candidate*>& lastD,
                   vector<reco::GenJet>& dJets,
-                  vector<set<int>>& dPartTrack,
                   vector<reco::GenJet>& SMJets)
     {
-      bool isDark = false;
+      bool dMatch = false;
       usefulConst uc;
       // looping through all the last dark gluons and quarks
-      for (unsigned idqCan = 0 ; idqCan < dPart.size(); idqCan ++ )
+      for (unsigned i = 0 ; i < ijet.numberOfDaughters(); i ++ )
       {
-        // see if the last dark particle is in the jet's radius
-        double dR = toTLV(ijet).DeltaR(dPart[idqCan]);
-        if (dR<uc.coneSize)
+        // see if any jet constituent is a last dark descendant
+        if (std::find(lastD.begin(),lastD.end(),ijet.daughter(i)) != lastD.end())
         {
-          isDark = true;
-          dPartSet.insert(dPart_label[idqCan]); // collecting all the dark particles in each dark jet
+          dMatch = true;
         }
       }
-
-      if (isDark == true) // if more than one quarks/gluons fall into the cone of one jet we still have only one dark jet
+      if (dMatch == true) // if more than one quarks/gluons fall into the cone of one jet we still have only one dark jet
       {
-        dPartTrack.push_back(dPartSet);
         dJets.push_back(ijet);
       }
       else
       {
         SMJets.push_back(ijet);
       }
-
     }
-    // calculate dark pT fraction of the jets
-    void darkPtFract(const vector<reco::GenJet>& JetsList,
-                      vector<double>& wdpTFrac,
-                      const vector<const reco::Candidate*>& lastD)
-    {
-      // looping through the list of dark jets in each event.
-      for (const auto& adj : JetsList) {
-        double jetDarkF = darkPtFract(adj, lastD);
-        wdpTFrac.push_back(jetDarkF);
-      }
-    }
-    // same as above, but calculate the dark pT fraction of one jet
-    double darkPtFract(const reco::GenJet& adj,
-                      const vector<const reco::Candidate*>& lastD)
-    {
-      TLorentzVector tot4vec;
-      TLorentzVector dark4vec;
-      auto anum = adj.numberOfDaughters();
-      for (unsigned ani = 0; ani < anum; ani++)
-      {
-        const reco::Candidate* adj_dau = adj.daughter(ani);
-        TLorentzVector prt = toTLV(*adj_dau);
-        tot4vec += prt;
-        if (std::find(lastD.begin(),lastD.end(),adj_dau) != lastD.end())
+    // calculate the dark pT fraction of one jet
+        double darkPtFract(const reco::GenJet& adj,
+                          const vector<const reco::Candidate*>& lastD)
         {
-          dark4vec += prt;
-        }
-      }
-      double jetDarkF = dark4vec.Pt()/tot4vec.Pt();
-      return jetDarkF;
-    }
-
-    // Modified from Colin's sorting code in SoftDropAnalyzer.cc#L32-L72
-    // sort the dark jets in each event according to the dark pT fractions
-    template <typename TLorentzVector>
-    vector<std::size_t> sort_permutation(
-      const vector<TLorentzVector>& vec)
-    {
-      std::vector<std::size_t> p(vec.size());
-      std::iota(p.begin(), p.end(), 0);
-      std::sort(p.begin(), p.end(),     // this returns vector p sorted in the descending order of vec.
-          [&](std::size_t i, std::size_t j){ return vec[i] > vec[j]; });
-      return p;
-    }
-
-    template <typename TLorentzVector>
-    void sortByDPt(
-        vector<TLorentzVector>& vec,
-        const vector<std::size_t>& p)
-    {
-      vector<bool> done(vec.size());
-      for (std::size_t i = 0; i < vec.size(); ++i)
-      {
-        if (done[i])
-        {
-          continue;
-        }
-        done[i] = true;
-        std::size_t prev_j = i;
-        std::size_t j = p[i];
-        while (i != j)
-        {
-          std::swap(vec[prev_j], vec[j]);
-          done[j] = true;
-          prev_j = j;
-          j = p[j];
-        }
-      }
-    }
-    // It is possible for a particle to fall within the radii of two jets
-    // The function below checks for dark particles that fell within the radii of more than one jet.
-    // When two jets share the same particle, the particle is considered being contained by only the jet with the higher pT.
-    // After making sure that each dark particle belongs to only one jet, the function checks and sees if a jet identified
-    // earlier as dark still contains any dark particles. If the jet doesn't, then it will be reclassified as an SM jet.
-    void reclassToSM(const vector<set<int>>& dPartTrack,
-                    vector<reco::GenJet>& SMJets,
-                    vector<reco::GenJet>& dJets)
-    {
-
-      vector<set<int>> dPlist = dPartTrack;
-      // looping over dPlist (vector of sets of dark particle labels)
-      for (unsigned i = 0; i < dPlist.size(); i++)
-      {
-        for (unsigned j = 0; j < dPlist.size(); j++)
-        {
-          // compare any two sets and see what dark particle labels appear in both sets
-          if (i < j)
+          TLorentzVector tot4vec;
+          TLorentzVector dark4vec;
+          auto anum = adj.numberOfDaughters();
+          for (unsigned ani = 0; ani < anum; ani++)
           {
-            vector<int> comval; // stores the dark particle labels that show up in both sets
-            set<int> list1 = dPlist[i];
-            set<int> list2 = dPlist[j];
-            std::set_intersection(dPlist[i].begin(), dPlist[i].end(),
-                                  dPlist[j].begin(), dPlist[j].end(),
-                                  std::back_inserter(comval));
-            // remove the common dark particle labels from the set with lower dark pT fraction.
-            // We assumed that dPlist has already been sorted according to the jet's dark pT fraction.
-            if (comval.size() > 0)
+            const reco::Candidate* adj_dau = adj.daughter(ani);
+            TLorentzVector prt = toTLV(*adj_dau);
+            tot4vec += prt;
+            if (std::find(lastD.begin(),lastD.end(),adj_dau) != lastD.end())
             {
-              for(int n : comval)
-              {
-                dPlist[j].erase(n);
-              }
+              dark4vec += prt;
             }
           }
+          double jetDarkF = dark4vec.Pt()/tot4vec.Pt();
+          return jetDarkF;
         }
-      }
-      // After the erasing process, if any set in dPlist has no dark particle labels, that set is considered an SM set. The corresponding jet will be moved from the dark jet vector to the SM jet vector.
-      vector<int> indDel;
-      for (unsigned ai = 0; ai < dPlist.size(); ai ++)
-      {
-        if (dPlist[ai].empty())
-        {
-          indDel.push_back(ai);
-        }
-      }
-      for (int iidD = indDel.size() - 1; iidD >= 0; iidD--)
-      {
-        int idD = indDel[iidD];
-        SMJets.push_back(dJets[idD]);
-        dJets.erase(dJets.begin() + idD);
-      }
-    }
     // record first dark particles that are within the jets' radii
-    void isfj(const vector<TLorentzVector>& fPart, const reco::GenJet& uj,
-              const std::string& label, set<std::string>& jlabels)
-    {
-      usefulConst uc;
-      TLorentzVector ujTL = toTLV(uj);
-      for (const auto& fP : fPart)
-      {
-        if (fP.DeltaR(ujTL) < uc.coneSize)
-        {
-          jlabels.insert(label);
-          break;
-        }
-      }
+     void isfj(const vector<TLorentzVector>& fPart, const reco::GenJet& uj,
+               const std::string& label, set<std::string>& jlabels)
+     {
+       usefulConst uc;
+       TLorentzVector ujTL = toTLV(uj);
+       for (const auto& fP : fPart)
+       {
+         if (fP.DeltaR(ujTL) < uc.coneSize)
+         {
+           jlabels.insert(label);
+           break;
+         }
+       }
 
-    }
+     }
     // depending on the content of the jets, classify the jets into different categories
     void DarkClass(const set<std::string>& inOnly,
                   const set<std::string>& djlab,
@@ -570,12 +455,10 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
             }
         }
       }
-
       if (jCatMatch == true)
       {
         JetList.push_back(djjet);
       }
-
     }
     // same as above, but specific for the LD_lowDF and LD_highDF category. lowDF means dark pT fraction < 0.7
     void DarkClass(const set<std::string>& inOnly,
@@ -598,7 +481,6 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
             }
         }
       }
-
       if (jCatMatch == true && darkPtFract(djjet,lastD) < uc.dpFractCut)
       {
         lowDF_JetList.push_back(djjet);
@@ -616,7 +498,6 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
       etau1.reserve(jet.size());
       etau2.reserve(jet.size());
       etau3.reserve(jet.size());
-
       for(const auto& i_jet : jet)
       {
         #ifndef CMSSW71X
@@ -624,9 +505,7 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
             etau2.push_back(njhelper.getTau(2,i_jet));
             etau3.push_back(njhelper.getTau(3,i_jet));
         #endif
-
       }
-
     }
     // match jets from packedGenJetsAK8NoNu to jets from ak8GenJets by DeltaR between those jets
     void matchJet_to_NoNu(const vector<reco::GenJet>& jC_,
@@ -676,11 +555,8 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
       {
           const reco::GenJet& pjet = pjC_[i];
           const reco::GenJet& mjet = mjC_[i];
-
           ptrat.push_back(pjet.pt()/mjet.pt());
-
           TLorentzVector NuPt;
-
           for (unsigned j = 0; j < mjet.numberOfDaughters(); j++)
           {
             int pid = std::abs(mjet.daughter(j)->pdgId());
@@ -689,7 +565,6 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
               NuPt += toTLV(*mjet.daughter(j));
             }
           }
-
           ptratConst.push_back(NuPt.Pt()/mjet.pt());
       }
     }
@@ -944,12 +819,8 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   // This part of the code is a modified version of v3_darkdentifier.py
   vector<reco::GenJet> dJets;
   vector<reco::GenJet> SMJets;
-  vector<TLorentzVector> dQPart; // last dark quarks
-  vector<TLorentzVector> dGPart; // last dark gluons
   vector<TLorentzVector> dHPart; // last dark hadrons
   vector<const reco::Candidate*> lastD; // last daughters of dHPart
-  vector<int> dQPart_label; // indices of the last dark quarks
-  vector<int> dGPart_label; // indices of the last dark gluons
   vector<int> dHPart_label; // indices of the last dark hadrons
   vector<TLorentzVector> fdQPart; // first dark quarks
   vector<TLorentzVector> fdGPart; // first dark gluons
@@ -1014,11 +885,8 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
     {
       part_ind ++;
       int partid = std::abs(part_i.pdgId());
-      lastDarkGQ(did.DarkQuarkID_,  partid, part_ind, part_i, dQPart, dQPart_label, lastD);
-      lastDarkGQ(did.DarkGluonID_,  partid, part_ind, part_i, dGPart, dGPart_label, lastD);
       lastDarkGQ(did.DarkHadronID_, partid, part_ind, part_i, dHPart, dHPart_label, lastD);
       firstDark(partid,part_i,fdMPart,fdQPart,fdGPart,fdQPartFM,fdGPartFM,fSMqPart);
-
       if (partid == 51 || partid == 52 || partid == 53)
       {
         TLorentzVector part_i_TL = toTLV(part_i);
@@ -1033,49 +901,33 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
     remove(fdGPartFM);
     remove(fSMqPart);
     // std::cout << "Event" <<"\n\n";
-    // finding jets that contain dark gluons/quarks/both
-    // dPart contains all the last dark quarks and gluons
-    vector<TLorentzVector> dPart = dQPart;
-    dPart.insert( dPart.end(), dGPart.begin(), dGPart.end());
-    // dPart_label contains the indices of the last dark quarks and gluons in the particle list
-    vector<int> dPart_label = dQPart_label;
-    dPart_label.insert( dPart_label.end(), dGPart_label.begin(), dGPart_label.end());
-    vector<set<int>> dPartTrack; // keeping track of which dark jets contain which dark particles in each event
+    // finding jets that contain last dark descendants
     for(const auto& ijet : *(h_jet.product()))
     {
       if (ijet.pt() > uc.pTCut)
       {
         AK8Jets.push_back(ijet);
         set<int> dPartSet;
-        checkDark(ijet,dPartSet,dPart_label,dPart,dJets,dPartTrack,SMJets);
+        checkDark(ijet,lastD,dJets,SMJets);
       }
     }
-    vector<double> dJPts; // dark jets' dark pT fraction
-    darkPtFract(dJets, dJPts, lastD);
-    // pick the dark jet with the largest fraction of dark pT to associate with the dark quarks/gluons within the jet
-    // if any of those particles happen to be in some other jets, they don't count as particles in those jets.
-    // have to do this, because about 10% of the dark jets can be reclassified as SM jets.
-    auto permutation = sort_permutation(dJPts);
-    sortByDPt(dJets,permutation);
-    sortByDPt(dPartTrack,permutation);
-    reclassToSM(dPartTrack,SMJets,dJets);
     // Further classifying jets
     vector<std::string> relab = {"dq","dg","dqm","SMqm","lD"};
     vector<dJetsLab> dJetswL;
     // split SM jets into mediator SM and non-mediator SM
     for(const auto& smj : SMJets)
     {
-      int SMM_tr = 0;
+      bool SMM_tr = false;
       TLorentzVector smjTL = toTLV(smj);
       for(const auto& smmq : fSMqPart)
       {
         if (smmq.DeltaR(smjTL) < uc.coneSize)
         {
-          SMM_tr = 1;
+          SMM_tr = true;
           break;
         }
       }
-      if (SMM_tr == 1)
+      if (SMM_tr == true)
       {
         SMM_.push_back(smj);
       }
@@ -1085,26 +937,25 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
       }
     }
     // split dark jets into 12 categories
-    vector<TLorentzVector> lastDPL = dQPart;
-    lastDPL.insert( lastDPL.end(), dGPart.begin(), dGPart.end());
-
     for(const auto& udj : dJets)
     {
-      set<std::string> jlabels;
+      set<std::string> jlabels = {"lD"};
       isfj(fdQPart,   udj, "dq",    jlabels);
       isfj(fdGPart,   udj, "dg",    jlabels);
       isfj(fdQPartFM, udj, "dqm",   jlabels);
       isfj(fSMqPart,  udj, "SMqm",  jlabels);
-      isfj(lastDPL,   udj, "lD",    jlabels);
       dJetsLab udjj;
-      udjj.dark_jet = udj;
+      udjj.dark_jet = &udj;
       udjj.cat_labels = jlabels;
       dJetswL.push_back(udjj);
     }
-
+1,2,4,8,16
+lD,dq,dg,dqm,SMqm
+lD,dq = 3
+lD,dg = 5
     for(const auto& djl : dJetswL)
     {
-      const reco::GenJet& djjet = djl.dark_jet;
+      const reco::GenJet& djjet = *djl.dark_jet;
       set<std::string> djlab = djl.cat_labels;
 
       DarkClass({"dg","lD"}         , djlab, djjet, G_);
