@@ -104,6 +104,7 @@ Python:
 * `--year [num]`: which year to simulate
 * `--gridpack`: gridpack production
 * `--madgraph`: sample generated w/ madgraph (rather than pythia)
+* `--suep`: run SUEP simulation
 * `--actualEvents`: count actual number of events from each input file (for python file list, requires `-K auto`)
 * `-A, --args [list]`: additional common args to use for all jobs (passed to [runSVJ.py](./test/runSVJ.py))
 * `-v, --verbose`: enable verbose output (default = False)
@@ -181,9 +182,11 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `maxEventsIn=[num]`: number of events from input file (if different from `maxEvents`) (default = -1)
 * `signal=[bool]`: whether this is a signal sample (default = True)
 * `scan=[string]`: name of scan fragment
+* `fragment=[string]`: name of file w/ `processParameters` fragment
 * `madgraph=[bool]`: generation with MadGraph (instead of default Pythia8)
 * `nogridpack=[bool]`: disable gridpack mode and just generate events (only for `runMG`) (default = False)
 * `syst=[bool]`: enable systematics for generation with MadGraph (default = False)
+* `suep=[bool]`: run SUEP simulation (default = False)
 * `channel=[string]`: process to generate (default = s, alternative = t)
 * `boost=[float]`: applies a minimum HT cut of whatever value was passed (default = 0.0)
 * `mMediator=[val]`: mediator mass value (default = 3000.0)
@@ -191,7 +194,10 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `rinv=[val]`: invisible fraction value (default = 0.3)
 * `alpha=[val]`: hidden sector force coupling value (default = peak)
 * `yukawa=[val]`: Yukawa coupling for bifundamental mediator (t channel) (default = 1.0)
+* `temperature=[val]`: temperature for SUEP model (default = 2.0)
+* `decay=[str]`: decay mode for SUEP model (default = generic)
 * `filterZ2=[bool]`: only keep events with `N(4900211)%4==0` (default = True)
+* `scout=[bool]`: keep scouting collections in miniAOD (default = False)
 * `part=[num]`: part number when producing a sample in multiple jobs (default = 1)
 * `indir=[str]`: directory for input file (local or logical)
 * `inpre=[str]`: prefix for input file name
@@ -244,6 +250,16 @@ To run the softdrop algorithm on GenJets/GenParticles from an existing sample, a
 cmsRun runSVJ.py config=softDropGenJets outpre=softdropgen indir=/store/user/lpcsusyhad/SVJ2017/ProductionV3/GEN-SIM/ inpre=step1_GEN-SIM redir=root://cmseos.fnal.gov/ mMediator=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
 cmsRun runSVJ.py config=softdropanalyzer_cfg outpre=softdropana output=TFileService inpre=softdropgen mMediator=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
 ```
+
+## Gen-level for SUEP
+
+To run the sample production interactively for SUEP with example parameters:
+```
+cd SVJ/Production/test
+cmsRun runSVJ.py suep=1 year=2018 config=step1_GEN outpre=step1 mMediator=125 mDark=2.0 temperature=2.0 decay=generic part=1 maxEvents=10
+```
+
+The SUEP simulation currently only works in CMSSW_10_2_X (2018).
 
 ## cmsDriver commands (2016)
 
