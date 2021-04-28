@@ -183,6 +183,8 @@ if [ -n "$WHICH_CMSSW" ]; then
 	git cms-init $ACCESS_CMSSW
 	if [[ $WHICH_CMSSW = CMSSW_9_4_* ]]; then
 		git cms-merge-topic -u $ACCESS_CMSSW kpedro88:debugEventSetupMultithreaded9410
+	elif [[ $WHICH_CMSSW = CMSSW_10_2_* ]]; then
+		git cms-merge-topic -u $ACCESS_CMSSW kpedro88:suep102X
 	fi
 
 	if [ -n "$INSTALL_ANALYSIS" ]; then

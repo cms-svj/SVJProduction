@@ -5,6 +5,7 @@
 // system include files
 #include <memory>
 #include <vector>
+#include <string>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -20,6 +21,8 @@
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "FWCore/Utilities/interface/transform.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/Common/interface/getRef.h"
+#include "DataFormats/Common/interface/ValueMap.h"
 
 //
 // class declaration
@@ -38,20 +41,28 @@ class GenJetSubstructurePacker : public edm::stream::EDProducer<> {
 
       // data labels
       float                                        distMax_;      
-      edm::EDGetTokenT<std::vector<reco::GenJet> >       jetToken_;
-      std::vector<edm::InputTag>                   algoTags_;
-      std::vector< edm::EDGetTokenT< std::vector<reco::BasicJet> > >   algoTokens_;
+      edm::EDGetTokenT<std::vector<reco::GenJet>>       jetToken_;
+      edm::EDGetTokenT<std::vector<reco::BasicJet>>   algoToken_;
+      std::vector<edm::EDGetTokenT<edm::ValueMap<float>>> floatTokens_;
+      std::vector<std::string> floatLabels_;
 };
 
 GenJetSubstructurePacker::GenJetSubstructurePacker(const edm::ParameterSet& iConfig) :
-  distMax_( iConfig.getParameter<double>("distMax") ),
-  jetToken_(consumes<std::vector<reco::GenJet> >( iConfig.getParameter<edm::InputTag>("jetSrc") )),
-  algoTags_ (iConfig.getParameter<std::vector<edm::InputTag> > ( "algoTags" ))
+  distMax_(iConfig.getParameter<double>("distMax")),
+  jetToken_(consumes<std::vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("jetSrc"))),
+  algoToken_(consumes<std::vector<reco::BasicJet>>(iConfig.getParameter<edm::InputTag>("algoTag"))),
+  floatLabels_(iConfig.getParameter<std::vector<std::string>>("algoFloatLabels"))
 {
-  algoTokens_ =edm::vector_transform(algoTags_, [this](edm::InputTag const & tag){return consumes< std::vector<reco::BasicJet> >(tag);});
+  const auto& algoFloatTags(iConfig.getParameter<std::vector<edm::InputTag>>("algoFloatTags"));
+  if (algoFloatTags.size()!=floatLabels_.size())
+    throw cms::Exception("ParamMismatch") << "algoFloatTags size (" << algoFloatTags.size() << ") should match algoFloatLabels size (" << floatLabels_.size() << ")";
+  for (unsigned j = 0; j < algoFloatTags.size(); ++j) {
+    floatTokens_.emplace_back(consumes<edm::ValueMap<float>>(algoFloatTags[j]));
+    produces<edm::ValueMap<float>>(floatLabels_[j]);
+  }
 
   //register products
-  produces<std::vector<reco::GenJet> > ();
+  produces<std::vector<reco::GenJet>>();
 }
 
 
@@ -64,69 +75,82 @@ GenJetSubstructurePacker::~GenJetSubstructurePacker()
 void
 GenJetSubstructurePacker::produce(edm::Event& iEvent, const edm::EventSetup&)
 {  
+  auto outputs = std::make_unique<std::vector<reco::GenJet>>();
 
-  std::unique_ptr< std::vector<reco::GenJet> > outputs( new std::vector<reco::GenJet> );
- 
-  edm::Handle< std::vector<reco::GenJet> > jetHandle;
-  std::vector< edm::Handle< std::vector<reco::BasicJet> > > algoHandles;
+  edm::Handle<std::vector<reco::GenJet>> jetHandle;
+  edm::Handle<std::vector<reco::BasicJet>> algoHandle;
+  std::vector<edm::Handle<edm::ValueMap<float>>> floatHandles;
+  std::vector<std::vector<float>> floatVecs;
 
-  iEvent.getByToken( jetToken_, jetHandle );
-  algoHandles.resize( algoTags_.size() );
-  for ( size_t i = 0; i < algoTags_.size(); ++i ) {
-    iEvent.getByToken( algoTokens_[i], algoHandles[i] ); 
+  iEvent.getByToken(jetToken_, jetHandle);
+  iEvent.getByToken(algoToken_, algoHandle);
+  for (const auto& tok : floatTokens_) {
+    floatHandles.emplace_back();
+    iEvent.getByToken(tok, floatHandles.back());
+    floatVecs.emplace_back();
   }
 
   // Loop over the input jets that will be modified.
-  for ( auto const & ijet : *jetHandle  ) {
+  for (auto const & ijet : *jetHandle) {
     // Copy the jet.
-    outputs->push_back( ijet );
+    outputs->push_back(ijet);
 
     // Loop over the substructure collections
-    for ( auto const & ialgoHandle : algoHandles ) {      
-      std::vector< edm::Ptr<reco::GenJet> > nextSubjets;
+    std::vector<edm::Ptr<reco::GenJet>> nextSubjets;
 
-      for ( auto const & jjet : *ialgoHandle ) {
-        
-        if ( reco::deltaR( ijet, jjet ) < distMax_ ) {
-          for ( size_t ida = 0; ida < jjet.numberOfDaughters(); ++ida ) {
+    unsigned jctr = 0;
+    for (auto const & jjet : *algoHandle) {
+      if (reco::deltaR(ijet, jjet) < distMax_) {
+        auto jjetRef = edm::getRef(algoHandle, jctr);
+        for (unsigned f = 0; f < floatHandles.size(); ++f) {
+          const auto& floatHandle(floatHandles[f]);
+          floatVecs[f].push_back((*floatHandle)[jjetRef]);
+        }
+        for (size_t ida = 0; ida < jjet.numberOfDaughters(); ++ida) {
+          reco::CandidatePtr candPtr =  jjet.daughterPtr(ida);
+          nextSubjets.emplace_back(candPtr);
+        }
+        break;
+      }
+      ++jctr;
+    }
 
-            reco::CandidatePtr candPtr =  jjet.daughterPtr( ida);
-            nextSubjets.push_back( edm::Ptr<reco::GenJet> ( candPtr ) );
-          }
+    std::vector<reco::CandidatePtr> daughtersInSubjets;
+    std::vector<reco::CandidatePtr> daughtersNew;
+    const std::vector<reco::CandidatePtr> & jdaus = outputs->back().daughterPtrVector();
+    for (const auto & subjet : nextSubjets) {
+      const std::vector<reco::CandidatePtr> & sjdaus = subjet->daughterPtrVector();
+      // check that the subjet does not contain any extra constituents not contained in the jet
+      bool skipSubjet = false;
+      for (const reco::CandidatePtr & dau : sjdaus) {
+        if (std::find(jdaus.begin(), jdaus.end(), dau) == jdaus.end()) {
+          skipSubjet = true;
           break;
         }
-        
       }
+      if (skipSubjet) continue;
 
-      std::vector<reco::CandidatePtr> daughtersInSubjets;
-      std::vector<reco::CandidatePtr> daughtersNew;
-      const std::vector<reco::CandidatePtr> & jdaus = outputs->back().daughterPtrVector();
-      for ( const auto & subjet : nextSubjets) {
-        const std::vector<reco::CandidatePtr> & sjdaus = subjet->daughterPtrVector();
-        // check that the subjet does not contain any extra constituents not contained in the jet
-        bool skipSubjet = false;
-        for (const reco::CandidatePtr & dau : sjdaus) {
-          if (std::find(jdaus.begin(), jdaus.end(), dau) == jdaus.end()) {
-            skipSubjet = true;
-            break;
-          }
-        }
-        if (skipSubjet) continue;
-
-        daughtersInSubjets.insert(daughtersInSubjets.end(), sjdaus.begin(), sjdaus.end());
-        daughtersNew.push_back( reco::CandidatePtr(subjet) );
-      }
-      for (const reco::CandidatePtr & dau : jdaus) {
-        if (std::find(daughtersInSubjets.begin(), daughtersInSubjets.end(), dau) == daughtersInSubjets.end()) {
-          daughtersNew.push_back( dau );
-        }
-      }
-      outputs->back().clearDaughters();
-      for (const auto & dau : daughtersNew) outputs->back().addDaughter(dau);
+      daughtersInSubjets.insert(daughtersInSubjets.end(), sjdaus.begin(), sjdaus.end());
+      daughtersNew.push_back( reco::CandidatePtr(subjet) );
     }
+    for (const reco::CandidatePtr & dau : jdaus) {
+      if (std::find(daughtersInSubjets.begin(), daughtersInSubjets.end(), dau) == daughtersInSubjets.end()) {
+        daughtersNew.push_back( dau );
+      }
+    }
+    outputs->back().clearDaughters();
+    for (const auto & dau : daughtersNew) outputs->back().addDaughter(dau);
   }
 
-  iEvent.put(std::move(outputs));
+  auto outputHandle = iEvent.put(std::move(outputs));
+  //make new value maps
+  for (unsigned f = 0; f < floatVecs.size(); ++f) {
+    auto floatOutput = std::make_unique<edm::ValueMap<float>>();
+    edm::ValueMap<float>::Filler filler(*floatOutput);
+    filler.insert(outputHandle, floatVecs[f].begin(), floatVecs[f].end());
+    filler.fill();
+    iEvent.put(std::move(floatOutput), floatLabels_[f]);
+  }
 
 }
 
