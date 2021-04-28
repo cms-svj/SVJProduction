@@ -46,17 +46,16 @@ using std::set;
 // class declaration
 //
 
-class darkIdList{
-  public:
+namespace darkIdList{
     // variables useful for jet identification
     set<int> DarkMediatorID_ = {4900001,4900002,4900003,4900004,4900005,4900006};
     set<int> DarkQuarkID_ = {4900101,4900102};
     set<int> DarkHadronID_ = {4900111,4900113,4900211,4900213};
     set<int> DarkGluonID_ = {4900021};
+    set<int> DarkStableID_ = {51,52,53};
 };
 
-class usefulConst{
-  public:
+namespace usefulConst{
     double pTCut = 100;
     double coneSize = 0.8;
     double dpFractCut = 0.7;
@@ -157,7 +156,7 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
         const reco::Candidate* dauH = dHad.daughter(idH);
         int dauHID = std::abs(dauH->pdgId());
         // if a daughter doesn't have any more daughter, it is the last descendant
-        if (dauH->numberOfDaughters() == 0 && (dauHID != 51 || dauHID || 52 || dauHID != 53)) // last particle that is not stable dark hadron
+        if (dauH->numberOfDaughters() == 0 && !darkTruth(darkIdList::DarkStableID_,dauHID)) // last particle that is not stable dark hadron
         {
           lastD.push_back(dauH);
         }
@@ -174,11 +173,9 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
                     const reco::GenParticle& part_i,
                     vector<const reco::Candidate*>& lastD)
     {
-      darkIdList dil;
       // store the index and TLorentzVector of the particle in "dPartList_label" and "dPartList" if its pdgID is dark and it is the last copy
       if (darkTruth(DarkIDList,partid) && part_i.isLastCopy())
       {
-        TLorentzVector part_i_TL = toTLV(part_i);
         lastDau(lastD,part_i);
       }
     }
@@ -191,20 +188,18 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
       // loop through the daughters of the first dark mediator
       for (unsigned mddi = 0; mddi < fdau->numberOfDaughters(); mddi++)
       {
-        darkIdList dil;
-
         const reco::Candidate* mdd = fdau->daughter(mddi);
         int mddId = std::abs(mdd->pdgId());
         // if the first dark mediator's daughter is still a dark mediator, then check the daughters of this daughter dark mediator until we get daughters that are not dark mediator
-        if (darkTruth(dil.DarkMediatorID_,mddId))
+        if (darkTruth(darkIdList::DarkMediatorID_,mddId))
         {
           medDecay(mdd,fdQPartFM,fdGPartFM,fSMqPart);
         }
         else
         {
           TLorentzVector mdd_TL = toTLV(*mdd);
-          if (darkTruth(dil.DarkQuarkID_,mddId)) fdQPartFM.push_back(mdd_TL);
-          else if (darkTruth(dil.DarkGluonID_,mddId)) fdGPartFM.push_back(mdd_TL);
+          if (darkTruth(darkIdList::DarkQuarkID_,mddId)) fdQPartFM.push_back(mdd_TL);
+          else if (darkTruth(darkIdList::DarkGluonID_,mddId)) fdGPartFM.push_back(mdd_TL);
           else fSMqPart.push_back(mdd_TL);
         }
       }
@@ -219,10 +214,9 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
                   vector<TLorentzVector>& fdGPartFM,
                   vector<TLorentzVector>& fSMqPart)
     {
-      darkIdList dil;
-      set<int> DarkIDs(dil.DarkMediatorID_);
-      DarkIDs.insert( dil.DarkQuarkID_.begin(), dil.DarkQuarkID_.end());
-      DarkIDs.insert( dil.DarkGluonID_.begin(), dil.DarkGluonID_.end());
+      set<int> DarkIDs(darkIdList::DarkMediatorID_);
+      DarkIDs.insert( darkIdList::DarkQuarkID_.begin(), darkIdList::DarkQuarkID_.end());
+      DarkIDs.insert( darkIdList::DarkGluonID_.begin(), darkIdList::DarkGluonID_.end());
       if(darkTruth(DarkIDs,partid))
       {
         const reco::Candidate* fmom = part_i.mother(0);
@@ -239,17 +233,17 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
             const reco::Candidate* fdau = part_i.daughter(dau_i);
             int fdauId = std::abs(fdau->pdgId());
             TLorentzVector fdau_TL = toTLV(*fdau);
-            if (darkTruth(dil.DarkMediatorID_,fdauId))
+            if (darkTruth(darkIdList::DarkMediatorID_,fdauId))
             {
               fdMPart.push_back(fdau_TL);
               medDecay(fdau,fdQPartFM,fdGPartFM,fSMqPart);
             }
-            else if (darkTruth(dil.DarkQuarkID_,fdauId))
+            else if (darkTruth(darkIdList::DarkQuarkID_,fdauId))
             {
               fdQPart.push_back(fdau_TL);
             }
 
-            else if (darkTruth(dil.DarkGluonID_,fdauId))
+            else if (darkTruth(darkIdList::DarkGluonID_,fdauId))
             {
               fdGPart.push_back(fdau_TL);
             }
@@ -264,7 +258,6 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
                   int& jCatLabel)
     {
       bool dMatch = false;
-      usefulConst uc;
       // looping through all the last dark gluons and quarks
       for (unsigned i = 0 ; i < ijet.numberOfDaughters(); i ++ )
       {
@@ -303,11 +296,10 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
      void isfj(const vector<TLorentzVector>& fPart, const reco::GenJet& uj,
                const int& idValue,int& jCatLabel)
      {
-       usefulConst uc;
        TLorentzVector ujTL = toTLV(uj);
        for (const auto& fP : fPart)
        {
-         if (fP.DeltaR(ujTL) < uc.coneSize)
+         if (fP.DeltaR(ujTL) < usefulConst::coneSize)
          {
            jCatLabel += idValue;
            break;
@@ -337,31 +329,29 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
                           vector<reco::GenJet>& pjC_,
                           vector<reco::GenJet>& mjC_)
     {
-      usefulConst uc;
       for(unsigned j = 0; j < jC_.size() ; j++)
       {
-        vector<double> pTList;
-        vector<reco::GenJet> canJet;
+        double pTcan = 0;
+        const reco::GenJet* canJet;
         const reco::GenJet& jjet = jC_[j];
         // ijet is a jet of packedGenJetsAK8NoNu
         // jjet is a jet of ak8GenJets
         for(const auto& ijet : *(h_packedjet.product()))
         {
-          if (ijet.pt() > uc.pTCut)
+          double ipT = ijet.pt();
+          if (ipT > usefulConst::pTCut)
           {
             double dr = toTLV(jjet).DeltaR(toTLV(ijet));
-            if (dr < uc.coneSize)
+            if (dr < usefulConst::coneSize && ipT > pTcan)
             {
-              pTList.push_back(ijet.pt());
-              canJet.push_back(ijet);
+              pTcan = ipT;
+              canJet = &ijet;
             }
           }
         }
-        if (pTList.size() > 0)
-        { // canJet is a list of all the ijets that are within delta R of the jjet
-          // the jjet in canJet that has the highest pT is considered the jet matched to the jjet
-          int maxPtInd = std::max_element(pTList.begin(),pTList.end()) - pTList.begin();
-          pjC_.push_back(canJet[maxPtInd]);
+        if (pTcan > 0)
+        {
+          pjC_.push_back(*canJet);
           mjC_.push_back(jjet);
         }
       }
@@ -384,7 +374,7 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
           for (unsigned j = 0; j < mjet.numberOfDaughters(); j++)
           {
             int pid = std::abs(mjet.daughter(j)->pdgId());
-            if (pid != 51 && pid != 52 && pid != 53)
+            if (darkTruth(darkIdList::DarkStableID_,pid))
             {
               NuPt += toTLV(*mjet.daughter(j));
             }
@@ -523,8 +513,6 @@ void GenMassAnalyzer::beginJob()
 // ------------ method called on each new Event  ------------
 void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  darkIdList did;
-  usefulConst uc;
   entry = GenNtuple();
 
   edm::Handle<vector<reco::GenMET>> h_met;
@@ -564,9 +552,9 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
     {
       part_ind ++;
       int partid = std::abs(part_i.pdgId());
-      lastDarkGQ(did.DarkHadronID_, partid, part_i, lastD);
+      lastDarkGQ(darkIdList::DarkHadronID_, partid, part_i, lastD);
       firstDark(partid,part_i,fdMPart,fdQPart,fdGPart,fdQPartFM,fdGPartFM,fSMqPart);
-      if (partid == 51 || partid == 52 || partid == 53)
+      if (darkTruth(darkIdList::DarkStableID_,partid))
       {
         TLorentzVector part_i_TL = toTLV(part_i);
         stableD.push_back(part_i_TL);
@@ -583,7 +571,7 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
     // finding jets that contain last dark descendants
     for(const auto& ijet : *(h_jet.product()))
     {
-      if (ijet.pt() > uc.pTCut)
+      if (ijet.pt() > usefulConst::pTCut)
       {
         int jCatLabel = 0;
         AK8Jets.push_back(ijet);
