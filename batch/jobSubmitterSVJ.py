@@ -27,7 +27,7 @@ class jobSubmitterSVJ(jobSubmitter):
 
     def addExtraOptions(self,parser):
         super(jobSubmitterSVJ,self).addExtraOptions(parser)
-        
+
         parser.add_option("-d", "--dicts", dest="dicts", default="", help="file with list of input dicts; each dict contains signal parameters (required) (default = %default)")
         parser.add_option("-o", "--output", dest="output", default="", help="path to output directory in which root files will be stored (required) (default = %default)")
         parser.add_option("-E", "--maxEvents", dest="maxEvents", default=1, help="number of events to process per job (default = %default)")
@@ -51,7 +51,7 @@ class jobSubmitterSVJ(jobSubmitter):
         super(jobSubmitterSVJ,self).runPerJob(job)
         if self.getpy:
             self.doPy(job)
-        
+
     def checkDefaultOptions(self,options,parser):
         super(jobSubmitterSVJ,self).checkDefaultOptions(options,parser)
         if (options.actualEvents and not options.getpy):
@@ -61,10 +61,10 @@ class jobSubmitterSVJ(jobSubmitter):
 
     def checkExtraOptions(self,options,parser):
         super(jobSubmitterSVJ,self).checkExtraOptions(options,parser)
-    
+
         if options.dicts is None or len(options.dicts)==0:
             parser.error("Required option: --dicts [dict]")
-            
+
         if options.prepare or not options.count:
             if len(options.outpre)==0:
                 parser.error("Required option: --outpre [str]")
@@ -86,7 +86,7 @@ class jobSubmitterSVJ(jobSubmitter):
 
         options.maxEvents = int(options.maxEvents)
         options.maxEventsIn = int(options.maxEventsIn)
-            
+
     def generateExtra(self,job):
         super(jobSubmitterSVJ,self).generateExtra(job)
         job.patterns.update([
@@ -110,7 +110,7 @@ class jobSubmitterSVJ(jobSubmitter):
                 '    ifThenElse(( DiskUsage > 38000000 ), "disk usage greater than 38GB", \\\n'
                 '                strcat("memory usage ",ResidentSetSize," greater than requested ",RequestMemory*1000))))), ".")'
             )
-        
+
     def generateSubmission(self):
         # get dicts
         flist = __import__(self.dicts.replace(".py","")).flist
@@ -195,7 +195,7 @@ class jobSubmitterSVJ(jobSubmitter):
                     if self.maxEventsIn>0:
                         arglist.append("maxEventsIn="+str(self.maxEventsIn))
                     argfile.write(" ".join(arglist))
-            
+
             # start loop over N jobs
             for iJob in xrange(int(self.nParts)):
                 # get real part number
@@ -216,7 +216,7 @@ class jobSubmitterSVJ(jobSubmitter):
                     continue
 
                 job.nums.append(iActualJob)
-            
+
             # append queue comment
             job.queue = '-queue "Process in '+','.join(map(str,job.nums))+'"'
 
