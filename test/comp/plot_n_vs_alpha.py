@@ -29,7 +29,7 @@ graphs = []
 colors = [kPink-9, kBlack, kBlue, kMagenta+2, kRed, kCyan+2, kMagenta]
 masses = ["1","5","10","20","50","75","100"]
 ymax = 0.0
-leg = TLegend(0.75,0.525,0.9,0.825)
+leg = TLegend(0.7,0.525,0.9,0.825)
 leg.SetFillColor(0)
 leg.SetBorderSize(0)
 leg.SetTextSize(0.05)
@@ -51,7 +51,7 @@ for im,mDark in enumerate(masses):
 
     graph.SetMarkerColor(colors[im])
     graphs.append(graph)
-    leg.AddEntry(graph,"m_{d} = "+mDark,"p")
+    leg.AddEntry(graph,"m_{dark} = "+mDark+(" GeV" if im==0 else ""),"p")
 
 # define lines once ymax is known
 ymax = math.floor(float(ymax))+2
@@ -73,7 +73,7 @@ nbins = 10
 haxis = TH1F("axis","",nbins,alphamin,alphamax)
 haxis.GetXaxis().SetNdivisions(210)
 haxis.GetXaxis().SetTitle("#alpha_{dark}")
-haxis.GetYaxis().SetTitle("#LTN_{#pi_{dark}} + N_{#rho_{dark}}#GT")
+haxis.GetYaxis().SetTitle("#LT^{}N_{#pi_{dark}} + ^{}N_{#rho_{dark}}#GT")
 haxis.GetYaxis().SetRangeUser(0,ymax)
 haxis.GetYaxis().SetTitleOffset(0.9)
 haxis.Draw()
