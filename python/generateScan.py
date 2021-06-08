@@ -141,7 +141,7 @@ for point in sorted(sigs):
         max_weight = weight*args.acc
         weight = np.clip(weight/this_acc,min_weight,max_weight)
 
-    helper.setModel(mZprime,mDark,rinv,alpha)
+    helper.setModel("s",mZprime,mDark,rinv,alpha)
     
     pdict = {
         'weight': weight,
