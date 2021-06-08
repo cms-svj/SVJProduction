@@ -81,12 +81,10 @@ fi
 echo "$CMDSTR output for condor"
 for FILE in *${FTYPE}; do
 	echo "${CMDSTR} -f ${FILE} ${OUTDIR}/${FILE}"
-	stageOut ${GFLAG} -x "-f" -i ${FILE} -o ${OUTDIR}/${FILE} 2>&1
+	stageOut ${GFLAG} -x "-f" -i ${FILE} -o ${OUTDIR}/${FILE} -r -c '*'${FTYPE} 2>&1
 	XRDEXIT=$?
 	if [[ $XRDEXIT -ne 0 ]]; then
-		rm *${FTYPE}
 		echo "exit code $XRDEXIT, failure in ${CMDSTR}"
 		exit $XRDEXIT
 	fi
-	rm ${FILE}
 done
