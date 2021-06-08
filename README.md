@@ -114,6 +114,7 @@ Shell (in [step2.sh](./batch/step2.sh)):
 * `-j [jobname]`: job name
 * `-p [part]`: part number
 * `-x [redir]`: xrootd redirector
+* `-m [mode]`: running mode (madgraph or normal)
 
 ### Example commands
 
