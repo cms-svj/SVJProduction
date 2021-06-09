@@ -237,7 +237,7 @@ class jobSubmitterSVJ(jobSubmitter):
             for ijob in job.nums:
                 iname = job.makeName(ijob)
                 if counter==0: outfile.write("readFiles.extend( [\n")
-                outfile.write("       '"+self.indir+"/"+iname+".root',\n")
+                outfile.write("       '"+("file:" if not self.indir.startswith("/store/") else "")+self.indir+"/"+iname+".root',\n")
                 if counter==254 or ijob==job.nums[-1]:
                     outfile.write("] )\n")
                     counter = 0
