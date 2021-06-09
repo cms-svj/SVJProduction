@@ -41,7 +41,7 @@ if len(_inname)>0:
         process.externalLHEProducer.args = cms.vstring(os.path.join(os.getcwd(),_inname))
         process.externalLHEProducer.nEvents = cms.untracked.uint32(options.maxEvents)
 if process.source.type_()=='EmptySource': process.source.firstEvent = cms.untracked.uint32((options.part-1)*options.maxEvents+1)
-if len(options.scan)>0: process.source.numberEventsInLuminosityBlock = cms.untracked.uint32(200)
+if len(options.scan)>0: process.source.numberEventsInLuminosityBlock = cms.untracked.uint32(100)
 
 # output settings
 oprocess = process if (not hasattr(process,'subProcesses') or len(process.subProcesses)==0) else process.subProcesses[-1].process()
