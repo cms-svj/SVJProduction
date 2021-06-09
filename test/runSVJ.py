@@ -7,7 +7,7 @@ _outname = _helper.getOutName(
     options.maxEvents,
     part=options.part,
     signal=options.signal and len(options.scan)==0 and len(options.fragment)==0,
-    outpre="outpre"+("_"+options.fragment if len(options.fragment)>0 else ""),
+    outpre="outpre"+("_"+options.fragment if len(options.fragment)>0 else "")+("_"+options.scan if len(options.scan)>0 else ""),
 )
 _outname += ".root"
 

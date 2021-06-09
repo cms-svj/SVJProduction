@@ -78,4 +78,4 @@ if options.suep:
     options.channel = ""
 else:
     _helper = svjHelper()
-    _helper.setModel(options.channel,options.mMediator,options.mDark,options.rinv,options.alpha,generate=not options.madgraph,boost=options.boost,yukawa=options.yukawa)
+    _helper.setModel(options.channel,options.mMediator,options.mDark,options.rinv,options.alpha,generate=None if options.scan else not options.madgraph,boost=options.boost,yukawa=options.yukawa)
