@@ -160,7 +160,7 @@ class jobSubmitterSVJ(jobSubmitter):
                         arglist = [
                             "fragment="+str(pdict["fragment"]),
                         ]
-                    elif "fragment" in pdict:
+                    elif "scan" in pdict:
                         arglist = [
                             "scan="+str(pdict["scan"]),
                         ]
