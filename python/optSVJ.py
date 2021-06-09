@@ -42,12 +42,18 @@ options.parseArguments()
 # safety checks to handle multiple years
 cmssw_version = os.getenv("CMSSW_VERSION")
 cmssw_major = int(cmssw_version.split('_')[1])
+cmssw_minor = int(cmssw_version.split('_')[2])
 if options.year==2016 and not (cmssw_major==7 or cmssw_major==8):
 	raise ValueError("2016 config should not be used in non-2016 CMSSW version ("+cmssw_version+")")
 elif options.year==2017 and not (cmssw_major==9):
 	raise ValueError("2017 config should not be used in non-2017 CMSSW version ("+cmssw_version+")")
 elif options.year==2018 and not (cmssw_major==10):
 	raise ValueError("2018 config should not be used in non-2018 CMSSW version ("+cmssw_version+")")
+
+# disable MT for CMSSW_7_1_X
+if options.year==2016 and cmssw_major==7 and cmssw_minor==1:
+    options.threads = 1
+    options.streams = 0
 
 # incompatible args
 if len(options.scan)>0 and len(options.fragment)>0:
