@@ -6,7 +6,8 @@ export OUTDIR=""
 export REDIR=""
 export MODE=""
 export OPTIND=1
-while [[ $OPTIND -lt $# ]]; do
+while [[ $OPTIND -le $# ]]; do
+	OPTOLD=$OPTIND
 	# getopts in silent mode, don't exit on errors
 	getopts ":j:p:o:x:m:" opt || status=$?
 	case "$opt" in
@@ -20,8 +21,8 @@ while [[ $OPTIND -lt $# ]]; do
 		;;
 		m) export MODE=$OPTARG
 		;;
-		# keep going if getopts had an error
-		\? | :) OPTIND=$((OPTIND+1))
+		# keep going if getopts had an error, but make sure not to skip anything
+		\? | :) OPTIND=$((OPTOLD+1))
 		;;
 	esac
 done
