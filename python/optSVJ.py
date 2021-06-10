@@ -70,6 +70,9 @@ setattr(options,"_outpre",[x for x in options.outpre])
 if len(options.scan)>0:
     options._outpre = [x+"_"+options.scan for x in options._outpre]
     if len(options.inpre)>0: options.inpre += "_"+options.scan
+elif len(options.fragment)>0:
+    options._outpre = [x+"_"+options.fragment for x in options._outpre]
+    if len(options.inpre)>0: options.inpre += "_"+options.fragment
 
 if options.suep:
     _helper = suepHelper()
