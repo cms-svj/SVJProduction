@@ -6,7 +6,8 @@ export OUTDIR=""
 export REDIR=""
 export MODE=""
 export OPTIND=1
-while [[ $OPTIND -lt $# ]]; do
+while [[ $OPTIND -le $# ]]; do
+	OPTOLD=$OPTIND
 	# getopts in silent mode, don't exit on errors
 	getopts ":j:p:o:x:m:" opt || status=$?
 	case "$opt" in
@@ -20,8 +21,8 @@ while [[ $OPTIND -lt $# ]]; do
 		;;
 		m) export MODE=$OPTARG
 		;;
-		# keep going if getopts had an error
-		\? | :) OPTIND=$((OPTIND+1))
+		# keep going if getopts had an error, but make sure not to skip anything
+		\? | :) OPTIND=$((OPTOLD+1))
 		;;
 	esac
 done
@@ -81,12 +82,10 @@ fi
 echo "$CMDSTR output for condor"
 for FILE in *${FTYPE}; do
 	echo "${CMDSTR} -f ${FILE} ${OUTDIR}/${FILE}"
-	stageOut ${GFLAG} -x "-f" -i ${FILE} -o ${OUTDIR}/${FILE} 2>&1
+	stageOut ${GFLAG} -x "-f" -i ${FILE} -o ${OUTDIR}/${FILE} -r -c '*'${FTYPE} 2>&1
 	XRDEXIT=$?
 	if [[ $XRDEXIT -ne 0 ]]; then
-		rm *${FTYPE}
 		echo "exit code $XRDEXIT, failure in ${CMDSTR}"
 		exit $XRDEXIT
 	fi
-	rm ${FILE}
 done

@@ -115,12 +115,8 @@ else
 	usage 1
 fi
 
-# OS check
-if [[ `uname -r` == *"el6"* ]]; then
-	SLC_VERSION="slc6"
-elif [[ `uname -r` == *"el7"* ]]; then
-	SLC_VERSION="slc7"
-elif [[ -f "/etc/redhat-release" ]]; then
+# OS check: try redhat-release first to handle Singularity case
+if [[ -f "/etc/redhat-release" ]]; then
 	VERSION_TMP=`awk -F'[ .]' '{print $4}' "/etc/redhat-release"`
 	POSSIBLE_VERSIONS=( 6 7 )
 	if [[ "${POSSIBLE_VERSIONS[@]} " =~ " ${VERSION_TMP}" ]]; then
@@ -129,6 +125,10 @@ elif [[ -f "/etc/redhat-release" ]]; then
 		echo "WARNING::Unknown SLC version. Defaulting to SLC6."
 		SLC_VERSION="slc6"
 	fi
+elif [[ `uname -r` == *"el6"* ]]; then
+	SLC_VERSION="slc6"
+elif [[ `uname -r` == *"el7"* ]]; then
+	SLC_VERSION="slc7"
 else
 	echo "WARNING::Unknown SLC version. Defaulting to SLC6."
 SLC_VERSION="slc6"

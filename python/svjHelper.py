@@ -93,6 +93,7 @@ class svjHelper(object):
             self.xsecs = {int(xline.split('\t')[0]): float(xline.split('\t')[1]) for xline in xfile}
         self.quarks = quarklist()
         self.alphaName = ""
+        self.generate = None
         # parameters for lambda/alpha calculations
         self.n_c = 2
         self.n_f = 2
@@ -170,10 +171,11 @@ class svjHelper(object):
             if self.yukawa is not None: _outname += "_yukawa-{:g}".format(self.yukawa)
             if self.htCut>0: _outname += "_HT{:g}".format(self.htCut)
         # todo: include tune in name? depends on year
-        if self.generate:
-            _outname += "_13TeV-pythia8"
-        else:
-            _outname += "_13TeV-madgraphMLM-pythia8"
+        if self.generate is not None:
+            if self.generate:
+                _outname += "_13TeV-pythia8"
+            else:
+                _outname += "_13TeV-madgraphMLM-pythia8"
         if events>0: _outname += "_n-{:g}".format(events)
         if part is not None:
             _outname += "_part-{:g}".format(part)

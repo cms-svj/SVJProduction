@@ -43,9 +43,9 @@ else:
 # complete set of parameter values
 params = OrderedDict([
     ("mZprime", range(1500,5200,200)),
-    ("mDark", [1,5] + range(10,110,10)),
-    ("rinv", [float(x)/10 for x in range(0,11,1)]),
-    ("alpha", ["peak", "high", "low"]),
+    ("mDark", [20]),
+    ("rinv", [0.05]),
+    ("alpha", ["peak"]),
 ])
 
 # convert named alpha values to numerical
@@ -84,18 +84,6 @@ params_rinv = deepcopy(params)
 params_rinv["mDark"] = [20]
 params_rinv["alpha"] = ["peak"]
 varyAll(0,list(params_rinv.iteritems()),[],sigs)
-
-# 2D scans vs. mDark
-params_mDark = deepcopy(params)
-params_mDark["rinv"] = [0.3]
-params_mDark["alpha"] = ["peak"]
-varyAll(0,list(params_mDark.iteritems()),[],sigs)
-
-# 2D scans vs. alpha
-params_alpha = deepcopy(params)
-params_alpha["rinv"] = [0.3]
-params_alpha["mDark"] = [20]
-varyAll(0,list(params_alpha.iteritems()),[],sigs)
 
 # format first part of output config
 first_part = """
@@ -198,7 +186,7 @@ darkquarkFilter = cms.EDFilter("MCParticleModuloFilter",
 ProductionFilterSequence = cms.Sequence(generator+darkhadronZ2filter+darkquarkFilter)
 """.format(tune_block,tune_block.replace("Block",""),gen_tag)
 
-with open("SVJ_Scan_"+str(args.year)+"_"+tune_suff+"_cff.py",'w') as ofile:
+with open("SVJ_ScanRinv005_"+str(args.year)+"_"+tune_suff+"_cff.py",'w') as ofile:
     ofile.write(first_part)
     ofile.write("\npoints = "+str(points)+"\n")
     ofile.write(last_part)

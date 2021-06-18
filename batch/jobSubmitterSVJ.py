@@ -120,11 +120,15 @@ class jobSubmitterSVJ(jobSubmitter):
             job = protoJob()
             # extra attribute to store actual events
             if self.actualEvents: job.actualEvents = 0
-            # make name from params or fragment
+            # make name from params or scan/fragment
             if "fragment" in pdict:
                 self.helper.generate = True
                 outpre = self.outpre+"_"+pdict["fragment"]
                 inpre = self.inpre+"_"+pdict["fragment"]
+                signal = False
+            elif "scan" in pdict:
+                outpre = self.outpre+"_"+pdict["scan"]
+                inpre = self.inpre+"_"+pdict["scan"]
                 signal = False
             else:
                 if self.suep:
@@ -135,6 +139,9 @@ class jobSubmitterSVJ(jobSubmitter):
                 inpre = self.inpre
                 signal = True
             job.name = self.helper.getOutName(events=self.maxEvents,outpre=outpre,signal=signal)
+            # set this after making name to avoid duplicating pythia8 in name
+            if "scan" in pdict:
+                self.helper.generate = True
             if self.verbose:
                 print "Creating job: "+job.name
             self.generatePerJob(job)
@@ -152,6 +159,10 @@ class jobSubmitterSVJ(jobSubmitter):
                     if "fragment" in pdict:
                         arglist = [
                             "fragment="+str(pdict["fragment"]),
+                        ]
+                    elif "scan" in pdict:
+                        arglist = [
+                            "scan="+str(pdict["scan"]),
                         ]
                     elif self.suep:
                         arglist = [
@@ -218,7 +229,7 @@ class jobSubmitterSVJ(jobSubmitter):
                 job.nums.append(iActualJob)
             
             # append queue comment
-            job.queue = '-queue "Process in '+','.join(map(str,job.nums))+'"'
+            job.queue = '-queue Process in '+','.join(map(str,job.nums))
 
             # store protojob
             self.protoJobs.append(job)
@@ -237,7 +248,7 @@ class jobSubmitterSVJ(jobSubmitter):
             for ijob in job.nums:
                 iname = job.makeName(ijob)
                 if counter==0: outfile.write("readFiles.extend( [\n")
-                outfile.write("       '"+self.indir+"/"+iname+".root',\n")
+                outfile.write("       '"+("file:" if not self.indir.startswith("/store/") else "")+self.indir+"/"+iname+".root',\n")
                 if counter==254 or ijob==job.nums[-1]:
                     outfile.write("] )\n")
                     counter = 0
