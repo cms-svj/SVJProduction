@@ -44,10 +44,10 @@ def addModule(mod, process, step, prefix, suffix, output, base, module):
     return mod, process
 
 # a mini jet toolbox for genjets
-def addGenSub(process, step, output, size, prefix, suffix, src):
+def addGenSub(process, step, output, size, prefix, suffix, src, sub=True):
     from RecoJets.Configuration.RecoGenJets_cff import ak4GenJets
     mod = {}
-    mod, process = addModule(mod, process, step, prefix, suffix, None,
+    mod, process = addModule(mod, process, step, prefix, suffix, None if sub else output,
         "GenJets",
         ak4GenJets.clone(
             rParam = size,
@@ -60,6 +60,7 @@ def addGenSub(process, step, output, size, prefix, suffix, src):
             doAreaFastjet = True,
         ),
     )
+    if not sub: return process
     mod, process = addModule(mod, process, step, prefix, suffix, output,
         "GenJetsSoftDrop",
         getattr(process,mod["GenJetsArea"]).clone(
@@ -131,6 +132,24 @@ process.darkHadronsForJets = cms.EDProducer("GenParticlePruner",
 process.jet_step += process.darkHadronsForJets
 process.jetoutput.outputCommands.append('keep *_darkHadronsForJets_*_*')
 process = addGenSub(process, process.jet_step, process.jetoutput, size=1.5, prefix="ak15", suffix="Dark", src="darkHadronsForJets")
+
+# GenJetsNu w/ actual dark hadrons instead of fake DM decay products
+process.stableDarkHadronsForJets = cms.EDProducer("GenParticlePruner",
+    src = cms.InputTag("genParticles"),
+    select = cms.vstring(
+        'drop *',
+        '+keep (51 <= abs(pdgId) <= 53)', # keep parents of DM particles
+        'drop (51 <= abs(pdgId) <= 53)', # but drop the actual DM particles
+    ),
+)
+process.jet_step += process.stableDarkHadronsForJets
+process.jetoutput.outputCommands.append('keep *_stableDarkHadronsForJets_*_*')
+process.genParticlesForJetsNuDark = cms.EDProducer("CandViewMerger",
+    src = cms.VInputTag("genParticlesForJetsNoNu","stableDarkHadronsForJets") # merge with NoNu collection
+)
+process.jet_step += process.genParticlesForJetsNuDark
+process.jetoutput.outputCommands.append('keep *_genParticlesForJetsNuDark_*_*')
+process = addGenSub(process, process.jet_step, process.jetoutput, size=0.8, prefix="ak8", suffix="NuDark", src="genParticlesForJetsNuDark", sub=False)
 
 # Schedule definition
 process.schedule = cms.Schedule(process.jet_step)
