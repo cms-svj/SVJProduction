@@ -134,13 +134,10 @@ process.jetoutput.outputCommands.append('keep *_darkHadronsForJets_*_*')
 process = addGenSub(process, process.jet_step, process.jetoutput, size=1.5, prefix="ak15", suffix="Dark", src="darkHadronsForJets")
 
 # GenJetsNu w/ actual dark hadrons instead of fake DM decay products
-process.stableDarkHadronsForJets = cms.EDProducer("GenParticlePruner",
+process.stableDarkHadronsForJets = cms.EDFilter("CandPtrSelector",
     src = cms.InputTag("genParticles"),
-    select = cms.vstring(
-        'drop *',
-        '+keep (51 <= abs(pdgId) <= 53)', # keep parents of DM particles
-        'drop (51 <= abs(pdgId) <= 53)', # but drop the actual DM particles
-    ),
+    cut = cms.string("numberOfDaughters>0 && abs(daughter(0).pdgId)>=51 && abs(daughter(0).pdgId)<=53"), # keep particles that decayed to DM particles
+    filter = cms.bool(False),
 )
 process.jet_step += process.stableDarkHadronsForJets
 process.jetoutput.outputCommands.append('keep *_stableDarkHadronsForJets_*_*')
