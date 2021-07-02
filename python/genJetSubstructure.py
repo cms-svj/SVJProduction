@@ -141,8 +141,10 @@ process.stableDarkHadronsForJets = cms.EDFilter("CandPtrSelector",
 )
 process.jet_step += process.stableDarkHadronsForJets
 process.jetoutput.outputCommands.append('keep *_stableDarkHadronsForJets_*_*')
-process.genParticlesForJetsNuDark = cms.EDProducer("CandViewMerger",
-    src = cms.VInputTag("genParticlesForJetsNoNu","stableDarkHadronsForJets") # merge with NoNu collection
+process.genParticlesForJetsNuDark = cms.EDProducer("CandPtrVectorMerger",
+    src = cms.VInputTag("genParticlesForJetsNoNu","stableDarkHadronsForJets"), # merge with NoNu collection
+    skipNulls = cms.bool(False),
+    warnOnSkip = cms.bool(False),
 )
 process.jet_step += process.genParticlesForJetsNuDark
 process.jetoutput.outputCommands.append('keep *_genParticlesForJetsNuDark_*_*')
