@@ -64,7 +64,7 @@ namespace darkIdList{
 };
 
 namespace usefulConst{
-    double pTCut = 100;
+    double pTCut = 0;
     double coneSize = 0.8;
     double dpFractCut = 0.7;
 };
@@ -272,13 +272,11 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
         // jjet is a jet of ak8GenJets
         for(const auto& ijet : *(h_packedjet.product())){
           double ipT = ijet.pt();
-          if (ipT > usefulConst::pTCut){
-            double dr = reco::deltaR(jjet, ijet);
-            if (dr < usefulConst::coneSize && ipT > pTcan){
-              pTcan = ipT;
-              canJet = &ijet;
-              matched = true;
-            }
+          double dr = reco::deltaR(jjet, ijet);
+          if (dr < usefulConst::coneSize && ipT > pTcan){
+            pTcan = ipT;
+            canJet = &ijet;
+            matched = true;
           }
         }
         if (matched){
