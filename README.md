@@ -108,6 +108,7 @@ Python:
 * `--actualEvents`: count actual number of events from each input file (for python file list, requires `-K auto`)
 * `-A, --args [list]`: additional common args to use for all jobs (passed to [runSVJ.py](./test/runSVJ.py))
 * `-v, --verbose`: enable verbose output (default = False)
+* `--chain-name [str]`: value for job.chainName (default = )
 
 Shell (in [step2.sh](./batch/step2.sh)):
 * `-o [dir]`: output directory
