@@ -210,7 +210,7 @@ class jobSubmitterSVJ(jobSubmitter):
             # start loop over N jobs
             for iJob in xrange(int(self.nParts)):
                 # get real part number
-                iActualJob = iJob+self.firstPart
+                iActualJob = iJob+int(self.firstPart)
 
                 if (self.skipParts=="auto" and injob.makeName(iActualJob) not in infiles) or (type(self.skipParts)==set and iActualJob in self.skipParts):
                     if self.verbose: print "  skipping part "+str(iActualJob)+" ("+injob.makeName(iActualJob)+")"
