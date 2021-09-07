@@ -141,9 +141,6 @@ class jobSubmitterSVJ(jobSubmitter):
                 signal = True
             job.name = self.helper.getOutName(events=self.maxEvents,outpre=outpre,signal=signal)
             if len(self.chainName)>0: job.chainName = self.chainName
-            # set this after making name to avoid duplicating pythia8 in name
-            if "scan" in pdict:
-                self.helper.generate = True
             if self.verbose:
                 print "Creating job: "+job.name
             self.generatePerJob(job)
@@ -153,6 +150,10 @@ class jobSubmitterSVJ(jobSubmitter):
                 injob = protoJob()
                 injob.name = self.helper.getOutName(events=self.maxEventsIn if self.maxEventsIn>0 else self.maxEvents,outpre=inpre,signal=signal)
                 infiles = {x.split('/')[-1].replace(".root","") for x in (filter(None,os.popen("xrdfs "+self.redir+" ls "+self.indir).read().split('\n')) if self.indir.startswith("/store/") else glob(self.indir+"/*.root"))}
+
+            # set this after making name to avoid duplicating pythia8 in name
+            if "scan" in pdict:
+                self.helper.generate = True
 
             # write job options to file - will be transferred with job
             if self.prepare:
