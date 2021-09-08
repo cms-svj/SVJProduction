@@ -46,6 +46,7 @@ class jobSubmitterSVJ(jobSubmitter):
         parser.add_option("--suep", dest="suep", default=False, action="store_true", help="run SUEP simulation (default = %default)")
         parser.add_option("-A", "--args", dest="args", default="", help="additional common args to use for all jobs (default = %default)")
         parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true", help="enable verbose output (default = %default)")
+        parser.add_option("--chain-name", dest="chainName", default="", help="value for job.chainName (default = %default)")
 
     def runPerJob(self,job):
         super(jobSubmitterSVJ,self).runPerJob(job)
@@ -139,9 +140,7 @@ class jobSubmitterSVJ(jobSubmitter):
                 inpre = self.inpre
                 signal = True
             job.name = self.helper.getOutName(events=self.maxEvents,outpre=outpre,signal=signal)
-            # set this after making name to avoid duplicating pythia8 in name
-            if "scan" in pdict:
-                self.helper.generate = True
+            if len(self.chainName)>0: job.chainName = self.chainName
             if self.verbose:
                 print "Creating job: "+job.name
             self.generatePerJob(job)
@@ -151,6 +150,10 @@ class jobSubmitterSVJ(jobSubmitter):
                 injob = protoJob()
                 injob.name = self.helper.getOutName(events=self.maxEventsIn if self.maxEventsIn>0 else self.maxEvents,outpre=inpre,signal=signal)
                 infiles = {x.split('/')[-1].replace(".root","") for x in (filter(None,os.popen("xrdfs "+self.redir+" ls "+self.indir).read().split('\n')) if self.indir.startswith("/store/") else glob(self.indir+"/*.root"))}
+
+            # set this after making name to avoid duplicating pythia8 in name
+            if "scan" in pdict:
+                self.helper.generate = True
 
             # write job options to file - will be transferred with job
             if self.prepare:
@@ -210,7 +213,7 @@ class jobSubmitterSVJ(jobSubmitter):
             # start loop over N jobs
             for iJob in xrange(int(self.nParts)):
                 # get real part number
-                iActualJob = iJob+self.firstPart
+                iActualJob = iJob+int(self.firstPart)
 
                 if (self.skipParts=="auto" and injob.makeName(iActualJob) not in infiles) or (type(self.skipParts)==set and iActualJob in self.skipParts):
                     if self.verbose: print "  skipping part "+str(iActualJob)+" ("+injob.makeName(iActualJob)+")"
