@@ -53,19 +53,19 @@ typedef std::unordered_set<CandPtr> CandSet;
 // class declaration
 //
 
-namespace darkIdList{
+namespace partIdList{
     // variables useful for jet identification
     PidSet DarkMediatorIDs_ = {4900001,4900002,4900003,4900004,4900005,4900006};
     PidSet DarkQuarkIDs_ = {4900101,4900102};
     PidSet DarkHadronIDs_ = {4900111,4900113,4900211,4900213};
     PidSet DarkGluonIDs_ = {4900021};
     PidSet DarkStableIDs_ = {51,52,53};
-    PidSet SMQuarkIDs_ = {1,2,3,4,5,6,7,8};
+    PidSet SMQuarkIDs_ = {1,2,3,4,5,6};
 };
 
 namespace usefulConst{
     double pTCut = 0;
-    double coneSize = 0.8;
+    double coneSize_ = 0.8;
     double dpFractCut = 0.7;
 };
 
@@ -112,8 +112,8 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
       vector<double> GenJetsAK8_ptRatioNu;
       vector<double> GenJetsAK8_ptRatioConst;
       vector<int> GenJetsAK8_hvCategory;
-      vector<int> svj_t_MT2JetsID;
-      double svj_t_MT2 = 0.;
+      vector<int> GenJetsAK8_MT2JetsID;
+      double GenMT2_AK8 = 0.;
     };
 
   private:
@@ -139,20 +139,20 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
     edm::EDGetTokenT<vector<reco::GenJet>> tok_packedjet;
 
     // Check and see if the pdgId belongs to a list of dark IDs
-    bool isDark(const PidSet& darkList, CandPtr part) const {
-      return isDark(darkList, part->pdgId());
+    bool isParticle(const PidSet& darkList, CandPtr part) const {
+      return isParticle(darkList, part->pdgId());
     }
 
-    bool isDark(const PidSet& darkList, int pid) const {
+    bool isParticle(const PidSet& darkList, int pid) const {
       return darkList.find(std::abs(pid)) != darkList.end();
     }
 
-    bool isDark(const CandSet& darkList, CandPtr part) const {
+    bool isParticle(const CandSet& darkList, CandPtr part) const {
       return darkList.find(part) != darkList.end();
     }
 
     bool isAncestor(const PidSet& darkList, CandPtr part) const {
-      if(isDark(darkList, part)) return true;
+      if(isParticle(darkList, part)) return true;
       for(size_t i=0;i< part->numberOfMothers();i++)
       {
         if(isAncestor(darkList,part->mother(i))) return true;
@@ -161,21 +161,26 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
     }
 
     // store the first daughters from the first dark mediator(s)
-    void medDecay(CandPtr part, CandPtr& firstQdM1, CandPtr& firstQdM2, CandPtr& firstQsM1, CandPtr& firstQsM2, bool& secondDM, bool& secondSM) const {
-      // loop through the daughters of the first dark mediator
+    void medDecay(CandPtr part, CandSet& firstQdM, CandSet& firstQsM, CandPtr& firstQdM1, CandPtr& firstQdM2, CandPtr& firstQsM1, CandPtr& firstQsM2, bool& secondDM, bool& secondSM) const {
       for(unsigned i = 0; i < part->numberOfDaughters(); i++){
         CandPtr dau = part->daughter(i);
         // if the first dark mediator's daughter is still a dark mediator, then check the daughters of this daughter dark mediator until we get daughters that are not dark mediator
-        if(isDark(darkIdList::DarkMediatorIDs_,dau)) medDecay(dau,firstQdM1,firstQdM2,firstQsM1,firstQsM2,secondDM,secondSM);
+        if(isParticle(partIdList::DarkMediatorIDs_,dau)) medDecay(dau,firstQdM,firstQsM,firstQdM1,firstQdM2,firstQsM1,firstQsM2,secondDM,secondSM);
         else{
-          if(isDark(darkIdList::DarkQuarkIDs_,dau)){
+          // a mediator decays into a dark and an SM quark. Here we are collecting the dark quarks from the mediators while labeling them firstQdM1 and firstQdM2 depending on which mediator the quarks came from.
+          if(isParticle(partIdList::DarkQuarkIDs_,dau)){
+            firstQdM.insert(dau);
+            // this condition makes sure that the firstQdM1 (firstQdM2) and firstQsM1 (firstQsM2) came from the same mediator.
+            // The labels 1 and 2 have no significance other than making sure that we get the correct pairings of dark and SM quarks from the mediators.
             if(secondDM == false){
               firstQdM1 = dau;
               secondDM = true;
             }
             else firstQdM2 = dau;
           }
-          else if(isDark(darkIdList::SMQuarkIDs_,dau)){
+          // Here we are collecting the SM quarks from the mediators which assigning them to firstQsM1 and firstQsM2 depending on which mediator the quarks came from.
+          else if(isParticle(partIdList::SMQuarkIDs_,dau)){
+            firstQsM.insert(dau);
             if(secondSM == false){
               firstQsM1 = dau;
               secondSM = true;
@@ -187,24 +192,26 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
     }
 
     // store the dark immediate daughters of the earliest dark particles
-    void firstDark(CandPtr part, CandSet& firstMd, CandSet& firstQd, CandSet& firstGd, CandPtr& firstQdM1, CandPtr& firstQdM2, CandPtr& firstQsM1, CandPtr& firstQsM2, bool& secondDM, bool& secondSM) const {
+    void firstDark(CandPtr part, CandSet& firstMd, CandSet& firstQd, CandSet& firstGd, CandSet& firstQdM, CandSet& firstQsM, CandPtr& firstQdM1, CandPtr& firstQdM2, CandPtr& firstQsM1, CandPtr& firstQsM2, bool& secondDM, bool& secondSM) const {
       PidSet DarkFirstIDs_;
-      DarkFirstIDs_.insert( darkIdList::DarkMediatorIDs_.begin(), darkIdList::DarkMediatorIDs_.end());
-      DarkFirstIDs_.insert( darkIdList::DarkQuarkIDs_.begin(), darkIdList::DarkQuarkIDs_.end());
-      DarkFirstIDs_.insert( darkIdList::DarkGluonIDs_.begin(), darkIdList::DarkGluonIDs_.end());
-      if(isDark(DarkFirstIDs_,part)){
+      DarkFirstIDs_.insert( partIdList::DarkMediatorIDs_.begin(), partIdList::DarkMediatorIDs_.end());
+      DarkFirstIDs_.insert( partIdList::DarkQuarkIDs_.begin(), partIdList::DarkQuarkIDs_.end());
+      DarkFirstIDs_.insert( partIdList::DarkGluonIDs_.begin(), partIdList::DarkGluonIDs_.end());
+      if(isParticle(DarkFirstIDs_,part)){
         CandPtr parent = part->mother(0);
-        if(isDark(DarkFirstIDs_,parent)) firstDark(parent, firstMd, firstQd, firstGd, firstQdM1, firstQdM2, firstQsM1, firstQsM2, secondDM, secondSM);
+        if(isParticle(DarkFirstIDs_,parent)) firstDark(parent, firstMd, firstQd, firstGd, firstQdM, firstQsM, firstQdM1, firstQdM2, firstQsM1, firstQsM2, secondDM, secondSM);
         else{
-          //SM parent of first dark particles: fill first two vectors here, use mediators to fill second two vectors
+          // SM parent of first dark particles
+          // looping through the daughters of this SM parent
           for(unsigned i = 0; i < part->numberOfDaughters(); i++){
             CandPtr dau = part->daughter(i);
-            if (isDark(darkIdList::DarkMediatorIDs_,dau)){
+            if (isParticle(partIdList::DarkMediatorIDs_,dau)){
               firstMd.insert(dau);
-              medDecay(dau,firstQdM1,firstQdM2,firstQsM1,firstQsM2,secondDM,secondSM);
+              // once a mediator daughter is found, we look for the descendants of the mediator
+              medDecay(dau,firstQdM,firstQsM,firstQdM1,firstQdM2,firstQsM1,firstQsM2,secondDM,secondSM);
             }
-            else if (isDark(darkIdList::DarkQuarkIDs_,dau)) firstQd.insert(dau);
-            else if (isDark(darkIdList::DarkGluonIDs_,dau)) firstGd.insert(dau);
+            else if (isParticle(partIdList::DarkQuarkIDs_,dau)) firstQd.insert(dau);
+            else if (isParticle(partIdList::DarkGluonIDs_,dau)) firstGd.insert(dau);
           }
         }
       }
@@ -218,13 +225,13 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
       for (unsigned i = 0 ; i < jet.numberOfDaughters(); i ++ ){
         // see if any jet constituent is a last dark descendant
         CandPtr dau = jet.daughter(i);
-        if(isAncestor(darkIdList::DarkHadronIDs_,dau)){
+        if(isAncestor(partIdList::DarkHadronIDs_,dau)){
             match = true;
             p4 += dau->p4();
         }
       }
       for(const auto& part : stableDs){
-         if(reco::deltaR(jet, *part) < usefulConst::coneSize)
+         if(reco::deltaR(jet, *part) < usefulConst::coneSize_)
          {
            p4 += part->p4();
            totPt += part->p4();
@@ -237,7 +244,7 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
     // record first dark particles that are within the jets' radii
     int checkFirst(const reco::GenJet& jet, const CandSet& firstP, int value) const {
      for(const auto& part : firstP){
-        if(reco::deltaR(jet, *part) < usefulConst::coneSize) return value;
+        if(reco::deltaR(jet, *part) < usefulConst::coneSize_) return value;
      }
      return 0;
     }
@@ -272,11 +279,13 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
         // jjet is a jet of ak8GenJets
         for(const auto& ijet : *(h_packedjet.product())){
           double ipT = ijet.pt();
-          double dr = reco::deltaR(jjet, ijet);
-          if (dr < usefulConst::coneSize && ipT > pTcan){
-            pTcan = ipT;
-            canJet = &ijet;
-            matched = true;
+          if (ipT > usefulConst::pTCut){
+            double dr = reco::deltaR(jjet, ijet);
+            if (dr < usefulConst::coneSize_ && ipT > pTcan){
+              pTcan = ipT;
+              canJet = &ijet;
+              matched = true;
+            }
           }
         }
         if (matched){
@@ -287,15 +296,38 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
     }
 
     // match particles from mediator to jets
-    void matchPFMtoJet(CandPtr& part, vector<LorentzVector>& matchedJets,
-      const reco::GenJet& jet, int& nPartPerJet, int& t_MT2JetID, const int& mt2ID)
-    {
-      if(reco::deltaR(jet,*part) < usefulConst::coneSize and jet.pt()>100)
+    void matchPFMtoJet(CandPtr part, vector<const reco::GenJet*>& matchedJets, const reco::GenJet& jet, int& nPartPerJet, int& t_MT2JetID, int mt2ID) const {
+      if(reco::deltaR(jet,*part) < usefulConst::coneSize_)
       {
-        matchedJets.push_back(jet.p4());
+        matchedJets.push_back(&jet);
         nPartPerJet ++;
         t_MT2JetID = mt2ID;
       }
+    }
+
+    double calculateMT2(edm::Handle<vector<reco::GenMET>> h_genmets, const reco::GenJet*& dQM1J, const reco::GenJet*& SMM1J, const reco::GenJet*& dQM2J, const reco::GenJet*& SMM2J) const {
+      const auto& i_met = h_genmets->front();
+      double METx = i_met.px();
+      double METy = i_met.py();
+      LorentzVector FJet0 = dQM1J->p4() + SMM1J->p4();
+      LorentzVector FJet1 = dQM2J->p4() + SMM2J->p4();
+      return asymm_mt2_lester_bisect::get_mT2(
+        FJet0.M(), FJet0.Px(), FJet0.Py(),
+        FJet1.M(), FJet1.Px(), FJet1.Py(),
+        METx, METy, 0.0, 0.0, 0
+      );
+    }
+
+    const reco::GenJet* highPt(std::vector<const reco::GenJet*>& Js) const {
+      double largestPt = 0;
+      const reco::GenJet* largestPtJ = nullptr;
+      for(const auto& J: Js){
+        if(J->pt() > largestPt){
+          largestPt = J->pt();
+          largestPtJ = J;
+        }
+      }
+      return largestPtJ;
     }
 
     // calculate the pT ratio between a genJet and its matched noNu Jet
@@ -316,7 +348,7 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
           for (unsigned j = 0; j < mjet.numberOfDaughters(); j++)
           {
             CandPtr mdau = mjet.daughter(i);
-            if (isDark(darkIdList::DarkStableIDs_,mdau))
+            if (isParticle(partIdList::DarkStableIDs_,mdau))
             {
               NuPt += mdau->p4();
             }
@@ -434,8 +466,8 @@ void GenMassAnalyzer::beginJob()
   tree->Branch("GenJetsAK8_ptRatioNu" ,     "vector<double>",         &entry.GenJetsAK8_ptRatioNu,    32000, 0);
   tree->Branch("GenJetsAK8_ptRatioConst" ,  "vector<double>",         &entry.GenJetsAK8_ptRatioConst, 32000, 0);
   tree->Branch("GenJetsAK8_hvCategory" ,    "vector<int>",            &entry.GenJetsAK8_hvCategory,   32000, 0);
-  tree->Branch("svj_t_MT2JetsID" ,          "vector<int>",            &entry.svj_t_MT2JetsID,         32000, 0);
-  tree->Branch("svj_t_MT2",                 &entry.svj_t_MT2,         "svj_t_MT2/D");
+  tree->Branch("GenJetsAK8_MT2JetsID" ,     "vector<int>",            &entry.GenJetsAK8_MT2JetsID,    32000, 0);
+  tree->Branch("GenMT2_AK8",                &entry.GenMT2_AK8,        "GenMT2_AK8/D");
 }
 
 // ------------ method called on each new Event  ------------
@@ -456,75 +488,61 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   iEvent.getByToken(tok_packedjet,h_packedjet);
 
   // Grouping jets in different categories
-  CandPtr firstQdM1, firstQdM2, firstQsM1, firstQsM2;
   CandSet stableDs, firstMd, firstQd, firstGd, firstQdM, firstQsM;
-  vector<LorentzVector> dQM1Js,dQM2Js,SMM1Js,SMM2Js;
-  vector<int> t_MT2JetsID;
+  CandPtr firstQdM1, firstQdM2, firstQsM1, firstQsM2;
+  vector<const reco::GenJet*> dQM1Js,dQM2Js,SMM1Js,SMM2Js;
+  vector<int> t_MT2JetIDList;
   vector<reco::GenJet> AK8Jets;
   vector<reco::GenJet> pAK8Jets;
   // The ak8genjets that are matched to packedGenJetsAK8NoNu
   // useful for dark pt fraction estimation
   vector<reco::GenJet> mAK8Jets;
-  bool secondDM = false;
-  bool secondSM = false;
-  bool manyParticlesPerJet = false;
+  bool secondDM = false, secondSM = false, manyParticlesPerJet = false;
   entry.GenJetsAK8.reserve(h_jet->size());
   for(const auto& i_part : *(h_part.product())){
-    firstDark(&i_part, firstMd, firstQd, firstGd, firstQdM1, firstQdM2, firstQsM1, firstQsM2,secondDM,secondSM);
-    if(static_cast<const reco::GenParticle*>(&i_part)->isLastCopy() and isDark(darkIdList::DarkStableIDs_,&i_part)) stableDs.insert(&i_part);
+    firstDark(&i_part, firstMd, firstQd, firstGd, firstQdM, firstQsM, firstQdM1, firstQdM2, firstQsM1, firstQsM2,secondDM,secondSM);
+    if(static_cast<const reco::GenParticle*>(&i_part)->isLastCopy() and isParticle(partIdList::DarkStableIDs_,&i_part)) stableDs.insert(&i_part);
   }
-  firstQdM.insert(firstQdM1);
-  firstQdM.insert(firstQdM2);
-  firstQsM.insert(firstQsM1);
-  firstQsM.insert(firstQsM2);
   //loop over gen jets
   for(const auto& i_jet : *(h_jet.product())){
-    if(i_jet.pt() > usefulConst::pTCut){
-      int category = 0;
-      double frac = 0;
-      entry.GenJetsAK8.emplace_back(i_jet.px(),i_jet.py(),i_jet.pz(),i_jet.energy());
-      AK8Jets.push_back(i_jet);
-      category += checkLast(i_jet,stableDs,1,frac);
-      category += checkFirst(i_jet, firstQd,  2);
-      category += checkFirst(i_jet, firstGd,  4);
-      category += checkFirst(i_jet, firstQdM, 8);
-      category += checkFirst(i_jet, firstQsM, 16);
-      entry.GenJetsAK8_hvCategory.push_back(category);
-      entry.GenJetsAK8_dptFrac.push_back(frac);
-      // t-channel MT2 Right Combination
-      if(firstMd.size()==2){
-        int t_MT2JetID = 0;
-        int nPartPerJet = 0;
-        matchPFMtoJet(firstQdM1,dQM1Js,i_jet,nPartPerJet,t_MT2JetID,1);
-        matchPFMtoJet(firstQdM2,dQM2Js,i_jet,nPartPerJet,t_MT2JetID,2);
-        matchPFMtoJet(firstQsM1,SMM1Js,i_jet,nPartPerJet,t_MT2JetID,3);
-        matchPFMtoJet(firstQsM2,SMM2Js,i_jet,nPartPerJet,t_MT2JetID,4);
-        t_MT2JetsID.push_back(t_MT2JetID);
-        if(nPartPerJet > 1) manyParticlesPerJet = true;
-      }
+    entry.GenJetsAK8.emplace_back(i_jet.px(),i_jet.py(),i_jet.pz(),i_jet.energy());
+    int category = 0;
+    double frac = 0;
+    AK8Jets.push_back(i_jet);
+    category += checkLast(i_jet,stableDs,1,frac);
+    category += checkFirst(i_jet, firstQd,  2);
+    category += checkFirst(i_jet, firstGd,  4);
+    category += checkFirst(i_jet, firstQdM, 8);
+    category += checkFirst(i_jet, firstQsM, 16);
+    entry.GenJetsAK8_hvCategory.push_back(category);
+    entry.GenJetsAK8_dptFrac.push_back(frac);
+    // t-channel MT2 Right Combination
+    if(firstMd.size()==2){
+      int t_MT2JetID = 0;
+      int nPartPerJet = 0;
+      matchPFMtoJet(firstQdM1,dQM1Js,i_jet,nPartPerJet,t_MT2JetID,1);
+      matchPFMtoJet(firstQdM2,dQM2Js,i_jet,nPartPerJet,t_MT2JetID,2);
+      matchPFMtoJet(firstQsM1,SMM1Js,i_jet,nPartPerJet,t_MT2JetID,3);
+      matchPFMtoJet(firstQsM2,SMM2Js,i_jet,nPartPerJet,t_MT2JetID,4);
+      t_MT2JetIDList.push_back(t_MT2JetID);
+      if(nPartPerJet > 1) manyParticlesPerJet = true;
     }
   }
-  bool oneJetPerParticle = dQM1Js.size() == 1 && dQM2Js.size() == 1 && SMM1Js.size() == 1 && SMM2Js.size() == 1;
-  if(oneJetPerParticle && !manyParticlesPerJet)
-  {
-    const auto& i_met = h_met->front();
-    double METx = i_met.px();
-    double METy = i_met.py();
-    LorentzVector FJet0 = dQM1Js[0] + SMM1Js[0];
-    LorentzVector FJet1 = dQM2Js[0] + SMM2Js[0];
-    double t_mt2 = asymm_mt2_lester_bisect::get_mT2(
-      FJet0.M(), FJet0.Px(), FJet0.Py(),
-      FJet1.M(), FJet1.Px(), FJet1.Py(),
-      METx, METy, 0.0, 0.0, 0
-    );
-    entry.svj_t_MT2 = t_mt2;
+  bool manyJetsPerParticle = dQM1Js.size() >= 1 && dQM2Js.size() >= 1 && SMM1Js.size() >= 1 && SMM2Js.size() >= 1;
+  if(manyJetsPerParticle and !manyParticlesPerJet){
+    // using the highest pT jet if more than one jet contains the same particle
+    const reco::GenJet* dQM1J = highPt(dQM1Js);
+    const reco::GenJet* SMM1J = highPt(SMM1Js);
+    const reco::GenJet* dQM2J = highPt(dQM2Js);
+    const reco::GenJet* SMM2J = highPt(SMM2Js);
+    entry.GenMT2_AK8 = calculateMT2(h_met,dQM1J,SMM1J,dQM2J,SMM2J);
   }
   else
   {
     vector<int> zeros(AK8Jets.size(),0);
-    t_MT2JetsID = zeros;
+    t_MT2JetIDList = zeros;
   }
-  for(const auto& mt2ID: t_MT2JetsID) entry.svj_t_MT2JetsID.push_back(mt2ID);
+  for(const auto& mt2ID: t_MT2JetIDList) entry.GenJetsAK8_MT2JetsID.push_back(mt2ID);
   // matchJet_to_NoNu(AK8Jets, h_packedjet, pAK8Jets, mAK8Jets);
   calcPtRatioNu(pAK8Jets, mAK8Jets, entry.GenJetsAK8_ptRatioNu, entry.GenJetsAK8_ptRatioConst);
   softDropJet(pAK8Jets, mAK8Jets, entry.GenJetsAK8_SDJets, entry.GenJetsAK8_SDdptFrac,stableDs);
