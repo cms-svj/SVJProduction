@@ -4,64 +4,12 @@
 
 All of the necessary setup (including checkout of this repo, dependencies, and CMSSW compilation) is performed by [setup.sh](./setup.sh).
 
-### GEN-SIM production (2016)
-
-To make GEN or GEN-SIM samples, `CMSSW_7_1_44` is used (which includes Pythia8.226).
+For Run 2 ultra-legacy MC production (2016, 2017, 2018), `CMSSW_10_6_29_patch1` is used.
 ```
 wget https://raw.githubusercontent.com/cms-svj/SVJProduction/master/setup.sh
 chmod +x setup.sh
-./setup.sh -c CMSSW_7_1_44
-cd CMSSW_7_1_44/src
-cmsenv
-cd SVJ/Production
-```
-
-### MINIAOD production (2016)
-
-To make MINIAOD (or DIGI/RECO/AOD) samples, `CMSSW_8_0_28` is used:
-```
-wget https://raw.githubusercontent.com/cms-svj/SVJProduction/master/setup.sh
-chmod +x setup.sh
-./setup.sh -c CMSSW_8_0_28
-cd CMSSW_8_0_28/src
-cmsenv
-cd SVJ/Production
-```
-
-### GEN-SIM production (2017)
-
-To make GEN or GEN-SIM samples, `CMSSW_9_3_14` is used (which includes Pythia8.230).
-```
-wget https://raw.githubusercontent.com/cms-svj/SVJProduction/master/setup.sh
-chmod +x setup.sh
-./setup.sh -c CMSSW_9_3_14
-cd CMSSW_9_3_14/src
-cmsenv
-cd SVJ/Production
-```
-
-### MINIAOD production (2017)
-
-To make MINIAOD (or DIGI/RECO/AOD) samples, `CMSSW_9_4_10` is used:
-```
-wget https://raw.githubusercontent.com/cms-svj/SVJProduction/master/setup.sh
-chmod +x setup.sh
-./setup.sh -c CMSSW_9_4_10
-cd CMSSW_9_4_10/src
-cmsenv
-cd SVJ/Production
-```
-
-2016 AOD samples can also be reprocessed in this release to get "miniAOD v3" output.
-
-### GEN-SIM/MINIAOD production (2018)
-
-To make GEN, GEN-SIM, MINIAOD (or DIGI/RECO/AOD) samples, `CMSSW_10_2_21` is used:
-```
-wget https://raw.githubusercontent.com/cms-svj/SVJProduction/master/setup.sh
-chmod +x setup.sh
-./setup.sh -c CMSSW_10_2_21
-cd CMSSW_10_2_21/src
+./setup.sh
+cd CMSSW_10_6_29_patch1/src
 cmsenv
 cd SVJ/Production
 ```
@@ -228,23 +176,10 @@ To generate background samples for GEN-level analysis:
 cmsRun runSVJ.py year=2016 config=step1_GEN_QCDForPF_13TeV outpre=step1_QCD signal=0 part=1 maxEvents=10
 ```
 
-The analysis code needs a newer version of CMSSW (to access newer versions of ROOT and fastjet).
-Rerun the setup script as follows (the `-a` flag installs the analysis code dependency, my [Analysis](https://github.com/kpedro88/Analysis/tree/SVJ2017-gen) repo):
-```
-./setup.sh -c CMSSW_8_0_28 -a
-```
-
 To run the GEN-level analyzer:
 ```
 cmsRun runSVJ.py config=genmassanalyzer_cfg output=TFileService outpre=genmassanalysis inpre=step1 mMediator=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
 cmsRun runSVJ.py config=genmassanalyzer_cfg output=TFileService outpre=genmassanalysis_QCD inpre=step1_QCD signal=0 part=1 maxEvents=10
-```
-
-For more ways to analyzer the output of the GEN-level analyzer, see the [Analysis](https://github.com/kpedro88/Analysis/tree/SVJ2017-gen) repo.
-
-An alternative example of a semi-standalone macro is available in this repo:
-```
-root -l 'plotMasses.C+("genmassanalysis_mMediator-3000_mDark-20_rinv-0.3_alpha-0.1_n-10_part-1.root","input_masses.txt")'
 ```
 
 To run the softdrop algorithm on GenJets/GenParticles from an existing sample, and analyze the result:
@@ -260,8 +195,6 @@ To run the sample production interactively for SUEP with example parameters:
 cd SVJ/Production/test
 cmsRun runSVJ.py suep=1 year=2018 config=step1_GEN outpre=step1 mMediator=125 mDark=2.0 temperature=2.0 decay=generic part=1 maxEvents=10
 ```
-
-The SUEP simulation currently only works in CMSSW_10_2_X (2018).
 
 ## cmsDriver commands (2016)
 
