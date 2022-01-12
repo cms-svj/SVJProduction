@@ -17,9 +17,6 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 
-// handle CMSSW_7_1_X
-#include "SVJ/Production/interface/common.h"
-
 class BSMHTFilter : public edm::global::EDFilter<> {
 	public:
 		explicit BSMHTFilter(const edm::ParameterSet&);
@@ -81,13 +78,8 @@ bool BSMHTFilter::filter(edm::StreamID, edm::Event& iEvent, const edm::EventSetu
 
 	}
 
-#ifndef CMSSW71X
 	auto genHTptr = std::make_unique<double>(genHT);
     iEvent.put(std::move(genHTptr));
-#else
-    std::auto_ptr<double> genHTptr(new double(genHT));
-    iEvent.put(genHTptr);
-#endif
 	return genHT > htMin_;
 }
 

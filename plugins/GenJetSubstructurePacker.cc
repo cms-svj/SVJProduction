@@ -1,7 +1,3 @@
-// compiling this in CMSSW_7_1_X
-#include "SVJ/Production/interface/common.h"
-#ifndef CMSSW71X
-
 // system include files
 #include <memory>
 #include <vector>
@@ -156,5 +152,3 @@ GenJetSubstructurePacker::produce(edm::Event& iEvent, const edm::EventSetup&)
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(GenJetSubstructurePacker);
-
-#endif

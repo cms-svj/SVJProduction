@@ -39,7 +39,6 @@ using std::vector;
 using std::set;
 
 //user headers
-#include "SVJ/Production/interface/common.h"
 #include "SVJ/Production/interface/lester_mt2_bisect.h"
 #include "SVJ/Production/interface/NjettinessHelper.h"
 #include "SVJ/Production/interface/ECFHelper.h"
@@ -128,10 +127,8 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
     TTree* tree;
     //for tree branches
     GenNtuple entry;
-#ifndef CMSSW71X
     NjettinessHelper njhelper;
     ECFHelper echelper;
-#endif
     //tokens
     edm::EDGetTokenT<vector<reco::GenMET>> tok_met;
     edm::EDGetTokenT<vector<reco::GenJet>> tok_jet;
@@ -399,7 +396,6 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
         }
       }
     }
-
 };
 
 //
@@ -407,19 +403,14 @@ class GenMassAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 //
 GenMassAnalyzer::GenMassAnalyzer(const edm::ParameterSet& iConfig) :
   tree(NULL),
-#ifndef CMSSW71X
   njhelper(iConfig.getParameter<edm::ParameterSet>("Nsubjettiness")),
   echelper(iConfig.getParameter<edm::ParameterSet>("ECF")),
-#endif
   tok_met(consumes<vector<reco::GenMET>>(iConfig.getParameter<edm::InputTag>("METTag"))),
   tok_jet(consumes<vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("JetTag"))),
   tok_part(consumes<vector<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("PartTag"))),
   tok_packedjet(consumes<vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("PackedJetTag")))
 {
   usesResource("TFileService");
-#ifdef CMSSW71X
-  std::cout << "GenMassAnalyzer: Warning - Nsubjettiness and ECF variables not available!" << std::endl;
-#endif
 }
 
 //
@@ -616,7 +607,6 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
     entry.GenJetsAK8_AxisAverage.push_back(axisA);
 
     //calculate nsubjettiness & ECFs
-#ifndef CMSSW71X
     entry.GenJetsAK8_Tau1.push_back(njhelper.getTau(1,i_jet));
     entry.GenJetsAK8_Tau2.push_back(njhelper.getTau(2,i_jet));
     entry.GenJetsAK8_Tau3.push_back(njhelper.getTau(3,i_jet));
@@ -625,7 +615,6 @@ void GenMassAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
     entry.GenJetsAK8_ECF1.push_back(ECFresult[0]);
     entry.GenJetsAK8_ECF2.push_back(ECFresult[1]);
     entry.GenJetsAK8_ECF3.push_back(ECFresult[2]);
-#endif
   }
 
   TLorentzVector vpartsSum;

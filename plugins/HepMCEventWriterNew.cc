@@ -11,10 +11,7 @@
 #include "FWCore/Framework/interface/Run.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
-#include "SVJ/Production/interface/common.h"
-#ifndef CMSSW71X
 #include "FWCore/Utilities/interface/propagate_const.h"
-#endif
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 
 #include "HepMC/IO_GenEvent.h"
@@ -30,11 +27,7 @@ protected:
   void analyze(const edm::Event &event, const edm::EventSetup &es) override;
 
 private:
-#ifndef CMSSW71X
   edm::propagate_const<HepMC::IO_GenEvent *> output_;
-#else
-  HepMC::IO_GenEvent* output_;
-#endif
   edm::InputTag hepMCProduct_;
   edm::EDGetTokenT<edm::HepMCProduct> hepMCToken_;
 };
@@ -51,10 +44,8 @@ void HepMCEventWriterNew::beginRun(const edm::Run &run, const edm::EventSetup &e
 }
 
 void HepMCEventWriterNew::endRun(const edm::Run &run, const edm::EventSetup &es) {
-#ifndef CMSSW71X
   if (output_)
     delete output_.get();
-#endif
 }
 
 void HepMCEventWriterNew::analyze(const edm::Event &event, const edm::EventSetup &es) {

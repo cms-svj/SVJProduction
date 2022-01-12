@@ -1,11 +1,6 @@
 #ifndef NjettinessHelper_h
 #define NjettinessHelper_h
 
-#include "common.h"
-
-//deal with incompatible interfaces
-#ifndef CMSSW71X
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "fastjet/contrib/Njettiness.hh"
 #include "DataFormats/JetReco/interface/GenJet.h"
@@ -127,7 +122,5 @@ double NjettinessHelper::getTau(unsigned num, const reco::GenJet& object) const
 
 	return routine_->getTau(num, FJparticles); 
 }
-
-#endif
 
 #endif
