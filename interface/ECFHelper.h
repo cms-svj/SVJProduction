@@ -1,11 +1,6 @@
 #ifndef ECFHelper_h
 #define ECFHelper_h
 
-#include "common.h"
-
-//deal with incompatible interfaces
-#ifndef CMSSW71X
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "fastjet/contrib/EnergyCorrelator.hh"
 #include "DataFormats/JetReco/interface/GenJet.h"
@@ -57,7 +52,5 @@ std::vector<double> ECFHelper::getECFs(const reco::GenJet& object) const
 	
 	return result;
 }
-
-#endif
 
 #endif
