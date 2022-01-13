@@ -14,6 +14,17 @@ cmsenv
 cd SVJ/Production
 ```
 
+The setup script has several options:
+* `-c [release]`: CMSSW release to install (default = CMSSW_10_6_29_patch1)
+* `-f [fork]`: clone from specified fork (default = cms-svj)
+* `-b [branch]`: clone specified branch (default = Run2_UL)
+* `-s [protocol]`: use protocol to clone (default = https, alternative = ssh)
+* `-j [cores]`: # cores for CMSSW compilation (default = 8)
+* `-t`: install HLT releases
+* `-h`: print help message and exit
+
+For more details about the `-t` option, see [HLT in UL](#hlt-in-ul) below.
+
 ## Steps
 
 There are several available steps that may be chained together in multiple combinations.
@@ -28,6 +39,19 @@ In some combinations, some numbers may be skipped.
 5. RECO
 6. MINIAOD
 7. NANOAOD
+
+### HLT in UL
+
+The HLT configuration is only valid in the actual CMSSW release cycle that was used online for a specific data-taking period.
+Therefore, a true simulation of the HLT requires using an older CMSSW release:
+`CMSSW_8_0_33_UL` for 2016, `CMSSW_9_4_14_UL_patch1` for 2017, `CMSSW_10_2_16_UL` for 2018.
+The standalone HLT step can only be executed in the respective release for each year,
+which can be optionally installed along with the main UL 10_6_X release used for the other steps.
+
+If the older releases are not installed, or the HLT simulation is not needed, the separate DIGI-HLT step can be used instead.
+This step uses a highly simplified HLT configuration designed for relvals.
+Therefore, the trigger-related contents from this step will not correspond to the data,
+but all the other contents (GEN, RECO, MINIAOD, etc.) will be the same.
 
 ## runSVJ script
 

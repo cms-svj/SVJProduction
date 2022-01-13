@@ -11,23 +11,25 @@ WHICH_CMSSW=CMSSW_10_6_29_patch1
 FORK=cms-svj
 BRANCH=Run2_UL
 CORES=8
+HLT=""
 
 usage() {
 	$ECHO "setup.sh [options]"
 	$ECHO
 	$ECHO "Options:"
-	$ECHO "-c <RELEASE>  \tCMSSW release to install (default = $WHICH_CMSSW)"
+	$ECHO "-c [release]  \tCMSSW release to install (default = $WHICH_CMSSW)"
 	$ECHO "-f [fork]     \tclone from specified fork (default = $FORK)"
 	$ECHO "-b [branch]   \tclone specified branch (default = $BRANCH)"
-	$ECHO "-s            \tuse protocol to clone (default = ${ACCESS}, alternative = ssh)"
+	$ECHO "-s [protocol] \tuse protocol to clone (default = ${ACCESS}, alternative = ssh)"
 	$ECHO "-j [cores]    \t# cores for CMSSW compilation (default = ${CORES})"
+	$ECHO "-t            \tinstall HLT releases"
 	$ECHO "-h            \tprint this message and exit"
 	exit $1
 }
 
 CUR_DIR=`pwd`
 #check arguments
-while getopts "c:f:b:s:j:h" opt; do
+while getopts "c:f:b:s:j:th" opt; do
 	case "$opt" in
 	c) WHICH_CMSSW=$OPTARG
 	;;
@@ -38,6 +40,8 @@ while getopts "c:f:b:s:j:h" opt; do
 	s) ACCESS=$OPTARG
 	;;
 	j) CORES=$OPTARG
+	;;
+	t) HLT=true
 	;;
 	h) usage 0
 	;;
@@ -72,56 +76,94 @@ else
 SLC_VERSION="slc7"
 fi
 
-# -------------------------------------------------------------------------------------
-# CMSSW release area
-# -------------------------------------------------------------------------------------
-if [ -n "$WHICH_CMSSW" ]; then
-	case $WHICH_CMSSW in
-	CMSSW_10_6_*)
-		export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc700
-	;;
-	*)
-		$ECHO "Unknown architecture for release $WHICH_CMSSW"
-		exit 1
-	;;
-	esac
-	scramv1 project CMSSW $WHICH_CMSSW
-	cd $WHICH_CMSSW
-	CUR_DIR=`pwd`
-	eval `scramv1 runtime -sh`
-	$ECHO "setup $CMSSW_VERSION"
-fi
+install_CMSSW(){
+	THIS_CMSSW="$1"
+	MINIMAL="$2"
 
-# -------------------------------------------------------------------------------------
-# CMSSW compilation
-# -------------------------------------------------------------------------------------
+	# -------------------------------------------------------------------------------------
+	# CMSSW release area
+	# -------------------------------------------------------------------------------------
+	if [ -n "$THIS_CMSSW" ]; then
+		case $THIS_CMSSW in
+		CMSSW_8_0_*)
+			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc530
+		;;
+		CMSSW_9_4_*)
+			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc630
+		;;
+		CMSSW_10_2_*)
+			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc700
+		;;
+		CMSSW_10_6_*)
+			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc700
+		;;
+		*)
+			$ECHO "Unknown architecture for release $THIS_CMSSW"
+			exit 1
+		;;
+		esac
+		scramv1 project CMSSW $THIS_CMSSW
+		cd $THIS_CMSSW
+		eval `scramv1 runtime -sh`
+		$ECHO "setup $CMSSW_VERSION"
+	fi
 
-if [ -n "$WHICH_CMSSW" ]; then
-	# reinitialize environment
-	eval `scramv1 runtime -sh`
-	cd src
-	git cms-init $ACCESS_CMSSW
+	# -------------------------------------------------------------------------------------
+	# CMSSW compilation
+	# -------------------------------------------------------------------------------------
 
-	git clone ${ACCESS_GITHUB}kpedro88/CondorProduction Condor/Production
-	git clone ${ACCESS_GITHUB}${FORK}/SVJProduction SVJ/Production -b ${BRANCH}
+	if [ -n "$THIS_CMSSW" ]; then
+		# reinitialize environment
+		eval `scramv1 runtime -sh`
+		cd src
+		git cms-init $ACCESS_CMSSW
 
-	# use as little of genproductions as possible
-	git clone --depth 1 --no-checkout ${ACCESS_GITHUB}cms-svj/genproductions -b Run2_UL Configuration/GenProduction
-	# setup sparse checkout
-	cd Configuration/GenProduction
-	git config core.sparsecheckout true
-	{
-		echo '/Utilities'
-		echo '/bin/MadGraph5_aMCatNLO'
-		echo '!/bin/MadGraph5_aMCatNLO/cards'
-		echo '/MetaData'
-	} > .git/info/sparse-checkout
-	git read-tree -mu HEAD
-	cd $CMSSW_BASE/src
+		git clone ${ACCESS_GITHUB}kpedro88/CondorProduction Condor/Production
+		git clone ${ACCESS_GITHUB}${FORK}/SVJProduction SVJ/Production -b ${BRANCH}
 
-	scram b -j $CORES
-	cd SVJ/Production/batch
-	python $CMSSW_BASE/src/Condor/Production/python/linkScripts.py
-	python $CMSSW_BASE/src/Condor/Production/python/cacheAll.py
-	ln -s $CMSSW_BASE/src/Condor/Production/python/manageJobs.py .
+		if [ -n "$MINIMAL" ]; then
+			# don't need to compile SVJ-specific code for HLT
+			cd SVJ/Production
+			git config core.sparsecheckout true
+			{
+				echo '/batch'
+				echo '/python'
+				echo '/test'
+			} > .git/info/sparse-checkout
+			git read-tree -mu HEAD
+			# skip genproductions entirely
+		else
+			# use as little of genproductions as possible
+			git clone --depth 1 --no-checkout ${ACCESS_GITHUB}cms-svj/genproductions -b Run2_UL Configuration/GenProduction
+			# setup sparse checkout
+			cd Configuration/GenProduction
+			git config core.sparsecheckout true
+			{
+				echo '/Utilities'
+				echo '/bin/MadGraph5_aMCatNLO'
+				echo '!/bin/MadGraph5_aMCatNLO/cards'
+				echo '/MetaData'
+			} > .git/info/sparse-checkout
+			git read-tree -mu HEAD
+		fi
+
+		cd $CMSSW_BASE/src
+		scram b -j $CORES
+		cd SVJ/Production/batch
+		python $CMSSW_BASE/src/Condor/Production/python/linkScripts.py
+		python $CMSSW_BASE/src/Condor/Production/python/cacheAll.py
+		ln -s $CMSSW_BASE/src/Condor/Production/python/manageJobs.py .
+	fi
+}
+
+# run the installations
+cd $CUR_DIR
+install_CMSSW $WHICH_CMSSW
+if [ -n "$HLT" ]; then
+	HLT_DIR=${CUR_DIR}/HLT
+	mkdir -p $HLT_DIR
+	for HLT_CMSSW in CMSSW_8_0_33_UL CMSSW_9_4_14_UL_patch1 CMSSW_10_2_16_UL; do
+		cd $HLT_DIR
+		install_CMSSW $HLT_CMSSW 1
+	done
 fi
