@@ -89,10 +89,10 @@ class suepHelper(object):
 
     def getHookSettings(self):
         pset = cms.PSet(
+            pluginName = cms.string("SuepDecay"),
             temperature = cms.double(self.temperature),
             idMediator = cms.int32(self.idMediator),
             idDark = cms.int32(self.idDark),
-            decay = cms.vstring(self.decay)
         )
 
         return pset

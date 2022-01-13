@@ -20,9 +20,7 @@ if os.path.isdir(mg_dir):
 shutil.copytree(data_path,mg_dir)
 
 # PDF sets for signal
-if options.year==2016: lhaid = 247000 # NNPDF23_lo_as_0130_qed for CUETP8M1
-elif options.year==2017: lhaid = 315200 # NNPDF31_lo_as_0130 for CP2
-elif options.year==2018: lhaid = 315200 # NNPDF31_lo_as_0130 for CP2
+lhaid = 303600 # NNPDF31_nnlo_as_0118 for updated pos-def CP5
 
 # populate parameters in cards
 mg_model_dir, mg_input_dir = _helper.getMadGraphCards(mg_dir,lhaid,events=options.maxEvents,cores=options.threads)

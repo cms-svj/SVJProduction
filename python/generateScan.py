@@ -21,24 +21,15 @@ def varyAll(pos,paramlist,sig,sigs):
             varyAll(pos+1,paramlist,stmp,sigs)
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-parser.add_argument("-y","--year", dest="year", type=int, default=2016, help="which year to simulate (specifies generator tune)")
 parser.add_argument("-n","--num", dest="num", type=int, default=20000, help="number of events for model point w/ weight 1.0 (before filter)")
 parser.add_argument("-a","--acc", dest="acc", type=float, default=0.0, help="increase number of events based on acceptance up to this maximum factor")
 args = parser.parse_args()
 
-# specification of tunes for each year
-if args.year==2016:
-    tune_loc = "Configuration.Generator.Pythia8CUEP8M1Settings_cfi"
-    tune_block = "pythia8CUEP8M1SettingsBlock"
-    tune_suff = "TuneCUETP8M1_13TeV_pythia8"
-    gen_tag = "cms.InputTag('generator')"
-elif args.year==2017 or args.year==2018:
-    tune_loc = "Configuration.Generator.MCTunes2017.PythiaCP2Settings_cfi"
-    tune_block = "pythia8CP2SettingsBlock"
-    tune_suff = "TuneCP2_13TeV_pythia8"
-    gen_tag = "cms.InputTag('generator','unsmeared')"
-else:
-    parser.error("Unknown year: "+str(args.year))
+# specification of tunes
+tune_loc = "Configuration.Generator.MCTunes2017.PythiaCP5Settings_cfi"
+tune_block = "pythia8CP5SettingsBlock"
+tune_suff = "TuneCP5_13TeV_pythia8"
+gen_tag = "cms.InputTag('generator','unsmeared')"
 
 # complete set of parameter values
 params = OrderedDict([
@@ -198,7 +189,7 @@ darkquarkFilter = cms.EDFilter("MCParticleModuloFilter",
 ProductionFilterSequence = cms.Sequence(generator+darkhadronZ2filter+darkquarkFilter)
 """.format(tune_block,tune_block.replace("Block",""),gen_tag)
 
-with open("SVJ_Scan_"+str(args.year)+"_"+tune_suff+"_cff.py",'w') as ofile:
+with open("SVJ_Scan_"+tune_suff+"_cff.py",'w') as ofile:
     ofile.write(first_part)
     ofile.write("\npoints = "+str(points)+"\n")
     ofile.write(last_part)

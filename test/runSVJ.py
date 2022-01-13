@@ -78,7 +78,9 @@ if options.signal:
             if hasattr(process.generator.PythiaParameters,"JetMatchingParameters"):
                 process.generator.PythiaParameters.JetMatchingParameters = cms.vstring(_helper.getJetMatchSettings())
             if options.suep:
-                process.generator.suep = _helper.getHookSettings()
+                process.generator.UserCustomization = cms.VPSet(
+                    _helper.getHookSettings()
+                )
 
     # gen filter settings
     # pythia implementation of model has 4900111/211 -> -51 51 and 4900113/213 -> -53 53
@@ -88,18 +90,17 @@ if options.signal:
     # do *not* require this separately for 111/211 and 113/213 (pseudoscalar vs. vector)
     if options.filterZ2 and hasattr(process,'ProductionFilterSequence'):
         process.darkhadronZ2filter = cms.EDFilter("MCParticleModuloFilter",
-            moduleLabel = cms.InputTag('generator'),
+            moduleLabel = cms.InputTag('generator','unsmeared'),
             particleIDs = cms.vint32(51,53),
             multipleOf = cms.uint32(4),
             absID = cms.bool(True),
         )
         process.ProductionFilterSequence += process.darkhadronZ2filter
-        if ".2017." in options.config or ".2018." in options.config: process.darkhadronZ2filter.moduleLabel = cms.InputTag('generator','unsmeared')
 
     # also filter out events with Zprime -> SM quarks
     if options.channel=="s" and hasattr(process,'ProductionFilterSequence'):
         process.darkquarkFilter = cms.EDFilter("MCParticleModuloFilter",
-            moduleLabel = cms.InputTag('generator'),
+            moduleLabel = cms.InputTag('generator','unsmeared'),
             particleIDs = cms.vint32(4900101),
             multipleOf = cms.uint32(2),
             absID = cms.bool(True),
@@ -107,7 +108,6 @@ if options.signal:
             status = cms.int32(23),
         )
         process.ProductionFilterSequence += process.darkquarkFilter
-        if ".2017." in options.config or ".2018." in options.config: process.darkquarkFilter.moduleLabel = cms.InputTag('generator','unsmeared')
 
     if options.boost>0 and hasattr(process,'ProductionFilterSequence'):
         # apply HT cut for boosted search, including dark quarks
@@ -119,8 +119,7 @@ if options.signal:
             process.ProductionFilterSequence += process.bsmHtFilter
         # apply GenJet pt cut for boosted search
         elif options.boostvar=="pt":
-            process.genjetptFilter = cms.EDFilter(
-                "GenJetPTFilter",
+            process.genjetptFilter = cms.EDFilter("GenJetPTFilter",
                 ptMin = cms.double(options.boost),
             )
             process.ProductionFilterSequence += process.pgen
