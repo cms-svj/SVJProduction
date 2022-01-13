@@ -75,7 +75,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `yukawa=[val]`: Yukawa coupling for bifundamental mediator (t channel) (default = 1.0)
 * `temperature=[val]`: temperature for SUEP model (default = 2.0)
 * `decay=[str]`: decay mode for SUEP model (default = generic)
-* `filterZ2=[bool]`: only keep events with `N(4900211)%4==0` (default = True)
+* `filterZ2=[bool]`: only keep events with an even number of stable dark hadrons (default = True)
 * `scout=[bool]`: keep scouting collections in miniAOD (default = False)
 * `part=[num]`: part number when producing a sample in multiple jobs (default = 1)
 * `indir=[str]`: directory for input file (local or logical)
