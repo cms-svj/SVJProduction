@@ -124,7 +124,7 @@ class svjHelper(object):
         return 1000*math.exp(-math.pi/(self.b0*alpha))
 
     # has to be "lambdaHV" because "lambda" is a keyword
-    def setModel(self,channel,mMediator,mDark,rinv,alpha,yukawa=None,lambdaHV=None,generate=True,boost=0,mingenjetpt=0.):
+    def setModel(self,channel,mMediator,mDark,rinv,alpha,yukawa=None,lambdaHV=None,generate=True,boost=0.,boostvar=None):
         # check for issues
         if channel!="s" and channel!="t": raise ValueError("Unknown channel: "+channel)
         # store the basic parameters
@@ -136,14 +136,21 @@ class svjHelper(object):
         self.rinv = rinv
         if isinstance(alpha,str) and alpha[0].isalpha(): self.setAlpha(alpha)
         else: self.alpha = float(alpha)
-        self.htCut = boost
-        self.ptCut = mingenjetpt
+
         self.yukawa = None
         # yukawa not used by pythia "t-channel" generation (only includes strong pair prod)
         # but will still be included in name if provided in model setting
         if self.channel=="t":
             self.yukawa = yukawa
             if self.yukawa is None: raise ValueError("yukawa value must be provided for madgraph t-channel")
+
+        # boosting
+        allowed_boostvars = ["ht","pt"]
+        if boostvar is not None:
+            if boostvar not in allowed_boostvars:
+                raise ValueError("Unknown boost variable {}".format(boostvar))
+            self.boostvar = boostvar
+            self.boost = boost
 
         # get more parameters
         self.xsec = self.getPythiaXsec(self.mMediator)
@@ -170,7 +177,7 @@ class svjHelper(object):
             if len(self.alphaName)>0: _outname += "_alpha-{}".format(self.alphaName)
             else: _outname += "_alpha-{:g}".format(self.alpha)
             if self.yukawa is not None: _outname += "_yukawa-{:g}".format(self.yukawa)
-            if self.htCut>0: _outname += "_HT{:g}".format(self.htCut)
+            if self.boost>0: _outname += "_{}{:g}".format(self.boostvar.upper(),self.boost)
         # todo: include tune in name? depends on year
         if self.generate is not None:
             if self.generate:

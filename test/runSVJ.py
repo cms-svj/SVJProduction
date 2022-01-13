@@ -109,22 +109,22 @@ if options.signal:
         process.ProductionFilterSequence += process.darkquarkFilter
         if ".2017." in options.config or ".2018." in options.config: process.darkquarkFilter.moduleLabel = cms.InputTag('generator','unsmeared')
 
-    # apply HT cut for boosted search, including dark quarks
-    if options.boost and hasattr(process,'ProductionFilterSequence'):
-        process.bsmHtFilter = cms.EDFilter("BSMHTFilter",
-            particleIDs = cms.vint32(4900101),
-            htMin = cms.double(_helper.htCut),
-        )
-        process.ProductionFilterSequence += process.bsmHtFilter
-
-    # apply GenJet pt cut for boosted search
-    if options.mingenjetpt and hasattr(process,'ProductionFilterSequence'):
-        process.genjetptFilter = cms.EDFilter(
-            "GenJetPTFilter",
-            ptMin = cms.double(_helper.ptCut),
+    if options.boost>0 and hasattr(process,'ProductionFilterSequence'):
+        # apply HT cut for boosted search, including dark quarks
+        if options.boostvar=="ht":
+            process.bsmHtFilter = cms.EDFilter("BSMHTFilter",
+                particleIDs = cms.vint32(4900101),
+                htMin = cms.double(options.boost),
             )
-        process.ProductionFilterSequence += process.pgen
-        process.ProductionFilterSequence += process.genjetptFilter
+            process.ProductionFilterSequence += process.bsmHtFilter
+        # apply GenJet pt cut for boosted search
+        elif options.boostvar=="pt":
+            process.genjetptFilter = cms.EDFilter(
+                "GenJetPTFilter",
+                ptMin = cms.double(options.boost),
+            )
+            process.ProductionFilterSequence += process.pgen
+            process.ProductionFilterSequence += process.genjetptFilter
 
 # genjet/met settings - treat DM stand-ins as invisible
 _particles = ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandidatesForMET","genParticlesForMETAllVisible"]
