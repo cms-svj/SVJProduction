@@ -160,9 +160,9 @@ if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNo
 
 # DIGI settings
 if hasattr(process,"mixData"):
-    if options.year==2016: puname = "Neutrino_E-10_gun_RunIISpring15PrePremix-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v2-v2_GEN-SIM-DIGI-RAW.pkl"
-    elif options.year==2017: puname = "Neutrino_E-10_gun_RunIISummer17PrePremix-MCv2_correctPU_94X_mc2017_realistic_v9-v1_GEN-SIM-DIGI-RAW.pkl"
-    elif options.year==2018: puname = "Neutrino_E-10_gun_RunIISummer17PrePremix-PUAutumn18_102X_upgrade2018_realistic_v15-v1_GEN-SIM-DIGI-RAW.pkl"
+    if options.year.startswith(2016): puname = "Neutrino_E-10_gun_RunIISummer20ULPrePremix-UL16_106X_mcRun2_asymptotic_v13-v1_PREMIX.pkl"
+    elif options.year==2017: puname = "Neutrino_E-10_gun_RunIISummer20ULPrePremix-UL17_106X_mc2017_realistic_v6-v3_PREMIX.pkl"
+    elif options.year==2018: puname = "Neutrino_E-10_gun_RunIISummer20ULPrePremix-UL18_106X_upgrade2018_realistic_v11_L1v1-v2_PREMIX.pkl"
     if not os.path.isfile(puname):
         print "retrieving "+puname
         os.system("xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/"+puname+" .")

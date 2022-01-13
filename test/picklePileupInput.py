@@ -1,23 +1,33 @@
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from Configuration.Applications.ConfigBuilder import filesFromList
 import cPickle as pickle
 from StringIO import StringIO
-import sys
+import os, sys
 
 class NullIO(StringIO):
     def write(self, txt):
         pass
 
-if len(sys.argv)>0:
-    fname = sys.argv[1]
-else:
-    raise ValueError("Please specify input filename")
+parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+parser.add_argument("-d", "--dir", type=str, default="", help="name of EOS output directory")
+parser.add_argument("-v", "--verbose", default=False, action="store_true", help="print commands")
+parser.add_argument("premix", type=str, help="name of premix dataset")
+args = parser.parse_args()
+
+flat_name = args.premix[1:].replace("/","_")+'.txt'
+cmd = 'dasgoclient -query="file dataset={}" | sort > {}'.format(args.premix, flat_name)
+if args.verbose: print(cmd)
+os.system(cmd)
 
 # suppress pointless printouts
 sys.stdout = NullIO()
-files = filesFromList(fname)
+files = filesFromList(flat_name)
 sys.stdout = sys.__stdout__
 
 # store list
-pickle.dump( files[0], open(fname.replace(".txt",".pkl"),"wb") )
+pickle.dump( files[0], open(flat_name.replace(".txt",".pkl"),"wb") )
 
-
+if len(args.dir)>0:
+    cmd2 = "xrdcp {0} {1}/{0}".format(flat_name, args.dir)
+    if args.verbose: print(cmd2)
+    os.system(cmd2)
