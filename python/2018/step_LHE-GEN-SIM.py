@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_upgrade2018_realistic_v4 --beamspot Realistic25ns13TeVEarly2018Collision --step LHE,GEN,SIM --geometry DB:Extended --era Run2_2018 --filein file:step-1.root --fileout file:step0.root --python_filename python/2018/step1_LHE-GEN-SIM.py --no_exec
+# with command line options: SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_upgrade2018_realistic_v4 --beamspot Realistic25ns13TeVEarly2018Collision --step LHE,GEN,SIM --geometry DB:Extended --era Run2_2018 --fileout file:step0.root --python_filename python/2018/step_LHE-GEN-SIM.py --no_exec
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.Eras.Era_Run2_2018_cff import Run2_2018
@@ -30,15 +30,7 @@ process.maxEvents = cms.untracked.PSet(
 )
 
 # Input source
-process.source = cms.Source("PoolSource",
-    dropDescendantsOfDroppedBranches = cms.untracked.bool(False),
-    fileNames = cms.untracked.vstring('file:step-1.root'),
-    inputCommands = cms.untracked.vstring(
-        'keep *', 
-        'drop LHEXMLStringProduct_*_*_*'
-    ),
-    secondaryFileNames = cms.untracked.vstring()
-)
+process.source = cms.Source("EmptySource")
 
 process.options = cms.untracked.PSet(
 
