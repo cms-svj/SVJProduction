@@ -151,6 +151,8 @@ class svjHelper(object):
                 raise ValueError("Unknown boost variable {}".format(boostvar))
             self.boostvar = boostvar
             self.boost = boost
+        else:
+            self.boost = 0
 
         # get more parameters
         self.xsec = self.getPythiaXsec(self.mMediator)
