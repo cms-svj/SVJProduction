@@ -153,6 +153,7 @@ install_CMSSW(){
 		python $CMSSW_BASE/src/Condor/Production/python/linkScripts.py
 		python $CMSSW_BASE/src/Condor/Production/python/cacheAll.py
 		ln -s $CMSSW_BASE/src/Condor/Production/python/manageJobs.py .
+		ln -s $CMSSW_BASE/src/Condor/Production/python/createChain.py .
 	fi
 }
 
