@@ -80,10 +80,10 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `part=[num]`: part number when producing a sample in multiple jobs (default = 1)
 * `indir=[str]`: directory for input file (local or logical)
 * `inpre=[str]`: prefix for input file name
-* `outpre=[list]`: list of prefixes for output file names (must be same length as list of output modules) (default = step1)
+* `outpre=[list]`: list of prefixes for output file names (must be same length as list of output modules) (default = step_GEN)
 * `output=[list]`: list of output module names (default = `sorted(process.outputModules_())`)
 * `year=[str]`: which year to simulate (default = 0, for year-independent configs)
-* `config=[str]`: config file to customize and run (default = step1_GEN)
+* `config=[str]`: config file to customize and run (default = step_GEN)
 * `printEvents=[num]`: number of Pythia events to print (default = 1)
 * `threads=[num]`: number of threads to run (default = 1)
 * `streams=[num]`: number of streams to run (default = 0 -> streams = threads)
@@ -100,17 +100,17 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 To run generator-level sample production interactively with example parameters:
 ```
 cd SVJ/Production/test
-cmsRun runSVJ.py year=2016 config=step1_GEN outpre=step1 mMediator=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
+cmsRun runSVJ.py year=2016 config=step_GEN outpre=step_GEN mMediator=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
 ```
 
 To run a GEN-level analyzer:
 ```
-cmsRun runSVJ.py config=genmassanalyzer_cfg output=TFileService outpre=genmassanalysis inpre=step1 mMediator=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
+cmsRun runSVJ.py config=genmassanalyzer_cfg output=TFileService outpre=genmassanalysis inpre=step_GEN mMediator=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
 ```
 
 To run the softdrop algorithm on GenJets/GenParticles from an existing sample, and analyze the result:
 ```
-cmsRun runSVJ.py config=softDropGenJets outpre=softdropgen indir=/store/user/lpcsusyhad/SVJ2017/ProductionV3/GEN-SIM/ inpre=step1_GEN-SIM redir=root://cmseos.fnal.gov/ mMediator=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
+cmsRun runSVJ.py config=softDropGenJets outpre=softdropgen indir=/store/user/lpcsusyhad/SVJ2017/ProductionV4/GEN/ inpre=step_GEN redir=root://cmseos.fnal.gov/ mMediator=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
 cmsRun runSVJ.py config=softdropanalyzer_cfg outpre=softdropana output=TFileService inpre=softdropgen mMediator=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
 ```
 
@@ -119,7 +119,7 @@ cmsRun runSVJ.py config=softdropanalyzer_cfg outpre=softdropana output=TFileServ
 To run the sample production interactively for SUEP with example parameters:
 ```
 cd SVJ/Production/test
-cmsRun runSVJ.py suep=1 year=2018 config=step1_GEN outpre=step1 mMediator=125 mDark=2.0 temperature=2.0 decay=generic part=1 maxEvents=10
+cmsRun runSVJ.py suep=1 year=2018 config=step_GEN outpre=step_GEN mMediator=125 mDark=2.0 temperature=2.0 decay=generic part=1 maxEvents=10
 ```
 
 ## Condor submission
@@ -134,7 +134,7 @@ it will submit to Condor the specified number of jobs for the specified signal m
 ```
 test/lnbatch.sh myProduction
 cd myProduction
-python submitJobs.py -p -o root://cmseos.fnal.gov//store/user/YOURUSERNAME/myProduction -d signals2 -E 500 -N 20 --outpre step1_GEN-SIM --config SVJ.Production.2016.step1_GEN-SIM -s
+python submitJobs.py -p -o root://cmseos.fnal.gov//store/user/YOURUSERNAME/myProduction -d signals2 -E 500 -N 20 --outpre step_GEN-SIM --config SVJ.Production.2016.step_GEN-SIM -s
 ```
 [submitJobs.py](./batch/submitJobs.py) can also:
 * count the expected number of jobs to submit (for planning purposes),
@@ -185,15 +185,15 @@ The basic [CondorProduction](https://github.com/kpedro88/CondorProduction) setup
 
 Gridpack:
 ```
-python submitJobs.py -p -d signalsV3_1 -E 50000 -N 1 --outpre step0_GRIDPACK --year 2016 --gridpack -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/GRIDPACK/ -s
+python submitJobs.py -p -d signalsV3_1 -E 50000 -N 1 --outpre step_GRIDPACK --year 2016 --gridpack -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/GRIDPACK/ -s
 ```
 LHE-GEN-SIM:
 ```
-python submitJobs.py -p -d signalsV3_1 -E 1000 -N 100 -I 50000 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/GRIDPACK/ --inpre step0_GRIDPACK --outpre step1_LHE-GEN-SIM --year 2016 --config step1_LHE-GEN-SIM --madgraph -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/GEN-SIM/ -s
+python submitJobs.py -p -d signalsV3_1 -E 1000 -N 100 -I 50000 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/GRIDPACK/ --inpre step_GRIDPACK --outpre step_LHE-GEN-SIM --year 2016 --config step_LHE-GEN-SIM --madgraph -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/GEN-SIM/ -s
 ```
 GEN-SIM:
 ```
-python submitJobs.py -p -d signalsV3_1 -E 1000 -N 100 --outpre step1_GEN-SIM --year 2016 --config step1_GEN-SIM -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/GEN-SIM/ -s
+python submitJobs.py -p -d signalsV3_1 -E 1000 -N 100 --outpre step_GEN-SIM --year 2016 --config step_GEN-SIM -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/GEN-SIM/ -s
 ```
 </details>
 
@@ -254,7 +254,7 @@ python runProd.py -P MG -G="-p -d signals_MG_ex --madgraph -E 10 -N 1 --cpus 4 -
 
 To prepare the file lists (and associated metadata):
 ```
-python submitJobs.py -y --actualEvents -K auto -d signalsV3_1 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/MINIAOD --inpre step4_MINIAOD --outpre SVJ_2016
+python submitJobs.py -y --actualEvents -K auto -d signalsV3_1 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/MINIAOD --inpre step_MINIAOD --outpre SVJ_2016
 ```
 
 Ntuple production uses the [TreeMaker](https://github.com/TreeMaker/TreeMaker) repository, which has its own [Condor submission instructions](https://github.com/TreeMaker/TreeMaker#submit-production-to-condor).
@@ -273,17 +273,17 @@ The steps are: LHE-GEN, LHE-GEN-SIM, GEN, GEN-SIM, SIM, DIGI, DIGI-HLT, HLT, REC
 <summary>Commands (2016APV):</summary>
 
 ```
-cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions 106X_mcRun2_asymptotic_preVFP_v8 --beamspot Realistic25ns13TeV2016Collision --step LHE,GEN --geometry DB:Extended --era Run2_2016_HIPM  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016APV/step1_LHE-GEN.py --no_exec
-cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_mcRun2_asymptotic_preVFP_v8 --beamspot Realistic25ns13TeV2016Collision --step LHE,GEN,SIM --geometry DB:Extended --era Run2_2016_HIPM  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016APV/step1_LHE-GEN-SIM.py --no_exec
-cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions 106X_mcRun2_asymptotic_preVFP_v8 --beamspot Realistic25ns13TeV2016Collision --step GEN --geometry DB:Extended --era Run2_2016_HIPM  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016APV/step1_GEN.py --no_exec
-cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_mcRun2_asymptotic_preVFP_v8 --beamspot Realistic25ns13TeV2016Collision --step GEN,SIM --geometry DB:Extended --era Run2_2016_HIPM  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016APV/step1_GEN-SIM.py --no_exec
-cmsDriver.py step1 --mc --eventcontent RAWSIM --runUnscheduled --datatier GEN-SIM --conditions 106X_mcRun2_asymptotic_preVFP_v8 --beamspot Realistic25ns13TeV2016Collision --step SIM --nThreads 8 --geometry DB:Extended --era Run2_2016_HIPM  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016APV/step2_SIM.py --no_exec
-cmsDriver.py step1 --mc --eventcontent PREMIXRAW --runUnscheduled --datatier GEN-SIM-DIGI --conditions 106X_mcRun2_asymptotic_preVFP_v8 --step DIGI,DATAMIX,L1,DIGI2RAW --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2016_HIPM  --filein file:step-1.root --fileout file:step0.root --pileup_input pileup.root --python_filename python/2016APV/step3_DIGI.py --no_exec
-cmsDriver.py step1 --mc --eventcontent PREMIXRAW --runUnscheduled --datatier GEN-SIM-DIGI --conditions 106X_mcRun2_asymptotic_preVFP_v8 --step DIGI,DATAMIX,L1,DIGI2RAW,HLT:@relval2016 --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2016_HIPM  --filein file:step-1.root --fileout file:step0.root --pileup_input pileup.root --python_filename python/2016APV/step3_DIGI-HLT.py --no_exec
-cmsDriver.py step1 --mc --eventcontent RAWSIM --outputCommand "keep *_mix_*_*,keep *_genPUProtons_*_*" --datatier GEN-SIM-RAW --inputCommands "keep *","drop *_*_BMTF_*","drop *PixelFEDChannel*_*_*_*" --conditions 80X_mcRun2_asymptotic_2016_TrancheIV_v6 --customise_commands 'process.source.bypassVersionCheck = cms.untracked.bool(True)' --step HLT:25ns15e33_v4 --nThreads 8 --geometry DB:Extended --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016APV/step4_HLT.py --no_exec
-cmsDriver.py step1 --mc --eventcontent AODSIM --runUnscheduled --datatier AODSIM --conditions 106X_mcRun2_asymptotic_preVFP_v8 --step RAW2DIGI,L1Reco,RECO,RECOSIM --nThreads 8 --geometry DB:Extended --era Run2_2016_HIPM  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016APV/step5_RECO.py --no_exec
-cmsDriver.py step1 --mc --eventcontent MINIAODSIM --runUnscheduled --datatier MINIAODSIM --conditions 106X_mcRun2_asymptotic_preVFP_v8 --step PAT --procModifiers run2_miniAOD_UL --nThreads 8 --geometry DB:Extended --era Run2_2016_HIPM  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016APV/step6_MINIAOD.py --no_exec
-cmsDriver.py step1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --conditions 106X_mcRun2_asymptotic_preVFP_v9 --step NANO --nThreads 8 --era Run2_2016,run2_nanoAOD_106Xv1  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016APV/step7_NANOAOD.py --no_exec
+cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions 106X_mcRun2_asymptotic_preVFP_v8 --beamspot Realistic25ns13TeV2016Collision --step LHE,GEN --geometry DB:Extended --era Run2_2016_HIPM  --fileout file:step0.root --python_filename python/2016APV/step_LHE-GEN.py --no_exec
+cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_mcRun2_asymptotic_preVFP_v8 --beamspot Realistic25ns13TeV2016Collision --step LHE,GEN,SIM --geometry DB:Extended --era Run2_2016_HIPM  --fileout file:step0.root --python_filename python/2016APV/step_LHE-GEN-SIM.py --no_exec
+cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions 106X_mcRun2_asymptotic_preVFP_v8 --beamspot Realistic25ns13TeV2016Collision --step GEN --geometry DB:Extended --era Run2_2016_HIPM  --fileout file:step0.root --python_filename python/2016APV/step_GEN.py --no_exec
+cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_mcRun2_asymptotic_preVFP_v8 --beamspot Realistic25ns13TeV2016Collision --step GEN,SIM --geometry DB:Extended --era Run2_2016_HIPM  --fileout file:step0.root --python_filename python/2016APV/step_GEN-SIM.py --no_exec
+cmsDriver.py step1 --mc --eventcontent RAWSIM --runUnscheduled --datatier GEN-SIM --conditions 106X_mcRun2_asymptotic_preVFP_v8 --beamspot Realistic25ns13TeV2016Collision --step SIM --nThreads 8 --geometry DB:Extended --era Run2_2016_HIPM  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016APV/step_SIM.py --no_exec
+cmsDriver.py step1 --mc --eventcontent PREMIXRAW --runUnscheduled --datatier GEN-SIM-DIGI --conditions 106X_mcRun2_asymptotic_preVFP_v8 --step DIGI,DATAMIX,L1,DIGI2RAW --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2016_HIPM  --filein file:step-1.root --fileout file:step0.root --pileup_input pileup.root --python_filename python/2016APV/step_DIGI.py --no_exec
+cmsDriver.py step1 --mc --eventcontent PREMIXRAW --runUnscheduled --datatier GEN-SIM-DIGI --conditions 106X_mcRun2_asymptotic_preVFP_v8 --step DIGI,DATAMIX,L1,DIGI2RAW,HLT:@relval2016 --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2016_HIPM  --filein file:step-1.root --fileout file:step0.root --pileup_input pileup.root --python_filename python/2016APV/step_DIGI-HLT.py --no_exec
+cmsDriver.py step1 --mc --eventcontent RAWSIM --outputCommand "keep *_mix_*_*,keep *_genPUProtons_*_*" --datatier GEN-SIM-RAW --inputCommands "keep *","drop *_*_BMTF_*","drop *PixelFEDChannel*_*_*_*" --conditions 80X_mcRun2_asymptotic_2016_TrancheIV_v6 --customise_commands 'process.source.bypassVersionCheck = cms.untracked.bool(True)' --step HLT:25ns15e33_v4 --nThreads 8 --geometry DB:Extended --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016APV/step_HLT.py --no_exec
+cmsDriver.py step1 --mc --eventcontent AODSIM --runUnscheduled --datatier AODSIM --conditions 106X_mcRun2_asymptotic_preVFP_v8 --step RAW2DIGI,L1Reco,RECO,RECOSIM --nThreads 8 --geometry DB:Extended --era Run2_2016_HIPM  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016APV/step_RECO.py --no_exec
+cmsDriver.py step1 --mc --eventcontent MINIAODSIM --runUnscheduled --datatier MINIAODSIM --conditions 106X_mcRun2_asymptotic_preVFP_v8 --step PAT --procModifiers run2_miniAOD_UL --nThreads 8 --geometry DB:Extended --era Run2_2016_HIPM  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016APV/step_MINIAOD.py --no_exec
+cmsDriver.py step1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --conditions 106X_mcRun2_asymptotic_preVFP_v9 --step NANO --nThreads 8 --era Run2_2016,run2_nanoAOD_106Xv1  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016APV/step_NANOAOD.py --no_exec
 ```
 </details>
 
@@ -291,17 +291,17 @@ cmsDriver.py step1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --condit
 <summary>Commands (2016):</summary>
 
 ```
-cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions 106X_mcRun2_asymptotic_v13 --beamspot Realistic25ns13TeV2016Collision --step LHE,GEN --geometry DB:Extended --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016/step1_LHE-GEN.py --no_exec
-cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_mcRun2_asymptotic_v13 --beamspot Realistic25ns13TeV2016Collision --step LHE,GEN,SIM --geometry DB:Extended --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016/step1_LHE-GEN-SIM.py --no_exec
-cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions 106X_mcRun2_asymptotic_v13 --beamspot Realistic25ns13TeV2016Collision --step GEN --geometry DB:Extended --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016/step1_GEN.py --no_exec
-cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_mcRun2_asymptotic_v13 --beamspot Realistic25ns13TeV2016Collision --step GEN,SIM --geometry DB:Extended --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016/step1_GEN-SIM.py --no_exec
-cmsDriver.py step1 --mc --eventcontent RAWSIM --runUnscheduled --datatier GEN-SIM --conditions 106X_mcRun2_asymptotic_v13 --beamspot Realistic25ns13TeV2016Collision --step SIM --nThreads 8 --geometry DB:Extended --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016/step2_SIM.py --no_exec
-cmsDriver.py step1 --mc --eventcontent PREMIXRAW --runUnscheduled --datatier GEN-SIM-DIGI --conditions 106X_mcRun2_asymptotic_v13 --step DIGI,DATAMIX,L1,DIGI2RAW --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --pileup_input pileup.root --python_filename python/2016/step3_DIGI.py --no_exec
-cmsDriver.py step1 --mc --eventcontent PREMIXRAW --runUnscheduled --datatier GEN-SIM-DIGI --conditions 106X_mcRun2_asymptotic_v13 --step DIGI,DATAMIX,L1,DIGI2RAW,HLT:@relval2016 --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --pileup_input pileup.root --python_filename python/2016/step3_DIGI-HLT.py --no_exec
-cmsDriver.py step1 --mc --eventcontent RAWSIM --outputCommand "keep *_mix_*_*,keep *_genPUProtons_*_*" --datatier GEN-SIM-RAW --inputCommands "keep *","drop *_*_BMTF_*","drop *PixelFEDChannel*_*_*_*" --conditions 80X_mcRun2_asymptotic_2016_TrancheIV_v6 --customise_commands 'process.source.bypassVersionCheck = cms.untracked.bool(True)' --step HLT:25ns15e33_v4 --nThreads 8 --geometry DB:Extended --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016/step4_HLT.py --no_exec
-cmsDriver.py step1 --mc --eventcontent AODSIM --runUnscheduled --datatier AODSIM --conditions 106X_mcRun2_asymptotic_v13 --step RAW2DIGI,L1Reco,RECO,RECOSIM --nThreads 8 --geometry DB:Extended --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016/step5_RECO.py --no_exec
-cmsDriver.py step1 --mc --eventcontent MINIAODSIM --runUnscheduled --datatier MINIAODSIM --conditions 106X_mcRun2_asymptotic_v13 --step PAT --procModifiers run2_miniAOD_UL --nThreads 8 --geometry DB:Extended --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016/step6_MINIAOD.py --no_exec
-cmsDriver.py step1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --conditions 106X_mcRun2_asymptotic_v15 --step NANO --nThreads 8 --era Run2_2016,run2_nanoAOD_106Xv1  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016/step7_NANOAOD.py --no_exec
+cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions 106X_mcRun2_asymptotic_v13 --beamspot Realistic25ns13TeV2016Collision --step LHE,GEN --geometry DB:Extended --era Run2_2016  --fileout file:step0.root --python_filename python/2016/step_LHE-GEN.py --no_exec
+cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_mcRun2_asymptotic_v13 --beamspot Realistic25ns13TeV2016Collision --step LHE,GEN,SIM --geometry DB:Extended --era Run2_2016  --fileout file:step0.root --python_filename python/2016/step_LHE-GEN-SIM.py --no_exec
+cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions 106X_mcRun2_asymptotic_v13 --beamspot Realistic25ns13TeV2016Collision --step GEN --geometry DB:Extended --era Run2_2016  --fileout file:step0.root --python_filename python/2016/step_GEN.py --no_exec
+cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_mcRun2_asymptotic_v13 --beamspot Realistic25ns13TeV2016Collision --step GEN,SIM --geometry DB:Extended --era Run2_2016  --fileout file:step0.root --python_filename python/2016/step_GEN-SIM.py --no_exec
+cmsDriver.py step1 --mc --eventcontent RAWSIM --runUnscheduled --datatier GEN-SIM --conditions 106X_mcRun2_asymptotic_v13 --beamspot Realistic25ns13TeV2016Collision --step SIM --nThreads 8 --geometry DB:Extended --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016/step_SIM.py --no_exec
+cmsDriver.py step1 --mc --eventcontent PREMIXRAW --runUnscheduled --datatier GEN-SIM-DIGI --conditions 106X_mcRun2_asymptotic_v13 --step DIGI,DATAMIX,L1,DIGI2RAW --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --pileup_input pileup.root --python_filename python/2016/step_DIGI.py --no_exec
+cmsDriver.py step1 --mc --eventcontent PREMIXRAW --runUnscheduled --datatier GEN-SIM-DIGI --conditions 106X_mcRun2_asymptotic_v13 --step DIGI,DATAMIX,L1,DIGI2RAW,HLT:@relval2016 --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --pileup_input pileup.root --python_filename python/2016/step_DIGI-HLT.py --no_exec
+cmsDriver.py step1 --mc --eventcontent RAWSIM --outputCommand "keep *_mix_*_*,keep *_genPUProtons_*_*" --datatier GEN-SIM-RAW --inputCommands "keep *","drop *_*_BMTF_*","drop *PixelFEDChannel*_*_*_*" --conditions 80X_mcRun2_asymptotic_2016_TrancheIV_v6 --customise_commands 'process.source.bypassVersionCheck = cms.untracked.bool(True)' --step HLT:25ns15e33_v4 --nThreads 8 --geometry DB:Extended --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016/step_HLT.py --no_exec
+cmsDriver.py step1 --mc --eventcontent AODSIM --runUnscheduled --datatier AODSIM --conditions 106X_mcRun2_asymptotic_v13 --step RAW2DIGI,L1Reco,RECO,RECOSIM --nThreads 8 --geometry DB:Extended --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016/step_RECO.py --no_exec
+cmsDriver.py step1 --mc --eventcontent MINIAODSIM --runUnscheduled --datatier MINIAODSIM --conditions 106X_mcRun2_asymptotic_v13 --step PAT --procModifiers run2_miniAOD_UL --nThreads 8 --geometry DB:Extended --era Run2_2016  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016/step_MINIAOD.py --no_exec
+cmsDriver.py step1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --conditions 106X_mcRun2_asymptotic_v15 --step NANO --nThreads 8 --era Run2_2016,run2_nanoAOD_106Xv1  --filein file:step-1.root --fileout file:step0.root --python_filename python/2016/step_NANOAOD.py --no_exec
 ```
 </details>
 
@@ -309,17 +309,17 @@ cmsDriver.py step1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --condit
 <summary>Commands (2017):</summary>
 
 ```
-cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions 106X_mc2017_realistic_v6 --beamspot Realistic25ns13TeVEarly2017Collision --step LHE,GEN --geometry DB:Extended --era Run2_2017  --filein file:step-1.root --fileout file:step0.root --python_filename python/2017/step1_LHE-GEN.py --no_exec
-cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_mc2017_realistic_v6 --beamspot Realistic25ns13TeVEarly2017Collision --step LHE,GEN,SIM --geometry DB:Extended --era Run2_2017  --filein file:step-1.root --fileout file:step0.root --python_filename python/2017/step1_LHE-GEN-SIM.py --no_exec
-cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions 106X_mc2017_realistic_v6 --beamspot Realistic25ns13TeVEarly2017Collision --step GEN --geometry DB:Extended --era Run2_2017  --filein file:step-1.root --fileout file:step0.root --python_filename python/2017/step1_GEN.py --no_exec
-cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_mc2017_realistic_v6 --beamspot Realistic25ns13TeVEarly2017Collision --step GEN,SIM --geometry DB:Extended --era Run2_2017  --filein file:step-1.root --fileout file:step0.root --python_filename python/2017/step1_GEN-SIM.py --no_exec
-cmsDriver.py step1 --mc --eventcontent RAWSIM --runUnscheduled --datatier GEN-SIM --conditions 106X_mc2017_realistic_v6 --beamspot Realistic25ns13TeVEarly2017Collision --step SIM --nThreads 8 --geometry DB:Extended --era Run2_2017  --filein file:step-1.root --fileout file:step0.root --python_filename python/2017/step2_SIM.py --no_exec
-cmsDriver.py step1 --mc --eventcontent PREMIXRAW --runUnscheduled --datatier GEN-SIM-DIGI --conditions 106X_mc2017_realistic_v6 --step DIGI,DATAMIX,L1,DIGI2RAW --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2017  --filein file:step-1.root --fileout file:step0.root --pileup_input pileup.root --python_filename python/2017/step3_DIGI.py --no_exec
-cmsDriver.py step1 --mc --eventcontent PREMIXRAW --runUnscheduled --datatier GEN-SIM-DIGI --conditions 106X_mc2017_realistic_v6 --step DIGI,DATAMIX,L1,DIGI2RAW,HLT:@relval2017 --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2017  --filein file:step-1.root --fileout file:step0.root --pileup_input pileup.root --python_filename python/2017/step3_DIGI-HLT.py --no_exec
-cmsDriver.py step1 --mc --eventcontent RAWSIM --datatier GEN-SIM-RAW --conditions 94X_mc2017_realistic_v15 --customise_commands 'process.source.bypassVersionCheck = cms.untracked.bool(True)' --step HLT:2e34v40 --nThreads 8 --geometry DB:Extended --era Run2_2017  --filein file:step-1.root --fileout file:step0.root --python_filename python/2017/step4_HLT.py --no_exec
-cmsDriver.py step1 --mc --eventcontent AODSIM --runUnscheduled --datatier AODSIM --conditions 106X_mc2017_realistic_v6 --step RAW2DIGI,L1Reco,RECO,RECOSIM --nThreads 8 --geometry DB:Extended --era Run2_2017  --filein file:step-1.root --fileout file:step0.root --python_filename python/2017/step5_RECO.py --no_exec
-cmsDriver.py step1 --mc --eventcontent MINIAODSIM --runUnscheduled --datatier MINIAODSIM --conditions 106X_mc2017_realistic_v9 --step PAT --procModifiers run2_miniAOD_UL --nThreads 8 --geometry DB:Extended --era Run2_2017  --filein file:step-1.root --fileout file:step0.root --python_filename python/2017/step6_MINIAOD.py --no_exec
-cmsDriver.py step1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --conditions 106X_mc2017_realistic_v8 --step NANO --nThreads 8 --era Run2_2017,run2_nanoAOD_106Xv1  --filein file:step-1.root --fileout file:step0.root --python_filename python/2017/step7_NANOAOD.py --no_exec
+cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions 106X_mc2017_realistic_v6 --beamspot Realistic25ns13TeVEarly2017Collision --step LHE,GEN --geometry DB:Extended --era Run2_2017  --fileout file:step0.root --python_filename python/2017/step_LHE-GEN.py --no_exec
+cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_mc2017_realistic_v6 --beamspot Realistic25ns13TeVEarly2017Collision --step LHE,GEN,SIM --geometry DB:Extended --era Run2_2017  --fileout file:step0.root --python_filename python/2017/step_LHE-GEN-SIM.py --no_exec
+cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions 106X_mc2017_realistic_v6 --beamspot Realistic25ns13TeVEarly2017Collision --step GEN --geometry DB:Extended --era Run2_2017  --fileout file:step0.root --python_filename python/2017/step_GEN.py --no_exec
+cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_mc2017_realistic_v6 --beamspot Realistic25ns13TeVEarly2017Collision --step GEN,SIM --geometry DB:Extended --era Run2_2017  --fileout file:step0.root --python_filename python/2017/step_GEN-SIM.py --no_exec
+cmsDriver.py step1 --mc --eventcontent RAWSIM --runUnscheduled --datatier GEN-SIM --conditions 106X_mc2017_realistic_v6 --beamspot Realistic25ns13TeVEarly2017Collision --step SIM --nThreads 8 --geometry DB:Extended --era Run2_2017  --filein file:step-1.root --fileout file:step0.root --python_filename python/2017/step_SIM.py --no_exec
+cmsDriver.py step1 --mc --eventcontent PREMIXRAW --runUnscheduled --datatier GEN-SIM-DIGI --conditions 106X_mc2017_realistic_v6 --step DIGI,DATAMIX,L1,DIGI2RAW --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2017  --filein file:step-1.root --fileout file:step0.root --pileup_input pileup.root --python_filename python/2017/step_DIGI.py --no_exec
+cmsDriver.py step1 --mc --eventcontent PREMIXRAW --runUnscheduled --datatier GEN-SIM-DIGI --conditions 106X_mc2017_realistic_v6 --step DIGI,DATAMIX,L1,DIGI2RAW,HLT:@relval2017 --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2017  --filein file:step-1.root --fileout file:step0.root --pileup_input pileup.root --python_filename python/2017/step_DIGI-HLT.py --no_exec
+cmsDriver.py step1 --mc --eventcontent RAWSIM --datatier GEN-SIM-RAW --conditions 94X_mc2017_realistic_v15 --customise_commands 'process.source.bypassVersionCheck = cms.untracked.bool(True)' --step HLT:2e34v40 --nThreads 8 --geometry DB:Extended --era Run2_2017  --filein file:step-1.root --fileout file:step0.root --python_filename python/2017/step_HLT.py --no_exec
+cmsDriver.py step1 --mc --eventcontent AODSIM --runUnscheduled --datatier AODSIM --conditions 106X_mc2017_realistic_v6 --step RAW2DIGI,L1Reco,RECO,RECOSIM --nThreads 8 --geometry DB:Extended --era Run2_2017  --filein file:step-1.root --fileout file:step0.root --python_filename python/2017/step_RECO.py --no_exec
+cmsDriver.py step1 --mc --eventcontent MINIAODSIM --runUnscheduled --datatier MINIAODSIM --conditions 106X_mc2017_realistic_v9 --step PAT --procModifiers run2_miniAOD_UL --nThreads 8 --geometry DB:Extended --era Run2_2017  --filein file:step-1.root --fileout file:step0.root --python_filename python/2017/step_MINIAOD.py --no_exec
+cmsDriver.py step1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --conditions 106X_mc2017_realistic_v8 --step NANO --nThreads 8 --era Run2_2017,run2_nanoAOD_106Xv1  --filein file:step-1.root --fileout file:step0.root --python_filename python/2017/step_NANOAOD.py --no_exec
 ```
 </details>
 
@@ -327,17 +327,17 @@ cmsDriver.py step1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --condit
 <summary>Commands (2018):</summary>
 
 ```
-cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions 106X_upgrade2018_realistic_v4 --beamspot Realistic25ns13TeVEarly2018Collision --step LHE,GEN --geometry DB:Extended --era Run2_2018  --filein file:step-1.root --fileout file:step0.root --python_filename python/2018/step1_LHE-GEN.py --no_exec
-cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_upgrade2018_realistic_v4 --beamspot Realistic25ns13TeVEarly2018Collision --step LHE,GEN,SIM --geometry DB:Extended --era Run2_2018  --filein file:step-1.root --fileout file:step0.root --python_filename python/2018/step1_LHE-GEN-SIM.py --no_exec
-cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions 106X_upgrade2018_realistic_v4 --beamspot Realistic25ns13TeVEarly2018Collision --step GEN --geometry DB:Extended --era Run2_2018  --filein file:step-1.root --fileout file:step0.root --python_filename python/2018/step1_GEN.py --no_exec
-cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_upgrade2018_realistic_v4 --beamspot Realistic25ns13TeVEarly2018Collision --step GEN,SIM --geometry DB:Extended --era Run2_2018  --filein file:step-1.root --fileout file:step0.root --python_filename python/2018/step1_GEN-SIM.py --no_exec
-cmsDriver.py step1 --mc --eventcontent RAWSIM --runUnscheduled --datatier GEN-SIM --conditions 106X_upgrade2018_realistic_v11_L1v1 --beamspot Realistic25ns13TeVEarly2018Collision --step SIM --nThreads 8 --geometry DB:Extended --era Run2_2018  --filein file:step-1.root --fileout file:step0.root --python_filename python/2018/step2_SIM.py --no_exec
-cmsDriver.py step1 --mc --eventcontent PREMIXRAW --runUnscheduled --datatier GEN-SIM-DIGI --conditions 106X_upgrade2018_realistic_v11_L1v1 --step DIGI,DATAMIX,L1,DIGI2RAW --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2018  --filein file:step-1.root --fileout file:step0.root --pileup_input pileup.root --python_filename python/2018/step3_DIGI.py --no_exec
-cmsDriver.py step1 --mc --eventcontent PREMIXRAW --runUnscheduled --datatier GEN-SIM-DIGI --conditions 106X_upgrade2018_realistic_v11_L1v1 --step DIGI,DATAMIX,L1,DIGI2RAW,HLT:@relval2018 --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2018  --filein file:step-1.root --fileout file:step0.root --pileup_input pileup.root --python_filename python/2018/step3_DIGI-HLT.py --no_exec
-cmsDriver.py step1 --mc --eventcontent RAWSIM --datatier GEN-SIM-RAW --conditions 102X_upgrade2018_realistic_v15 --customise_commands 'process.source.bypassVersionCheck = cms.untracked.bool(True)' --step HLT:2018v32 --nThreads 8 --geometry DB:Extended --era Run2_2018  --filein file:step-1.root --fileout file:step0.root --python_filename python/2018/step4_HLT.py --no_exec
-cmsDriver.py step1 --mc --eventcontent AODSIM --runUnscheduled --datatier AODSIM --conditions 106X_upgrade2018_realistic_v11_L1v1 --step RAW2DIGI,L1Reco,RECO,RECOSIM,EI --nThreads 8 --geometry DB:Extended --era Run2_2018  --filein file:step-1.root --fileout file:step0.root --python_filename python/2018/step5_RECO.py --no_exec
-cmsDriver.py step1 --mc --eventcontent MINIAODSIM --runUnscheduled --datatier MINIAODSIM --conditions 106X_upgrade2018_realistic_v16_L1v1 --step PAT --procModifiers run2_miniAOD_UL --nThreads 8 --geometry DB:Extended --era Run2_2018  --filein file:step-1.root --fileout file:step0.root --python_filename python/2018/step6_MINIAOD.py --no_exec
-cmsDriver.py step1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --conditions 106X_upgrade2018_realistic_v15_L1v1 --step NANO --nThreads 8 --era Run2_2018,run2_nanoAOD_106Xv1  --filein file:step-1.root --fileout file:step0.root --python_filename python/2018/step7_NANOAOD.py --no_exec
+cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions 106X_upgrade2018_realistic_v4 --beamspot Realistic25ns13TeVEarly2018Collision --step LHE,GEN --geometry DB:Extended --era Run2_2018  --fileout file:step0.root --python_filename python/2018/step_LHE-GEN.py --no_exec
+cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_upgrade2018_realistic_v4 --beamspot Realistic25ns13TeVEarly2018Collision --step LHE,GEN,SIM --geometry DB:Extended --era Run2_2018  --fileout file:step0.root --python_filename python/2018/step_LHE-GEN-SIM.py --no_exec
+cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN --conditions 106X_upgrade2018_realistic_v4 --beamspot Realistic25ns13TeVEarly2018Collision --step GEN --geometry DB:Extended --era Run2_2018  --fileout file:step0.root --python_filename python/2018/step_GEN.py --no_exec
+cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 106X_upgrade2018_realistic_v4 --beamspot Realistic25ns13TeVEarly2018Collision --step GEN,SIM --geometry DB:Extended --era Run2_2018  --fileout file:step0.root --python_filename python/2018/step_GEN-SIM.py --no_exec
+cmsDriver.py step1 --mc --eventcontent RAWSIM --runUnscheduled --datatier GEN-SIM --conditions 106X_upgrade2018_realistic_v11_L1v1 --beamspot Realistic25ns13TeVEarly2018Collision --step SIM --nThreads 8 --geometry DB:Extended --era Run2_2018  --filein file:step-1.root --fileout file:step0.root --python_filename python/2018/step_SIM.py --no_exec
+cmsDriver.py step1 --mc --eventcontent PREMIXRAW --runUnscheduled --datatier GEN-SIM-DIGI --conditions 106X_upgrade2018_realistic_v11_L1v1 --step DIGI,DATAMIX,L1,DIGI2RAW --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2018  --filein file:step-1.root --fileout file:step0.root --pileup_input pileup.root --python_filename python/2018/step_DIGI.py --no_exec
+cmsDriver.py step1 --mc --eventcontent PREMIXRAW --runUnscheduled --datatier GEN-SIM-DIGI --conditions 106X_upgrade2018_realistic_v11_L1v1 --step DIGI,DATAMIX,L1,DIGI2RAW,HLT:@relval2018 --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --datamix PreMix --era Run2_2018  --filein file:step-1.root --fileout file:step0.root --pileup_input pileup.root --python_filename python/2018/step_DIGI-HLT.py --no_exec
+cmsDriver.py step1 --mc --eventcontent RAWSIM --datatier GEN-SIM-RAW --conditions 102X_upgrade2018_realistic_v15 --customise_commands 'process.source.bypassVersionCheck = cms.untracked.bool(True)' --step HLT:2018v32 --nThreads 8 --geometry DB:Extended --era Run2_2018  --filein file:step-1.root --fileout file:step0.root --python_filename python/2018/step_HLT.py --no_exec
+cmsDriver.py step1 --mc --eventcontent AODSIM --runUnscheduled --datatier AODSIM --conditions 106X_upgrade2018_realistic_v11_L1v1 --step RAW2DIGI,L1Reco,RECO,RECOSIM,EI --nThreads 8 --geometry DB:Extended --era Run2_2018  --filein file:step-1.root --fileout file:step0.root --python_filename python/2018/step_RECO.py --no_exec
+cmsDriver.py step1 --mc --eventcontent MINIAODSIM --runUnscheduled --datatier MINIAODSIM --conditions 106X_upgrade2018_realistic_v16_L1v1 --step PAT --procModifiers run2_miniAOD_UL --nThreads 8 --geometry DB:Extended --era Run2_2018  --filein file:step-1.root --fileout file:step0.root --python_filename python/2018/step_MINIAOD.py --no_exec
+cmsDriver.py step1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --conditions 106X_upgrade2018_realistic_v15_L1v1 --step NANO --nThreads 8 --era Run2_2018,run2_nanoAOD_106Xv1  --filein file:step-1.root --fileout file:step0.root --python_filename python/2018/step_NANOAOD.py --no_exec
 ```
 </details>
 
