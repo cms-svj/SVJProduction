@@ -74,6 +74,3 @@ for PDGID in ${PDGIDS[@]}; do
     IFS="," read -a IDS <<< "$PDGID"
     sed -i 's/'\ "${IDS[0]}"\ '/'\ "${IDS[1]}"\ '/g' cmsgrid_final.lhe
 done
-
-# Fix a unicode character in one of the MadGraph comments
-sed -i 's/\x7/a/g' cmsgrid_final.lhe
