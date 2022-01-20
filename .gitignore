@@ -45,6 +45,4 @@ __init__.py
 *.stdout
 *.stderr
 *.condor
-/batch/jobExecCondor_*.jdl
 *.csv
-/interface/common.h

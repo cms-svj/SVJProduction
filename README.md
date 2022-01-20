@@ -198,7 +198,55 @@ python submitJobs.py -p -d signalsV3_1 -E 1000 -N 100 --outpre step1_GEN-SIM --y
 
 ### Chain submission
 
-(to be added)
+The script [runProd.py](./batch/runProd.py) can create and submit a chain of jobs to run all signal production steps.
+This script automates the creation of a [job chain](https://github.com/kpedro88/CondorProduction#job-chains).
+
+Several predefined chains are provided:  
+P8: 0. GEN-SIM, 1. DIGI, 2. HLT, 3. RECO, 4. MINIAOD  
+P8-lite: 0. GEN-SIM, 1. DIGI-HLT, 2. RECO, 3. MINIAOD  
+MG: 0. GRIDPACK, 1. LHE-GEN-SIM, 2. DIGI, 3. HLT, 4. RECO, 5. MINIAOD  
+MG-lite: 0. GRIDPACK, 1. LHE-GEN-SIM, 2. DIGI-HLT, 3. RECO, 4. MINIAOD  
+
+These predefined chains can be modified with the script's command-line options, or (as an exclusive option) a custom chain of steps can be used.
+
+The script has several options:
+* `-P, --predefined [chain]`: choose predefined chain
+* `-C, --custom [steps]`: specify steps for custom chain
+* `-M, --modify [op] [pos/name] [step]`: modify predefined chain  
+	multiple ops can be given in one call, or option can be called multiple times  
+    ops will be applied in order provided
+    * op = insert, remove, change
+    * pos/name = position (number) or name of step in predefined chain
+    * step = name of step to insert/substitute
+* `-S, --store [pos/name]`: store output for intermediate step (position or name) (can be called multiple times)
+* `-G, --global [opts]`: global arguments for submitJobs (use syntax: -G="...")
+* `-L, --local [pos/name] [opts]`: local arguments for submitJobs for a specific step
+* `-n, --name [name]`: base-level name for chain job
+* `-k, --keep`: keep existing tarball(s) for job submission
+* `-s, --submit`: submit chain jdl(s)
+* `-y, --year [year]`: which year to simulate
+* `-o, --output [dir]`: base-level output directory
+* `-t, --tardir [dir]`: xrdcp address for CMSSW tarballs (default: None)
+* `-c, --checkpoint`: enable checkpointing (if a job fails, save output files from previous job in chain)
+* `-v, --verbose`: print verbose output (default: False)
+* `-h, --help`: show this help message and exit
+
+The options with lowercase short flags are related to options for `submitJobs.py` and `createChain.py`.
+Other submitJobs options that should usually be specified using `-G` include:
+mode, input dict(s), number of events per job, number of parts, resource requirements such as memory, any additional common arguments.
+
+<details>
+<summary>Example commands</summary>
+
+Pythia-only generation:
+```
+python runProd.py -P P8 -G="-p -d signalsV3_0 -E 10 -N 1 --memory 8000" -y 2016 -n chain2016_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -c -s
+```
+
+MadGraph+Pythia generation:
+```
+```
+</details>
 
 ### Ntuple production
 

@@ -9,8 +9,8 @@ def makeNameSVJ(self,num):
 protoJob.makeName = makeNameSVJ
 
 class jobSubmitterSVJ(jobSubmitter):
-    def __init__(self):
-        super(jobSubmitterSVJ,self).__init__()
+    def __init__(self,argv=None,parser=None):
+        super(jobSubmitterSVJ,self).__init__(argv,parser)
 
         if self.suep:
             self.helper = suepHelper()
