@@ -149,6 +149,9 @@ class svjHelper(object):
         if boostvar is not None:
             if boostvar not in allowed_boostvars:
                 raise ValueError("Unknown boost variable {}".format(boostvar))
+            # ht filter requires LHE particles
+            if boostvar=="ht" and generate:
+                raise ValueError("ht boostvar not compatible with Pythia-only generation")
             self.boostvar = boostvar
             self.boost = boost
         else:
