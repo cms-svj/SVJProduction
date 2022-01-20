@@ -25,9 +25,10 @@ files = filesFromList(flat_name)
 sys.stdout = sys.__stdout__
 
 # store list
-pickle.dump( files[0], open(flat_name.replace(".txt",".pkl"),"wb") )
+pickle_name = flat_name.replace(".txt",".pkl")
+pickle.dump( files[0], open(pickle_name,"wb") )
 
 if len(args.dir)>0:
-    cmd2 = "xrdcp {0} {1}/{0}".format(flat_name, args.dir)
+    cmd2 = "xrdcp {0} {1}/{0}".format(pickle_name, args.dir)
     if args.verbose: print(cmd2)
     os.system(cmd2)
