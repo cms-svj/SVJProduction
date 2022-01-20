@@ -74,7 +74,6 @@ if options.signal:
         if hasattr(process,'generator'):
             process.generator.crossSection = cms.untracked.double(_helper.xsec)
             process.generator.PythiaParameters.processParameters = cms.vstring(_helper.getPythiaSettings())
-            process.generator.maxEventsToPrint = cms.untracked.int32(1)
             if hasattr(process.generator.PythiaParameters,"JetMatchingParameters"):
                 process.generator.PythiaParameters.JetMatchingParameters = cms.vstring(_helper.getJetMatchSettings())
             if options.suep:
@@ -124,6 +123,9 @@ if options.signal:
             )
             process.ProductionFilterSequence += process.pgen
             process.ProductionFilterSequence += process.genjetptFilter
+
+if hasattr(process,'generator') and hasattr(process.generator,'maxEventsToPrint'):
+    process.generator.maxEventsToPrint = options.printEvents
 
 # genjet/met settings - treat DM stand-ins as invisible
 _particles = ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandidatesForMET","genParticlesForMETAllVisible"]
