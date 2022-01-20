@@ -84,6 +84,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `output=[list]`: list of output module names (default = `sorted(process.outputModules_())`)
 * `year=[str]`: which year to simulate (default = 0, for year-independent configs)
 * `config=[str]`: config file to customize and run (default = step1_GEN)
+* `printEvents=[num]`: number of Pythia events to print (default = 1)
 * `threads=[num]`: number of threads to run (default = 1)
 * `streams=[num]`: number of streams to run (default = 0 -> streams = threads)
 * `redir=[dir]`: xrootd redirector for input file
