@@ -182,16 +182,16 @@ class jobSubmitterSVJ(jobSubmitter):
                             "mDark="+str(pdict["mDark"]),
                             "rinv="+str(pdict["rinv"]),
                             "alpha="+str(pdict["alpha"]),
-                            "boost="+str(pdict["boost"] if "boost" in pdict else 0.0),
-                            "yukawa="+str(pdict["yukawa"] if "yukawa" in pdict else 0.0),
                         ]
+                        if "boost" in pdict: arglist.append("boost="+str(pdict["boost"]))
+                        if "boostvar" in pdict: arglist.append("boostvar="+str(pdict["boostvar"]))
+                        if "yukawa" in pdict: arglist.append("yukawa="+str(pdict["yukawa"]))
+                        if "filterZ2" in pdict: arglist.append("filterZ2="+str(pdict["filterZ2"]))
                     arglist.extend([
                         "maxEvents="+str(self.maxEvents),
                         "outpre="+self.outpre,
                         "year="+str(self.year),
                     ])
-                    if "filterZ2" in pdict:
-                        arglist.append("filterZ2="+str(pdict["filterZ2"]))
                     if not self.gridpack:
                         arglist.append("config="+self.config)
                     if self.madgraph or self.gridpack:
