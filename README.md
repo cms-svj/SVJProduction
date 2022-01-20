@@ -240,11 +240,12 @@ mode, input dict(s), number of events per job, number of parts, resource require
 
 Pythia-only generation:
 ```
-python runProd.py -P P8 -G="-p -d signalsV3_0 -E 10 -N 1 --memory 8000" -y 2016 -n chain2016_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -c -s
+python runProd.py -P P8 -G="-p -d signals_P8_ex -E 10 -N 1 --cpus 4 --memory 8000" -y 2016 -n chain2016_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -c -s
 ```
 
 MadGraph+Pythia generation:
 ```
+python runProd.py -P MG -G="-p -d signals_MG_ex --madgraph -E 10 -N 1 --cpus 4 --memory 8000" -y 2016 -n chain2016_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -c -s
 ```
 </details>
 
