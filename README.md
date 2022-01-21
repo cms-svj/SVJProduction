@@ -214,7 +214,7 @@ The script has several options:
 * `-P, --predefined [chain]`: choose predefined chain
 * `-C, --custom [steps]`: specify steps for custom chain
 * `-M, --modify [op] [pos/name] [step]`: modify predefined chain  
-	multiple ops can be given in one call, or option can be called multiple times  
+    multiple ops can be given in one call, or option can be called multiple times  
     ops will be applied in order provided
     * op = insert, remove, change
     * pos/name = position (number) or name of step in predefined chain
