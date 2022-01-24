@@ -5,3 +5,10 @@ jobExecCondor.sh
 jobExecCondor.jdl
 jobExecCondorChain.sh
 manageJobs.py
+createChain.py
+
+# generated files
+jobExecCondor_*.jdl
+checkpoints_*/
+chain*/
+
