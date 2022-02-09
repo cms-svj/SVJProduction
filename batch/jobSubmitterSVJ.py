@@ -149,7 +149,7 @@ class jobSubmitterSVJ(jobSubmitter):
             if self.skipParts=="auto":
                 injob = protoJob()
                 injob.name = self.helper.getOutName(events=self.maxEventsIn if self.maxEventsIn>0 else self.maxEvents,outpre=inpre,signal=signal)
-                infiles = {x.split('/')[-1].replace(".root","") for x in (filter(None,os.popen("xrdfs "+self.redir+" ls "+self.indir).read().split('\n')) if self.indir.startswith("/store/") else glob(self.indir+"/*.root"))}
+                infiles = {x.split('/')[-1].replace(".root","") for x in (pyxrdfsls(self.redir+self.indir) if self.indir.startswith("/store/") else glob(self.indir+"/*.root"))}
 
             # set this after making name to avoid duplicating pythia8 in name
             if "scan" in pdict:
