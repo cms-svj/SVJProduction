@@ -29,7 +29,7 @@ graphs = []
 colors = [kPink-9, kBlack, kBlue, kMagenta+2, kRed, kCyan+2, kMagenta]
 masses = ["1","5","10","20","50","75","100"]
 ymax = 0.0
-leg = TLegend(0.7,0.525,0.9,0.825)
+leg = TLegend(0.7,0.475,0.9,0.825)
 leg.SetFillColor(0)
 leg.SetBorderSize(0)
 leg.SetTextSize(0.05)
@@ -63,6 +63,8 @@ for im,mDark in enumerate(masses):
     line.SetLineWidth(2)
     line.SetLineColor(colors[im])
     lines.append(line)
+
+leg.AddEntry(lines[1], "#Lambda_{dark} = ^{}m_{dark}", "l")
 
 can = TCanvas()
 can.SetTopMargin(0.13)
@@ -99,6 +101,4 @@ ax_lambda.Draw()
 
 oname = "n_vs_alpha_mDark_mZprime-"+str(mZprime)
 can.Print(oname+".png","png")
-can.Print(oname+".eps","eps")
-import os
-os.popen("epstopdf "+oname+".eps")
+can.Print(oname+".pdf","pdf")

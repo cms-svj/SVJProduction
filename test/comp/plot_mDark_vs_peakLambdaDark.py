@@ -15,16 +15,30 @@ haxis.GetYaxis().SetTitle("#Lambda_{dark}^{peak} [GeV]")
 haxis.GetYaxis().SetTitleOffset(1.0)
 
 npts = len(df["mass"])
-graph = TGraphAsymmErrors(npts,array(df["mass"]),array(df["lambda"]),zeros(npts),zeros(npts),array(df["lambdaDnErr"]),array(df["lambdaUpErr"]))
+graph = TGraphAsymmErrors(npts,array([float(x) for x in df["mass"]]),array(df["lambda"]),zeros(npts),zeros(npts),array(df["lambdaDnErr"]),array(df["lambdaUpErr"]))
 graph.SetTitle("")
 graph.SetMarkerStyle(20)
 graph.SetMarkerColor(kBlue)
 graph.SetLineColor(kBlue)
 
 fit = TF1("fit","[0]*x^[1]",df["mass"].min(),df["mass"].max())
-fit.SetParameters(3.2,0.8)
+#fit.SetParameters(3.2,0.8)
+fit.FixParameter(0,3.2)
+fit.FixParameter(1,0.8)
 fit.SetLineStyle(2)
 fit.SetLineColor(kRed)
+
+leg = TLegend(0.2,0.75,0.5,0.9)
+leg.SetFillColor(0)
+leg.SetBorderSize(0)
+leg.SetTextSize(0.05)
+leg.SetTextFont(42)
+leg.AddEntry(fit, "#Lambda_{dark}^{peak} = 3.2^{}m_{dark}^{0.8}", "l")
+
+# get chi2 and adjust ndf
+graph.Fit(fit,"N")
+fit.SetNDF(fit.GetNDF()-fit.GetNpar())
+#leg.AddEntry(nullptr, "#chi^{2} / ^{}n_{dof} = "+"{:.1f}".format(fit.GetChisquare())+" / {}".format(fit.GetNDF()), "")
 
 can = TCanvas()
 can.SetLeftMargin(0.13)
@@ -33,8 +47,7 @@ can.Draw()
 haxis.Draw()
 graph.Draw("pz same")
 fit.Draw("same")
+leg.Draw()
 
 can.Print(name+".png","png")
-can.Print(name+".eps","eps")
-import os
-os.popen("epstopdf "+name+".eps")
+can.Print(name+".pdf","pdf")
