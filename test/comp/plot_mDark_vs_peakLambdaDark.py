@@ -10,8 +10,8 @@ df = pd.read_csv(name+".csv",sep=',')
 
 haxis = TH1F("axis","",1,0,101)
 haxis.GetYaxis().SetRangeUser(0,140)
-haxis.GetXaxis().SetTitle("m_{dark} [GeV]")
-haxis.GetYaxis().SetTitle("#Lambda_{dark}^{peak} [GeV]")
+haxis.GetXaxis().SetTitle("m_{#pi_{D}} [GeV]")
+haxis.GetYaxis().SetTitle("#Lambda_{D}^{peak} [GeV]")
 haxis.GetYaxis().SetTitleOffset(1.0)
 
 npts = len(df["mass"])
@@ -33,7 +33,7 @@ leg.SetFillColor(0)
 leg.SetBorderSize(0)
 leg.SetTextSize(0.05)
 leg.SetTextFont(42)
-leg.AddEntry(fit, "#Lambda_{dark}^{peak} = 3.2^{}m_{dark}^{0.8}", "l")
+leg.AddEntry(fit, "#Lambda_{D}^{peak} = 3.2^{}m_{#pi_{D}}^{0.8}", "l")
 
 # get chi2 and adjust ndf
 graph.Fit(fit,"N")

@@ -51,7 +51,7 @@ for im,mDark in enumerate(masses):
 
     graph.SetMarkerColor(colors[im])
     graphs.append(graph)
-    leg.AddEntry(graph,"m_{dark} = "+mDark+(" GeV" if im==0 else ""),"p")
+    leg.AddEntry(graph,"m_{#pi_{D}} = "+mDark+(" GeV" if im==0 else ""),"p")
 
 # define lines once ymax is known
 ymax = math.floor(float(ymax))+2
@@ -64,7 +64,7 @@ for im,mDark in enumerate(masses):
     line.SetLineColor(colors[im])
     lines.append(line)
 
-leg.AddEntry(lines[1], "#Lambda_{dark} = ^{}m_{dark}", "l")
+leg.AddEntry(lines[1], "#Lambda_{D} = ^{}m_{#pi_{D}}", "l")
 
 can = TCanvas()
 can.SetTopMargin(0.13)
@@ -74,8 +74,8 @@ can.Draw()
 nbins = 10
 haxis = TH1F("axis","",nbins,alphamin,alphamax)
 haxis.GetXaxis().SetNdivisions(210)
-haxis.GetXaxis().SetTitle("#alpha_{dark}")
-haxis.GetYaxis().SetTitle("#LT^{}N_{#pi_{dark}} + ^{}N_{#rho_{dark}}#GT")
+haxis.GetXaxis().SetTitle("#alpha_{D}")
+haxis.GetYaxis().SetTitle("#LT^{}N_{#pi_{D}} + ^{}N_{#rho_{D}}#GT")
 haxis.GetYaxis().SetRangeUser(0,ymax)
 haxis.GetYaxis().SetTitleOffset(0.9)
 haxis.Draw()
@@ -95,7 +95,7 @@ for i in range(nbins):
     xaxis2.SetBinLabel(i+1,lstr)
 ax_lambda = TGaxis(alphamin,ymax,alphamax,ymax,alphamin,alphamax,210,"-")
 ax_lambda.ImportAxisAttributes(xaxis2)
-ax_lambda.SetTitle("#Lambda_{dark} [GeV]")
+ax_lambda.SetTitle("#Lambda_{D} [GeV]")
 ax_lambda.SetLabelOffset(0.025)
 ax_lambda.Draw()
 

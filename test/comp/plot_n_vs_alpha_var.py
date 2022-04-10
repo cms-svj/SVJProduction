@@ -53,7 +53,7 @@ print "nHV = "+str(list(pts)[ymax_idx-1:ymax_idx+2])
 
 graph.SetMarkerColor(color)
 graphs.append(graph)
-leg.AddEntry(nullptr,"m_{dark} = "+str(mDark)+" GeV","")
+leg.AddEntry(nullptr,"m_{#pi_{D}} = "+str(mDark)+" GeV","")
 
 # define lines once ymax is known
 ymax = math.floor(float(ymax))+2
@@ -67,7 +67,7 @@ line1.SetLineStyle(7)
 line1.SetLineWidth(2)
 line1.SetLineColor(color)
 lines.append(line1)
-leg.AddEntry(line1,"#Lambda_{dark} = ^{}m_{dark}","l")
+leg.AddEntry(line1,"#Lambda_{D} = ^{}m_{#pi_{D}}","l")
 
 alpha_p = alpha_fn(lambda_peak(mDark))
 print "alpha_p = "+str(alpha_p)
@@ -76,8 +76,8 @@ line2.SetLineStyle(7)
 line2.SetLineWidth(2)
 line2.SetLineColor(kBlack)
 lines.append(line2)
-leg.AddEntry(line2,"#alpha_{dark}^{peak} (#Lambda_{dark} = ^{}3.2m_{dark}^{0.8})","l")
-#leg.AddEntry(nullptr,"(#Lambda_{dark} = ^{}3.2m_{dark}^{0.8})","")
+leg.AddEntry(line2,"#alpha_{D}^{peak} (#Lambda_{D} = ^{}3.2m_{#pi_{D}}^{0.8})","l")
+#leg.AddEntry(nullptr,"(#Lambda_{D} = ^{}3.2m_{#pi_{D}}^{0.8})","")
 
 alpha_h = 1.5*alpha_p
 line3 = TLine(alpha_h,0,alpha_h,ymax)
@@ -85,7 +85,7 @@ line3.SetLineStyle(7)
 line3.SetLineWidth(2)
 line3.SetLineColor(kBlue)
 lines.append(line3)
-leg.AddEntry(line3,"#alpha_{dark}^{high} = #frac{3}{2}^{}#alpha_{dark}^{peak}","l")
+leg.AddEntry(line3,"#alpha_{D}^{high} = #frac{3}{2}^{}#alpha_{D}^{peak}","l")
 
 alpha_l = 0.5*alpha_p
 line4 = TLine(alpha_l,0,alpha_l,ymax)
@@ -93,7 +93,7 @@ line4.SetLineStyle(7)
 line4.SetLineWidth(2)
 line4.SetLineColor(kRed)
 lines.append(line4)
-leg.AddEntry(line4,"#alpha_{dark}^{low} = #frac{1}{2}^{}#alpha_{dark}^{peak}","l")
+leg.AddEntry(line4,"#alpha_{D}^{low} = #frac{1}{2}^{}#alpha_{D}^{peak}","l")
 
 can = TCanvas()
 can.SetTopMargin(0.13)
@@ -103,8 +103,8 @@ can.Draw()
 nbins = 10
 haxis = TH1F("axis","",nbins,alphamin,alphamax)
 haxis.GetXaxis().SetNdivisions(210)
-haxis.GetXaxis().SetTitle("#alpha_{dark}")
-haxis.GetYaxis().SetTitle("#LT^{}N_{#pi_{dark}} + ^{}N_{#rho_{dark}}#GT")
+haxis.GetXaxis().SetTitle("#alpha_{D}")
+haxis.GetYaxis().SetTitle("#LT^{}N_{#pi_{D}} + ^{}N_{#rho_{D}}#GT")
 haxis.GetYaxis().SetRangeUser(0,ymax)
 haxis.GetYaxis().SetTitleOffset(0.9)
 haxis.Draw()
@@ -125,7 +125,7 @@ for i in range(nbins):
     xaxis2.SetBinLabel(i+1,lstr)
 ax_lambda = TGaxis(alphamin,ymax,alphamax,ymax,alphamin,alphamax,210,"-")
 ax_lambda.ImportAxisAttributes(xaxis2)
-ax_lambda.SetTitle("#Lambda_{dark} [GeV]")
+ax_lambda.SetTitle("#Lambda_{D} [GeV]")
 ax_lambda.SetLabelOffset(0.025)
 ax_lambda.Draw()
 
