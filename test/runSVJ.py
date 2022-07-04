@@ -80,7 +80,79 @@ if options.signal:
                 process.generator.UserCustomization = cms.VPSet(
                     _helper.getHookSettings()
                 )
+                if options.filterHT > 0:
+                  process.tmpGenParticles = cms.EDProducer("GenParticleProducer",
+                      saveBarCodes = cms.untracked.bool(True),
+                      src = cms.InputTag("generator","unsmeared"),
+                      abortOnUnknownPDGCode = cms.untracked.bool(False)
+                  )
 
+                  process.tmpGenParticlesForJetsNoNu = cms.EDProducer("InputGenJetsParticleSelector",
+                      src = cms.InputTag("tmpGenParticles"),
+                      ignoreParticleIDs = cms.vuint32(
+                           1000022,
+                           1000012, 1000014, 1000016,
+                           2000012, 2000014, 2000016,
+                           1000039, 5100039,
+                           4000012, 4000014, 4000016,
+                           9900012, 9900014, 9900016,
+                           39,12,14,16),
+                      partonicFinalState = cms.bool(False),
+                      excludeResonances = cms.bool(False),
+                      excludeFromResonancePids = cms.vuint32(12, 13, 14, 16),
+                      tausAsJets = cms.bool(False)
+                  )
+
+                  process.AnomalousCellParameters = cms.PSet(
+                      maxBadEcalCells         = cms.uint32(9999999),
+                      maxRecoveredEcalCells   = cms.uint32(9999999),
+                      maxProblematicEcalCells = cms.uint32(9999999),
+                      maxBadHcalCells         = cms.uint32(9999999),
+                      maxRecoveredHcalCells   = cms.uint32(9999999),
+                      maxProblematicHcalCells = cms.uint32(9999999)
+                  )
+
+                  process.GenJetParameters = cms.PSet(
+                      src            = cms.InputTag("tmpGenParticlesForJetsNoNu"),
+                      srcPVs         = cms.InputTag(''),
+                      jetType        = cms.string('GenJet'),
+                      jetPtMin       = cms.double(3.0),
+                      inputEtMin     = cms.double(0.0),
+                      inputEMin      = cms.double(0.0),
+                      doPVCorrection = cms.bool(False),
+                      # pileup with offset correction
+                      doPUOffsetCorr = cms.bool(False),
+                         # if pileup is false, these are not read:
+                         nSigmaPU = cms.double(1.0),
+                         radiusPU = cms.double(0.5),  
+                      # fastjet-style pileup     
+                      doAreaFastjet  = cms.bool(False),
+                      doRhoFastjet   = cms.bool(False),
+                        # if doPU is false, these are not read:
+                        Active_Area_Repeats = cms.int32(5),
+                        GhostArea = cms.double(0.01),
+                        Ghost_EtaMax = cms.double(6.0),
+                      Rho_EtaMax = cms.double(4.5),
+                      useDeterministicSeed= cms.bool( True ),
+                      minSeed             = cms.uint32( 14327 )
+                  )
+
+                  process.tmpAk4GenJetsNoNu = cms.EDProducer(
+                      "FastjetJetProducer",
+                      process.GenJetParameters,
+                      process.AnomalousCellParameters,
+                      jetAlgorithm = cms.string("AntiKt"),
+                      rParam       = cms.double(0.4)
+                  )
+
+                  process.genHTFilter = cms.EDFilter("GenHTFilter",
+                     src = cms.InputTag("tmpAk4GenJetsNoNu"), #GenJet collection as input
+                     jetPtCut = cms.double(30.0), #GenJet pT cut for HT
+                     jetEtaCut = cms.double(2.5), #GenJet eta cut for HT
+                     genHTcut = cms.double(options.filterHT) #genHT cut
+                  )
+                  if hasattr(process,'ProductionFilterSequence'):
+                    process.ProductionFilterSequence += process.tmpGenParticles * process.tmpGenParticlesForJetsNoNu * process.tmpAk4GenJetsNoNu * process.genHTFilter
     # gen filter settings
     # pythia implementation of model has 4900111/211 -> -51 51 and 4900113/213 -> -53 53
     # this is a stand-in for direct production of a single stable dark meson in the hadronization

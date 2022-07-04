@@ -22,11 +22,9 @@ class suepHelper(object):
         self.xsec = 1
         self.mMin = self.mMediator-1
         self.mMax = self.mMediator+1
-        self.mPho = self.mDark/2. # dark photon 
-        mPho = self.mDark/2. # generic uubar
-        if   decay == "darkPho"   : mPho = 0.5 # GeV    
-        elif decay == "darkPhoHad": mPho = 0.7 # GeV, allows more pion decays
-        self.mPho = mPho # dark photon mass
+        self.mPho = 1. # full hadronic (previously "generic" is set to 1)
+        if   decay == "darkPho"   : self.mPho = 0.5 # GeV    
+        elif decay == "darkPhoHad": self.mPho = 0.7 # GeV, allows more pion decays
 
     def getOutName(self,events=0,signal=True,outpre="outpre",part=None,sanitize=False):
         _outname = outpre
@@ -64,7 +62,13 @@ class suepHelper(object):
         lines = [
             'Check:event = off',
             # parameters for mediator (Higgs)
-            'HiggsSM:all = on',
+            'Higgs:useBSM = on',
+            'HiggsBSM:gg2H1 = on',
+            'HiggsH1:coup2d = 1',
+            'HiggsH1:coup2u = 0',
+            'HiggsH1:coup2Z = 0',
+            'HiggsH1:coup2W = 0',
+            'HiggsH1:coup2l = 0',
             '{}:m0 = {:g}'.format(self.idMediator,self.mMediator),
             # add a dark meson and dark photon 
             '{}:all = GeneralResonance void 0 0 0 {:g} 0.001 0.0 0.0 0.0'.format(self.idDark,self.mDark),
@@ -83,7 +87,7 @@ class suepHelper(object):
             lines.append('{}:addChannel = 1 0.15 101 13 -13 '.format(self.idPho)  )#15% br to m+ m-
             lines.append('{}:addChannel = 1 0.70 101 211 -211 '.format(self.idPho))#70% br to pi+ pi-
         else : # "generic" uubar
-            lines.append('{}:addChannel = 1 1.0 101 1 -1 '.format(self.idPho)) #100% br to u+ u-
+            lines.append('{}:addChannel = 1 1.0 101 211 -211 '.format(self.idPho)) #100% br to pi+ pi-
 
         return lines
 

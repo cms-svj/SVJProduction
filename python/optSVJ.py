@@ -22,6 +22,7 @@ options.register("rinv", 0.3, VarParsing.multiplicity.singleton, VarParsing.varT
 options.register("alpha", "peak", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("yukawa", 1.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("temperature", 2.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
+options.register("filterHT", -1.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("decay", "generic", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("filterZ2", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("scout", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
