@@ -175,6 +175,12 @@ class jobSubmitterSVJ(jobSubmitter):
                             "temperature="+str(pdict["temperature"]),
                             "decay="+str(pdict["decay"]),
                         ]
+                        if "filterHT" in pdict:
+                            if pdict["filterHT"] > 0:
+                                arglist.append("filterHT=%1.3f"%pdict["filterHT"])
+                        if "scout" in pdict:
+                            arglist.append("scout="+str(pdict["scout"]))
+ 
                     else:
                         arglist = [
                             "channel="+str(pdict["channel"]),
