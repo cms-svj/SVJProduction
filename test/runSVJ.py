@@ -81,15 +81,15 @@ if options.signal:
                     _helper.getHookSettings()
                 )
                 if options.filterHT > 0:
-                  process.genHTFilter = cms.EDFilter("GenHTFilter",
-                     src = cms.InputTag("ak4GenJetsNoNu"), #GenJet collection as input
-                     jetPtCut = cms.double(30.0), #GenJet pT cut for HT
-                     jetEtaCut = cms.double(2.5), #GenJet eta cut for HT
-                     genHTcut = cms.double(options.filterHT) #genHT cut
-                  )
-                  if hasattr(process,'ProductionFilterSequence'):
-                    process.ProductionFilterSequence += process.pgen
-                    process.ProductionFilterSequence += process.genHTFilter
+                    process.genHTFilter = cms.EDFilter("GenHTFilter",
+                        src = cms.InputTag("ak4GenJetsNoNu"), #GenJet collection as input
+                        jetPtCut = cms.double(30.0), #GenJet pT cut for HT
+                        jetEtaCut = cms.double(2.5), #GenJet eta cut for HT
+                        genHTcut = cms.double(options.filterHT) #genHT cut
+                    )
+                    if hasattr(process,'ProductionFilterSequence'):
+                        process.ProductionFilterSequence += process.pgen
+                        process.ProductionFilterSequence += process.genHTFilter
     # gen filter settings
     # pythia implementation of model has 4900111/211 -> -51 51 and 4900113/213 -> -53 53
     # this is a stand-in for direct production of a single stable dark meson in the hadronization
