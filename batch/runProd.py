@@ -92,8 +92,8 @@ if __name__=="__main__":
     predefined_chains = OrderedDict([
         ("P8",["GEN-SIM","DIGI","HLT","RECO","MINIAOD"]),
         ("P8-lite",["GEN-SIM","DIGI-HLT","RECO","MINIAOD"]),
-        ("MG",["GRIDPACK","LHE-GEN-SIM","DIGI","HLT","RECO","MINIAOD"]),
-        ("MG-lite",["GRIDPACK","LHE-GEN-SIM","DIGI-HLT","RECO","MINIAOD"]),
+        ("MG",["LHE-GEN-SIM","DIGI","HLT","RECO","MINIAOD"]),
+        ("MG-lite",["LHE-GEN-SIM","DIGI-HLT","RECO","MINIAOD"]),
     ])
     desc = ["runProd.py prepares and executes batch submission for a chain of steps to produce specified signal samples.","Several predefined chains are provided (and can be modified with command-line options):"]
     desc += ["{}: {}".format(key, ", ".join("{}. {}".format(istep, step) for istep, step in enumerate(val))) for key,val in predefined_chains.items()]

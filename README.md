@@ -200,14 +200,16 @@ python submitJobs.py -p -d signalsV3_1 -E 1000 -N 100 --outpre step_GEN-SIM --ye
 
 ### Chain submission
 
-The script [runProd.py](./batch/runProd.py) can create and submit a chain of jobs to run all signal production steps.
+The script [runProd.py](./batch/runProd.py) can create and submit a chain of jobs to run all\* signal production steps.
 This script automates the creation of a [job chain](https://github.com/kpedro88/CondorProduction#job-chains).
+
+\* Gridpack production should be run separately, since a single gridpack can be reused by multiple jobs.
 
 Several predefined chains are provided:  
 P8: 0. GEN-SIM, 1. DIGI, 2. HLT, 3. RECO, 4. MINIAOD  
 P8-lite: 0. GEN-SIM, 1. DIGI-HLT, 2. RECO, 3. MINIAOD  
-MG: 0. GRIDPACK, 1. LHE-GEN-SIM, 2. DIGI, 3. HLT, 4. RECO, 5. MINIAOD  
-MG-lite: 0. GRIDPACK, 1. LHE-GEN-SIM, 2. DIGI-HLT, 3. RECO, 4. MINIAOD  
+MG: 0. LHE-GEN-SIM, 1. DIGI, 2. HLT, 3. RECO, 4. MINIAOD  
+MG-lite: 0. LHE-GEN-SIM, 1. DIGI-HLT, 2. RECO, 3. MINIAOD
 
 These predefined chains can be modified with the script's command-line options, or (as an exclusive option) a custom chain of steps can be used.
 
@@ -247,7 +249,9 @@ python runProd.py -P P8 -G="-p -d signals_P8_ex -E 10 -N 1 --cpus 4 --memory 800
 
 MadGraph+Pythia generation:
 ```
-python runProd.py -P MG -G="-p -d signals_MG_ex --madgraph -E 10 -N 1 --cpus 4 --memory 8000" -y 2016 -n chain2016_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -c -s
+python submitJobs.py -p -d signals_MG_ex -E 50000 -N 1 --memory 4000 --outpre step_GRIDPACK --year 2016 --gridpack -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/GRIDPACK -s
+[wait for jobs to finish]
+python runProd.py -P MG -G="-p -d signals_MG_ex --madgraph -E 10 -N 1 --cpus 4 --memory 8000" -L 0 "-I 50000 --indir /store/user/lpcdarkqcd/SVJ2017/testUL/GRIDPACK --inpre step_GRIDPACK" -y 2016 -n chain2016_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -c -s
 ```
 </details>
 
