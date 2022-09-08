@@ -145,12 +145,12 @@ class svjHelper(object):
             if self.yukawa is None: raise ValueError("yukawa value must be provided for madgraph t-channel")
 
         # boosting
-        allowed_boostvars = ["ht","pt"]
+        allowed_boostvars = ["ht","pt","madpt"]
         if boostvar is not None:
             if boostvar not in allowed_boostvars:
                 raise ValueError("Unknown boost variable {}".format(boostvar))
             # ht filter requires LHE particles
-            if boostvar=="ht" and generate:
+            if (boostvar=="ht" or boostvar=="madpt") and generate:
                 raise ValueError("ht boostvar not compatible with Pythia-only generation")
             self.boostvar = boostvar
             self.boost = boost
@@ -406,6 +406,7 @@ class svjHelper(object):
                 totalEvents = "{:g}".format(events),
                 cores = "{:g}".format(cores),
                 lhaid = "{:g}".format(lhaid),
+                madpt = "{:g}".format(self.boost if self.boostvar=="madpt" else 0),
             )
 
         return mg_model_dir, mg_input_dir
