@@ -409,7 +409,7 @@ class svjHelper(object):
                 lhaid = "{:g}".format(lhaid),
                 madpt = "{:g}".format(self.boost if self.boostvar=="madpt" else 0.),
                 madht = "{:g}".format(self.boost if self.boostvar=="madht" else 0.),
-                darkJetId = "4900023" if self.boostvar=="madpt" else "5000521" if self.boostvar=="madht" else "0",
+                darkJetID = "4900023" if self.boostvar=="madpt" else "5000521" if self.boostvar=="madht" else "0",
                 darkJetName = "Zprime" if self.boostvar=="madpt" else "dark quark" if self.boostvar=="madht" else "",
                 disableDarkJetPatch = "!" if self.boostvar!="madpt" and self.boostvar!="madht" else "",
             )
