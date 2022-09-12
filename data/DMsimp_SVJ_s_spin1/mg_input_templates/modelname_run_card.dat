@@ -220,7 +220,7 @@
 #*********************************************************************
 # Control the Ht(k)=Sum of k leading jets                            *
 #*********************************************************************
-  0.0   = htjmin ! minimum jet HT=Sum(jet pt)
+  $madht = htjmin ! minimum jet HT=Sum(jet pt)
   -1.0	= htjmax ! maximum jet HT=Sum(jet pt)
   0.0	= ihtmin !inclusive Ht for all partons (including b)
   -1.0	= ihtmax !inclusive Ht for all partons (including b)

@@ -145,17 +145,18 @@ class svjHelper(object):
             if self.yukawa is None: raise ValueError("yukawa value must be provided for madgraph t-channel")
 
         # boosting
-        allowed_boostvars = ["ht","pt","madpt"]
+        allowed_boostvars = ["pt","madpt","madht"]
         if boostvar is not None:
             if boostvar not in allowed_boostvars:
                 raise ValueError("Unknown boost variable {}".format(boostvar))
-            # ht filter requires LHE particles
-            if (boostvar=="ht" or boostvar=="madpt") and generate:
-                raise ValueError("ht boostvar not compatible with Pythia-only generation")
+            # some filters are implemented in madgraph
+            if (boostvar=="madpt" or boostvar=="madht") and generate:
+                raise ValueError("{} boostvar not compatible with Pythia-only generation".format(boostvar))
             self.boostvar = boostvar
             self.boost = boost
         else:
             self.boost = 0
+            self.boostvar = ""
 
         # get more parameters
         self.xsec = self.getPythiaXsec(self.mMediator)
@@ -406,7 +407,11 @@ class svjHelper(object):
                 totalEvents = "{:g}".format(events),
                 cores = "{:g}".format(cores),
                 lhaid = "{:g}".format(lhaid),
-                madpt = "{:g}".format(self.boost if self.boostvar=="madpt" else 0),
+                madpt = "{:g}".format(self.boost if self.boostvar=="madpt" else 0.),
+                madht = "{:g}".format(self.boost if self.boostvar=="madht" else 0.),
+                darkJetId = "4900023" if self.boostvar=="madpt" else "5000521" if self.boostvar=="madht" else "0",
+                darkJetName = "Zprime" if self.boostvar=="madpt" else "dark quark" if self.boostvar=="madht" else "",
+                disableDarkJetPatch = "!" if self.boostvar!="madpt" and self.boostvar!="madht" else "",
             )
 
         return mg_model_dir, mg_input_dir

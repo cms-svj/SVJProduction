@@ -67,7 +67,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `suep=[bool]`: run SUEP simulation (default = False)
 * `channel=[string]`: process to generate (default = s, alternative = t)
 * `boost=[float]`: applies a minimum cut of this value (default = 0.0)
-* `boostvar=[string]`: applies the above minimum cut to this variable (default = "pt", alternative = "ht")
+* `boostvar=[string]`: applies the above minimum cut to this variable (default = "pt", alternatives = "madpt", "madht")
 * `mMediator=[val]`: mediator mass value (default = 3000.0)
 * `mDark=[val]`: dark hadron mass value (default = 20.0)
 * `rinv=[val]`: invisible fraction value (default = 0.3)
