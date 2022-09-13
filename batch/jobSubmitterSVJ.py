@@ -135,7 +135,12 @@ class jobSubmitterSVJ(jobSubmitter):
                 if self.suep:
                     self.helper.setModel(pdict["mMediator"],pdict["mDark"],pdict["temperature"],pdict["decay"])
                 else:
-                    self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"],boost=pdict["boost"] if "boost" in pdict else 0.0,generate=not (self.madgraph or self.gridpack),yukawa=pdict["yukawa"] if "yukawa" in pdict else None)
+                    model_args = [pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"]]
+                    model_kwargs = {}
+                    for key in ["boost","boostvar","yukawa"]:
+                        if key in pdict: model_kwargs[key] = pdict[key]
+                    model_kwargs["generate"] = not (self.madgraph or self.gridpack)
+                    self.helper.setModel(*model_args,**model_kwargs)
                 outpre = self.outpre
                 inpre = self.inpre
                 signal = True
