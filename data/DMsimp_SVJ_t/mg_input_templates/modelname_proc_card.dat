@@ -20,6 +20,8 @@
 #************************************************************
 
 import model $modelName
+define sd = sd11 sd12 sd21 sd22 ss11 ss12 ss21 ss22 sb11 sb12 sb21 sb22 su11 su12 su21 su22 sc11 sc12 sc21 sc22 st11 st12 st21 st22
+define sd~ = sd11~ sd12~ sd21~ sd22~ ss11~ ss12~ ss21~ ss22~ sb11~ sb12~ sb21~ sb22~ su11~ su12~ su21~ su22~ sc11~ sc12~ sc21~ sc22~ st11~ st12~ st21~ st22~
 define gv = gv11 gv12 gv21 gv22
 define gv~ = gv11~ gv12~ gv21~ gv22~
 define j = g u c t d b s g u~ c~ t~ d~ b~ s~
