@@ -222,7 +222,7 @@ The script has several options:
     * op = insert, remove, change
     * pos/name = position (number) or name of step in predefined chain
     * step = name of step to insert/substitute
-* `-S, --store [pos/name]`: store output for intermediate step (position or name) (can be called multiple times)
+* `-S, --store [pos/name]`: store output for intermediate step (position or name) (can be called multiple times) (-1 or all: store all steps' output)
 * `-G, --global [opts]`: global arguments for submitJobs (use syntax: -G="...")
 * `-L, --local [pos/name] [opts]`: local arguments for submitJobs for a specific step
 * `-n, --name [name]`: base-level name for chain job
