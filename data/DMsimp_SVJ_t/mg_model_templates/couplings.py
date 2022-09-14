@@ -91,7 +91,7 @@ GC_20 = Coupling(name = 'GC_20',
 
 GC_21 = Coupling(name = 'GC_21',
                  value = '-(complex(0,1)*ls)',
-                 order = {'QCD':1})
+                 order = {'NP':1})
 
 GC_22 = Coupling(name = 'GC_22',
                  value = '(ee**2*complex(0,1))/(2.*sw**2)',
