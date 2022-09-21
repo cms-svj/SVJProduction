@@ -31,10 +31,10 @@ $procInclusive generate p p > gv gv~ $npOrder
 $procInclusive add process p p > gv gv~ j $npOrder
 $procInclusive add process p p > gv gv~ j j $npOrder
 $procPair generate p p > sd sd~, (sd > q gv~), (sd~ > q~ gv) $npOrder
-$procSingle generate p p > sd gv, (sd > q gv~) $npOrder
-$procSingle add process p p > sd~ gv~, (sd~ > q~ gv) $npOrder
-$procSingle add process p p > sd gv j, (sd > q gv~) $npOrder
-$procSingle add process p p > sd~ gv~ j, (sd~ > q~ gv) $npOrder
+$procSingle generate p p > sd gv $$ sd~ , (sd > q gv~) $npOrder
+$procSingle add process p p > sd~ gv~ $$ sd , (sd~ > q~ gv) $npOrder
+$procSingle add process p p > sd gv j $$ sd~ , (sd > q gv~) $npOrder
+$procSingle add process p p > sd~ gv~ j $$ sd , (sd~ > q~ gv) $npOrder
 $procNonresonant generate p p > gv gv~ $$ sd sd~ $npOrder
 $procNonresonant add process p p > gv gv~ j $$ sd sd~ $npOrder
 $procNonresonant add process p p > gv gv~ j j $$ sd sd~ $npOrder
