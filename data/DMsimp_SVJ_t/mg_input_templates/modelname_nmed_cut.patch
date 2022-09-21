@@ -1,0 +1,146 @@
+diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/Cards/run_card.dat MG5_aMC_v2_6_5_new/Template/LO/Cards/run_card.dat
+--- MG5_aMC_v2_6_5_orig/Template/LO/Cards/run_card.dat	2019-02-04 05:19:42.000000000 -0600
++++ MG5_aMC_v2_6_5_new/Template/LO/Cards/run_card.dat	2022-09-20 18:03:51.625556070 -0500
+@@ -269,6 +269,11 @@
+ #*********************************************************************
+  %(maxjetflavor)s = maxjetflavor    ! Maximum jet pdg code
+ #*********************************************************************
++# number of mediators for t-channel SVJ                              *
++#*********************************************************************
++ %(nmedmin)s = nmedmin
++ %(nmedmax)s = nmedmax
++#*********************************************************************
+ #
+ #*********************************************************************
+ # Store info for systematics studies                                 *
+diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/Source/cuts.inc MG5_aMC_v2_6_5_new/Template/LO/Source/cuts.inc
+--- MG5_aMC_v2_6_5_orig/Template/LO/Source/cuts.inc	2019-02-04 05:19:42.000000000 -0600
++++ MG5_aMC_v2_6_5_new/Template/LO/Source/cuts.inc	2022-09-20 18:01:52.574320235 -0500
+@@ -37,6 +37,7 @@
+       REAL*8 misset,missetmax,ptheavy
+       REAL*8 ptllmin,ptllmax
+       integer maxjetflavor
++      integer nmedmin, nmedmax
+ 	
+       COMMON /to_min_max_cuts/
+      &     PTJmax,PTBmax,PTAmax,PTLmax,
+@@ -60,7 +61,8 @@
+      &     htjmin,htjmax,ihtmin,ihtmax,
+      &     misset,missetmax,ptheavy,
+      &     ptllmin,ptllmax,
+-     &     maxjetflavor
++     &     maxjetflavor,
++     &     nmedmin,nmedmax
+ 
+ C
+ C     SPECIAL CUTS
+diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/cuts.f MG5_aMC_v2_6_5_new/Template/LO/SubProcesses/cuts.f
+--- MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/cuts.f	2019-02-04 05:19:42.000000000 -0600
++++ MG5_aMC_v2_6_5_new/Template/LO/SubProcesses/cuts.f	2022-09-21 11:27:40.748124522 -0500
+@@ -120,8 +120,9 @@
+       LOGICAL  IS_A_B(NEXTERNAL),IS_A_A(NEXTERNAL),IS_A_ONIUM(NEXTERNAL)
+       LOGICAL  IS_A_NU(NEXTERNAL),IS_HEAVY(NEXTERNAL)
+       logical  do_cuts(nexternal)
++      integer nmed
+       COMMON /TO_SPECISA/IS_A_J,IS_A_A,IS_A_L,IS_A_B,IS_A_NU,IS_HEAVY,
+-     . IS_A_ONIUM, do_cuts
++     . IS_A_ONIUM, do_cuts, nmed
+ 
+ C
+ C     MERGING SCALE CUT
+@@ -973,6 +974,18 @@
+             endif
+          endif
+       endif
++
++c---------------------------
++c      SVJ mediator cut
++C---------------------------
++
++      if(nmed.lt.nmedmin.or.
++     $     nmedmax.ge.0.and.nmed.gt.nmedmax)then
++         if(debug) write (*,*) ' nmed=',nmed,'not in (',nmedmin,',',nmedmax,') -> fails'
++         passcuts=.false.
++         return
++      endif
++
+ C>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>     
+ C     SPECIAL CUTS
+ C<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f MG5_aMC_v2_6_5_new/Template/LO/SubProcesses/setcuts.f
+--- MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f	2019-02-04 05:19:42.000000000 -0600
++++ MG5_aMC_v2_6_5_new/Template/LO/SubProcesses/setcuts.f	2022-09-21 11:28:15.888304227 -0500
+@@ -79,8 +79,9 @@
+       LOGICAL  IS_A_B(NEXTERNAL),IS_A_A(NEXTERNAL),IS_A_ONIUM(NEXTERNAL)
+       LOGICAL  IS_A_NU(NEXTERNAL),IS_HEAVY(NEXTERNAL)
+       logical  do_cuts(nexternal)
++      integer nmed
+       COMMON /TO_SPECISA/IS_A_J,IS_A_A,IS_A_L,IS_A_B,IS_A_NU,IS_HEAVY,
+-     . IS_A_ONIUM, do_cuts 
++     . IS_A_ONIUM, do_cuts, nmed
+ 
+ c     Store which external particles undergo the ktdurham and ptlund cuts.
+       LOGICAL  is_pdg_for_merging_cut(NEXTERNAL)
+@@ -99,6 +100,7 @@
+      $     ,IS_A_B_SAVE(NEXTERNAL),IS_A_A_SAVE(NEXTERNAL)
+      $     ,IS_A_ONIUM_SAVE(NEXTERNAL),IS_A_NU_SAVE(NEXTERNAL)
+      $     ,IS_HEAVY_SAVE(NEXTERNAL),DO_CUTS_SAVE(NEXTERNAL)
++      integer nmed_save
+       double precision r2min_save(nexternal,nexternal)
+      $     ,r2max_save(nexternal,nexternal),s_min_save(nexternal
+      $     ,nexternal),s_max_save(nexternal,nexternal)
+@@ -111,6 +113,7 @@
+      $     ,r2min_save,r2max_save,s_min_save,s_max_save,ptll_min_save
+      $     ,ptll_max_save,etmin_save,etmax_save,emin_save,emax_save
+      $     ,etamin_save,etamax_save
++     $     ,nmed_save
+ c
+ c     count the number of j/bjet/photon/lepton
+ c
+@@ -196,6 +199,7 @@
+ c
+ c     check if I have to apply cuts on the particles
+ c
++      nmed = 0
+       do i=nincoming+1,nexternal
+          do_cuts(i)=.true.
+          if(.not.cut_decays.and.from_decay(i)) do_cuts(i)=.false.
+@@ -221,6 +225,8 @@
+          endif
+ 
+          if (abs(idup(i,1,iproc)).eq.21)  is_a_j(i)=.true. ! gluon is a jet
++c-svj-mediators
++         if (abs(idup(i,1,iproc)).ge.9000005.and.abs(idup(i,1,iproc)).le.9000028) nmed = nmed + 1
+ c-charged-leptons
+          if (abs(idup(i,1,iproc)).eq.11)  is_a_l(i)=.true. ! e+  e-
+          if (abs(idup(i,1,iproc)).eq.13)  is_a_l(i)=.true. ! mu+ mu-
+@@ -677,6 +683,7 @@
+ c Check that results are consistent among all the grouped subprocesses
+ 
+       if (iproc.eq.1) then
++         nmed_save = nmed
+          do i=nincoming+1,nexternal
+             do_cuts_save(i)=do_cuts(i)
+             is_a_j_save(i)=is_a_j(i)
+@@ -704,6 +711,9 @@
+          enddo
+       else
+          fail_reason = ''
++         if (nmed_save.neqv.nmed) then
++            if (nmedmin.gt.0 .or. nmedmax.ge.0) fail_reason = 'nmed'
++         endif
+          do i=nincoming+1,nexternal
+             if (do_cuts_save(i).neqv.do_cuts(i)) fail_reason = 'do_cuts'
+             if (is_a_j_save(i).neqv.is_a_j(i)) then
+diff -ruN MG5_aMC_v2_6_5_orig/madgraph/various/banner.py MG5_aMC_v2_6_5_new/madgraph/various/banner.py
+--- MG5_aMC_v2_6_5_orig/madgraph/various/banner.py	2019-02-04 05:19:42.000000000 -0600
++++ MG5_aMC_v2_6_5_new/madgraph/various/banner.py	2022-09-20 18:04:38.691463255 -0500
+@@ -2928,6 +2928,8 @@
+         self.add_param("ptlund", -1.0, fortran_name="pt_lund", cut=True)
+         self.add_param("pdgs_for_merging_cut", [21, 1, 2, 3, 4, 5, 6])
+         self.add_param("maxjetflavor", 4)
++        self.add_param("nmedmin", 0)
++        self.add_param("nmedmax", -1)
+         self.add_param("xqcut", 0.0, cut=True)
+         self.add_param("use_syst", True)
+         self.add_param('systematics_program', 'systematics', include=False, hidden=True, comment='Choose which program to use for systematics computation: none, systematics, syscalc')

@@ -412,6 +412,17 @@ class svjHelper(object):
         mg_input_dir = os.path.expandvars(base_dir+"mg_input_templates")
         modname = self.getOutName(events=events,outpre="SVJ",sanitize=True)
         template_paths = [p for ftype in ["dat","patch"] for p in glob(os.path.join(mg_input_dir, "*."+ftype))]
+        if self.sigprocess is None:
+            nmedmin = 0
+            nmedmax = -1
+        else:
+            if self.sigprocess=="pair":
+                nmedmin = 2
+            elif self.sigprocess=="single":
+                nmedmin = 1
+            elif self.sigprocess=="nonresonant":
+                nmedmin = 0
+            nmedmax = nmedmin+1
         for template in template_paths:
             fill_template(
                 os.path.join(mg_input_dir,template),
@@ -424,10 +435,8 @@ class svjHelper(object):
                 madpt = "{:g}".format(self.boost if self.boostvar=="madpt" else 0.),
                 # for t-channel
                 npOrder = "" if self.yukawaOrder is None else "NP={:g}".format(self.yukawaOrder),
-                procInclusive = "" if self.sigprocess is None else "#",
-                procPair = "" if self.sigprocess=="pair" else "#",
-                procSingle = "" if self.sigprocess=="single" else "#",
-                procNonresonant = "" if self.sigprocess=="nonresonant" else "#",
+                nmedmin = "{:g}".format(nmedmin),
+                nmedmax = "{:g}".format(nmedmax),
             )
 
         return mg_model_dir, mg_input_dir
