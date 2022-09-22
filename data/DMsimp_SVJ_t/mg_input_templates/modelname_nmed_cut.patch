@@ -69,7 +69,7 @@ diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/cuts.f MG5_aMC_v2_6_5_new
  C<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f MG5_aMC_v2_6_5_new/Template/LO/SubProcesses/setcuts.f
 --- MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f	2019-02-04 05:19:42.000000000 -0600
-+++ MG5_aMC_v2_6_5_new/Template/LO/SubProcesses/setcuts.f	2022-09-21 11:28:15.888304227 -0500
++++ MG5_aMC_v2_6_5_new/Template/LO/SubProcesses/setcuts.f	2022-09-22 12:11:02.964271805 -0500
 @@ -79,8 +79,9 @@
        LOGICAL  IS_A_B(NEXTERNAL),IS_A_A(NEXTERNAL),IS_A_ONIUM(NEXTERNAL)
        LOGICAL  IS_A_NU(NEXTERNAL),IS_HEAVY(NEXTERNAL)
@@ -97,24 +97,20 @@ diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f MG5_aMC_v2_6_5_
  c
  c     count the number of j/bjet/photon/lepton
  c
-@@ -196,6 +199,7 @@
+@@ -196,6 +199,12 @@
  c
  c     check if I have to apply cuts on the particles
  c
 +      nmed = 0
++      do i=1,nexternal
++c-svj-mediators
++         if (abs(idup(i,1,iproc)).ge.9000005.and.abs(idup(i,1,iproc)).le.9000028) nmed = nmed + 1
++      enddo
++
        do i=nincoming+1,nexternal
           do_cuts(i)=.true.
           if(.not.cut_decays.and.from_decay(i)) do_cuts(i)=.false.
-@@ -221,6 +225,8 @@
-          endif
- 
-          if (abs(idup(i,1,iproc)).eq.21)  is_a_j(i)=.true. ! gluon is a jet
-+c-svj-mediators
-+         if (abs(idup(i,1,iproc)).ge.9000005.and.abs(idup(i,1,iproc)).le.9000028) nmed = nmed + 1
- c-charged-leptons
-          if (abs(idup(i,1,iproc)).eq.11)  is_a_l(i)=.true. ! e+  e-
-          if (abs(idup(i,1,iproc)).eq.13)  is_a_l(i)=.true. ! mu+ mu-
-@@ -677,6 +683,7 @@
+@@ -677,6 +686,7 @@
  c Check that results are consistent among all the grouped subprocesses
  
        if (iproc.eq.1) then
@@ -122,7 +118,7 @@ diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f MG5_aMC_v2_6_5_
           do i=nincoming+1,nexternal
              do_cuts_save(i)=do_cuts(i)
              is_a_j_save(i)=is_a_j(i)
-@@ -704,6 +711,9 @@
+@@ -704,6 +714,9 @@
           enddo
        else
           fail_reason = ''
