@@ -126,7 +126,7 @@ diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f MG5_aMC_v2_6_5_
           enddo
        else
           fail_reason = ''
-+         if (nmed_save.neqv.nmed) then
++         if (nmed_save.ne.nmed) then
 +            if (nmedmin.gt.0 .or. nmedmax.ge.0) fail_reason = 'nmed'
 +         endif
           do i=nincoming+1,nexternal

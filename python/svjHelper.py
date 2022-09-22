@@ -411,6 +411,7 @@ class svjHelper(object):
 
         mg_input_dir = os.path.expandvars(base_dir+"mg_input_templates")
         modname = self.getOutName(events=events,outpre="SVJ",sanitize=True)
+        template_excludes = ["nmed_cut.patch"]
         template_paths = [p for ftype in ["dat","patch"] for p in glob(os.path.join(mg_input_dir, "*."+ftype))]
         if self.sigprocess is None:
             nmedmin = 0
@@ -424,9 +425,14 @@ class svjHelper(object):
                 nmedmin = 0
             nmedmax = nmedmin+1
         for template in template_paths:
+            fname_orig = os.path.join(mg_input_dir,template)
+            fname_new = os.path.join(mg_input_dir,template.replace("modelname",modname))
+            if any(x in template for x in template_excludes):
+                shutil.move(fname_orig, fname_new)
+                continue
             fill_template(
-                os.path.join(mg_input_dir,template),
-                os.path.join(mg_input_dir,template.replace("modelname",modname)),
+                fname_orig,
+                fname_new,
                 modelName = modname,
                 totalEvents = "{:g}".format(events),
                 cores = "{:g}".format(cores),
