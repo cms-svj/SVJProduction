@@ -36,19 +36,18 @@ diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/Source/cuts.inc MG5_aMC_v2_6_5_new/Tem
  C     SPECIAL CUTS
 diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/cuts.f MG5_aMC_v2_6_5_new/Template/LO/SubProcesses/cuts.f
 --- MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/cuts.f	2019-02-04 05:19:42.000000000 -0600
-+++ MG5_aMC_v2_6_5_new/Template/LO/SubProcesses/cuts.f	2022-09-21 11:27:40.748124522 -0500
-@@ -120,8 +120,9 @@
-       LOGICAL  IS_A_B(NEXTERNAL),IS_A_A(NEXTERNAL),IS_A_ONIUM(NEXTERNAL)
-       LOGICAL  IS_A_NU(NEXTERNAL),IS_HEAVY(NEXTERNAL)
-       logical  do_cuts(nexternal)
-+      integer nmed
++++ MG5_aMC_v2_6_5_new/Template/LO/SubProcesses/cuts.f	2022-09-22 18:56:43.124746812 -0500
+@@ -123,6 +123,9 @@
        COMMON /TO_SPECISA/IS_A_J,IS_A_A,IS_A_L,IS_A_B,IS_A_NU,IS_HEAVY,
--     . IS_A_ONIUM, do_cuts
-+     . IS_A_ONIUM, do_cuts, nmed
+      . IS_A_ONIUM, do_cuts
  
++      integer nmed
++      COMMON /TO_NMED/nmed
++
  C
  C     MERGING SCALE CUT
-@@ -973,6 +974,18 @@
+ C
+@@ -973,6 +976,18 @@
              endif
           endif
        endif
@@ -69,19 +68,20 @@ diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/cuts.f MG5_aMC_v2_6_5_new
  C<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f MG5_aMC_v2_6_5_new/Template/LO/SubProcesses/setcuts.f
 --- MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f	2019-02-04 05:19:42.000000000 -0600
-+++ MG5_aMC_v2_6_5_new/Template/LO/SubProcesses/setcuts.f	2022-09-22 18:37:45.711820911 -0500
-@@ -79,8 +79,9 @@
-       LOGICAL  IS_A_B(NEXTERNAL),IS_A_A(NEXTERNAL),IS_A_ONIUM(NEXTERNAL)
++++ MG5_aMC_v2_6_5_new/Template/LO/SubProcesses/setcuts.f	2022-09-22 18:57:06.927181168 -0500
+@@ -80,7 +80,10 @@
        LOGICAL  IS_A_NU(NEXTERNAL),IS_HEAVY(NEXTERNAL)
        logical  do_cuts(nexternal)
-+      integer nmed
        COMMON /TO_SPECISA/IS_A_J,IS_A_A,IS_A_L,IS_A_B,IS_A_NU,IS_HEAVY,
 -     . IS_A_ONIUM, do_cuts 
-+     . IS_A_ONIUM, do_cuts, nmed
++     . IS_A_ONIUM, do_cuts
++
++      integer nmed
++      COMMON /TO_NMED/nmed
  
  c     Store which external particles undergo the ktdurham and ptlund cuts.
        LOGICAL  is_pdg_for_merging_cut(NEXTERNAL)
-@@ -99,6 +100,7 @@
+@@ -99,6 +102,7 @@
       $     ,IS_A_B_SAVE(NEXTERNAL),IS_A_A_SAVE(NEXTERNAL)
       $     ,IS_A_ONIUM_SAVE(NEXTERNAL),IS_A_NU_SAVE(NEXTERNAL)
       $     ,IS_HEAVY_SAVE(NEXTERNAL),DO_CUTS_SAVE(NEXTERNAL)
@@ -89,7 +89,7 @@ diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f MG5_aMC_v2_6_5_
        double precision r2min_save(nexternal,nexternal)
       $     ,r2max_save(nexternal,nexternal),s_min_save(nexternal
       $     ,nexternal),s_max_save(nexternal,nexternal)
-@@ -111,6 +113,7 @@
+@@ -111,6 +115,7 @@
       $     ,r2min_save,r2max_save,s_min_save,s_max_save,ptll_min_save
       $     ,ptll_max_save,etmin_save,etmax_save,emin_save,emax_save
       $     ,etamin_save,etamax_save
@@ -97,17 +97,17 @@ diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f MG5_aMC_v2_6_5_
  c
  c     count the number of j/bjet/photon/lepton
  c
-@@ -196,6 +199,9 @@
+@@ -196,6 +201,9 @@
  c
  c     check if I have to apply cuts on the particles
  c
 +
-+      call check_nmed(nmed)
++      call check_nmed()
 +
        do i=nincoming+1,nexternal
           do_cuts(i)=.true.
           if(.not.cut_decays.and.from_decay(i)) do_cuts(i)=.false.
-@@ -677,6 +683,7 @@
+@@ -677,6 +685,7 @@
  c Check that results are consistent among all the grouped subprocesses
  
        if (iproc.eq.1) then
@@ -115,7 +115,7 @@ diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f MG5_aMC_v2_6_5_
           do i=nincoming+1,nexternal
              do_cuts_save(i)=do_cuts(i)
              is_a_j_save(i)=is_a_j(i)
-@@ -704,6 +711,9 @@
+@@ -704,6 +713,9 @@
           enddo
        else
           fail_reason = ''
@@ -125,12 +125,12 @@ diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f MG5_aMC_v2_6_5_
           do i=nincoming+1,nexternal
              if (do_cuts_save(i).neqv.do_cuts(i)) fail_reason = 'do_cuts'
              if (is_a_j_save(i).neqv.is_a_j(i)) then
-@@ -966,3 +976,37 @@
+@@ -966,3 +978,35 @@
        enddo
  
        end
 +
-+      subroutine check_nmed(nmed)
++      subroutine check_nmed()
 +      implicit none
 +
 +      include 'nexternal.inc'
@@ -138,18 +138,16 @@ diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f MG5_aMC_v2_6_5_
 +      include 'genps.inc'
 +      include 'maxamps.inc'
 +c
-+c    Arguments
-+c
-+      integer nmed
-+c
 +c     Global
 +c
 +      integer sprop(maxsproc,-max_branch:-1,lmaxconfigs)
 +      integer tprid(-max_branch:-1,lmaxconfigs)
 +      common/to_sprop/sprop,tprid
++      integer nmed
++      COMMON /TO_NMED/nmed
 +c
 +c     Local
-+c 
++c
 +      integer i,j,k
 +
 +      nmed = 0
