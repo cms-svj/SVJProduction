@@ -116,7 +116,7 @@ class jobSubmitterSVJ(jobSubmitter):
         # get dicts
         flist = __import__(self.dicts.replace(".py","")).flist
         # loop over dicts
-        svj_extras = ["boost","boostvar","yukawa","yukawaOrder","sigprocess"]
+        svj_extras = ["boost","boostvar","yukawa","yukawaOrder","nMediator"]
         for pdict in flist:
             # create protojob
             job = protoJob()

@@ -22,7 +22,7 @@ options.register("rinv", 0.3, VarParsing.multiplicity.singleton, VarParsing.varT
 options.register("alpha", "peak", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("yukawa", 1.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("yukawaOrder", -1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
-options.register("sigprocess", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
+options.register("nMediator", -1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("temperature", 2.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("filterHT", -1.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("decay", "generic", VarParsing.multiplicity.singleton, VarParsing.varType.string)
@@ -84,4 +84,4 @@ if options.suep:
     options.channel = ""
 else:
     _helper = svjHelper()
-    _helper.setModel(options.channel,options.mMediator,options.mDark,options.rinv,options.alpha,generate=None if options.scan else not options.madgraph,boost=options.boost,boostvar=options.boostvar,yukawa=options.yukawa,yukawaOrder=options.yukawaOrder if options.yukawaOrder>=0 else None,sigprocess=options.sigprocess if len(options.sigprocess)>0 else None)
+    _helper.setModel(options.channel,options.mMediator,options.mDark,options.rinv,options.alpha,generate=None if options.scan else not options.madgraph,boost=options.boost,boostvar=options.boostvar,yukawa=options.yukawa,yukawaOrder=options.yukawaOrder if options.yukawaOrder>=0 else None,nMediator=options.nMediator)

@@ -20,6 +20,8 @@ def fix_inname(inname,options,lhe=False):
     if len(options.indir)>0: inname = options.indir+"/"+inname
     if len(options.redir)>0 and inname.startswith("/store"): inname = options.redir+inname
     if not lhe and not inname.startswith("/store") and not inname.startswith("root:"): inname = "file:"+inname
+    # nMed is implemented as a post-MG cut
+    if lhe and options.nMediator>=0: inname = inname.replace("_nMed-{:g}".format(options.nMediator),"")
     return inname
 
 # import process
@@ -125,6 +127,15 @@ if options.signal:
             )
             process.ProductionFilterSequence += process.pgen
             process.ProductionFilterSequence += process.genjetptFilter
+
+    if options.nMediator>=0 and hasattr(process,'ProductionFilterSequence'):
+        # apply LHE-level filter *before* pythia
+        process.nmedfilter = cms.EDFilter("LHENParticleFilter",
+            min = cms.int32(options.nMediator),
+            max = cms.int32(options.nMediator),
+            particleIDs = cms.vint32(4900001,4900002,4900003,4900004,4900005,4900006),
+        )
+        process.ProductionFilterSequence.insert(0,process.nmedfilter)
 
 if hasattr(process,'generator') and hasattr(process.generator,'maxEventsToPrint'):
     process.generator.maxEventsToPrint = options.printEvents

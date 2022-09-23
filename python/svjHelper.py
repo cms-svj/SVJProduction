@@ -124,7 +124,7 @@ class svjHelper(object):
         return 1000*math.exp(-math.pi/(self.b0*alpha))
 
     # has to be "lambdaHV" because "lambda" is a keyword
-    def setModel(self,channel,mMediator,mDark,rinv,alpha,yukawa=None,lambdaHV=None,generate=True,boost=0.,boostvar=None,sigprocess=None,yukawaOrder=None):
+    def setModel(self,channel,mMediator,mDark,rinv,alpha,yukawa=None,lambdaHV=None,generate=True,boost=0.,boostvar=None,nMediator=None,yukawaOrder=None):
         # check for issues
         if channel!="s" and channel!="t": raise ValueError("Unknown channel: "+channel)
         # store the basic parameters
@@ -137,19 +137,17 @@ class svjHelper(object):
         if isinstance(alpha,str) and alpha[0].isalpha(): self.setAlpha(alpha)
         else: self.alpha = float(alpha)
 
-        self.sigprocess = None
+        self.nMediator = None
         self.yukawa = None
         self.yukawaOrder = None
         # yukawa not used by pythia "t-channel" generation (only includes strong pair prod)
         # but will still be included in name if provided in model setting
         if self.channel=="t":
-            allowed_sigprocess = ["pair","single","nonresonant"]
-            if sigprocess is not None:
-                if sigprocess not in allowed_sigprocess:
-                    raise ValueError("Unknown signal process {}".format(sigprocess))
-                elif sigprocess!="pair" and generate:
+            if nMediator<0: nMediator = None
+            if nMediator is not None:
+                if nMediator!=2 and generate:
                     raise ValueError("Pythia-only generation can only be used for pair production")
-            self.sigprocess = sigprocess
+            self.nMediator = nMediator
 
             self.yukawa = yukawa
             if self.yukawa is None: raise ValueError("yukawa value must be provided for madgraph t-channel")
@@ -188,7 +186,7 @@ class svjHelper(object):
         _outname = outpre
         if signal:
             _outname += "_{}-channel".format(self.channel)
-            if self.sigprocess is not None: _outname += "_{}".format(self.sigprocess)
+            if self.nMediator is not None: _outname += "_nMed-{:g}".format(self.nMediator)
             _outname += "_mMed-{:g}".format(self.mMediator)
             _outname += "_mDark-{:g}".format(self.mDark)
             _outname += "_rinv-{:g}".format(self.rinv)
@@ -411,25 +409,10 @@ class svjHelper(object):
 
         mg_input_dir = os.path.expandvars(base_dir+"mg_input_templates")
         modname = self.getOutName(events=events,outpre="SVJ",sanitize=True)
-        template_excludes = ["nmed_cut.patch"]
         template_paths = [p for ftype in ["dat","patch"] for p in glob(os.path.join(mg_input_dir, "*."+ftype))]
-        if self.sigprocess is None:
-            nmedmin = 0
-            nmedmax = -1
-        else:
-            if self.sigprocess=="pair":
-                nmedmin = 2
-            elif self.sigprocess=="single":
-                nmedmin = 1
-            elif self.sigprocess=="nonresonant":
-                nmedmin = 0
-            nmedmax = nmedmin+1
         for template in template_paths:
             fname_orig = os.path.join(mg_input_dir,template)
             fname_new = os.path.join(mg_input_dir,template.replace("modelname",modname))
-            if any(x in template for x in template_excludes):
-                shutil.move(fname_orig, fname_new)
-                continue
             fill_template(
                 fname_orig,
                 fname_new,
@@ -441,8 +424,6 @@ class svjHelper(object):
                 madpt = "{:g}".format(self.boost if self.boostvar=="madpt" else 0.),
                 # for t-channel
                 npOrder = "" if self.yukawaOrder is None else "NP={:g}".format(self.yukawaOrder),
-                nmedmin = "{:g}".format(nmedmin),
-                nmedmax = "{:g}".format(nmedmax),
             )
 
         return mg_model_dir, mg_input_dir
