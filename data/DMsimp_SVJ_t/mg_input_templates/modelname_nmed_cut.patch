@@ -68,7 +68,7 @@ diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/cuts.f MG5_aMC_v2_6_5_new
  C<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f MG5_aMC_v2_6_5_new/Template/LO/SubProcesses/setcuts.f
 --- MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f	2019-02-04 05:19:42.000000000 -0600
-+++ MG5_aMC_v2_6_5_new/Template/LO/SubProcesses/setcuts.f	2022-09-22 18:57:06.927181168 -0500
++++ MG5_aMC_v2_6_5_new/Template/LO/SubProcesses/setcuts.f	2022-09-23 08:41:18.074800563 -0500
 @@ -80,7 +80,10 @@
        LOGICAL  IS_A_NU(NEXTERNAL),IS_HEAVY(NEXTERNAL)
        logical  do_cuts(nexternal)
@@ -97,17 +97,19 @@ diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f MG5_aMC_v2_6_5_
  c
  c     count the number of j/bjet/photon/lepton
  c
-@@ -196,6 +201,9 @@
+@@ -196,6 +201,11 @@
  c
  c     check if I have to apply cuts on the particles
  c
 +
++      write(*,*) 'MG_DEBUG_NMED before: ',nmed
 +      call check_nmed()
++      write(*,*) 'MG_DEBUG_NMED after: ',nmed
 +
        do i=nincoming+1,nexternal
           do_cuts(i)=.true.
           if(.not.cut_decays.and.from_decay(i)) do_cuts(i)=.false.
-@@ -677,6 +685,7 @@
+@@ -677,6 +687,7 @@
  c Check that results are consistent among all the grouped subprocesses
  
        if (iproc.eq.1) then
@@ -115,7 +117,7 @@ diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f MG5_aMC_v2_6_5_
           do i=nincoming+1,nexternal
              do_cuts_save(i)=do_cuts(i)
              is_a_j_save(i)=is_a_j(i)
-@@ -704,6 +713,9 @@
+@@ -704,6 +715,9 @@
           enddo
        else
           fail_reason = ''
@@ -125,7 +127,7 @@ diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f MG5_aMC_v2_6_5_
           do i=nincoming+1,nexternal
              if (do_cuts_save(i).neqv.do_cuts(i)) fail_reason = 'do_cuts'
              if (is_a_j_save(i).neqv.is_a_j(i)) then
-@@ -966,3 +978,35 @@
+@@ -966,3 +980,38 @@
        enddo
  
        end
@@ -150,15 +152,18 @@ diff -ruN MG5_aMC_v2_6_5_orig/Template/LO/SubProcesses/setcuts.f MG5_aMC_v2_6_5_
 +c
 +      integer i,j,k
 +
++      write(*,*) 'MG_DEBUG_NMED ',maxsproc,' ',max_branch,' ',lmaxconfigs
 +      nmed = 0
 +      do k=1,maxsproc
 +         do i=-max_branch,-1
 +            do j=1,lmaxconfigs
++               write(*,*) 'MG_DEBUG_NMED ',k,' ',i,' ',j,' ',sprop(k,i,j)
 +c-svj-mediators
 +               if (abs(sprop(k,i,j)).ge.9000005.and.abs(sprop(k,i,j)).le.9000028) nmed = nmed + 1
 +            enddo
 +         enddo
 +      enddo
++      write(*,*) 'MG_DEBUG_NMED during: ',nmed
 +
 +      end
 diff -ruN MG5_aMC_v2_6_5_orig/madgraph/various/banner.py MG5_aMC_v2_6_5_new/madgraph/various/banner.py
