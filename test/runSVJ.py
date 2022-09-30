@@ -38,7 +38,7 @@ if len(_inname)>0:
         _inname = fix_inname(_inname,options,True)
         # fetch the gridpack file from xrootd
         if _inname.startswith("root:"):
-            os.system("xrdcp "+_inname+" .")
+            os.system("xrdcp -f "+_inname+" .")
             _inname = _inname.split('/')[-1]
         process.externalLHEProducer.args = cms.vstring(os.path.join(os.getcwd(),_inname))
         process.externalLHEProducer.nEvents = cms.untracked.uint32(options.maxEvents)
@@ -187,7 +187,7 @@ if hasattr(process,"mixData"):
     elif options.year=="2018": puname = "Neutrino_E-10_gun_RunIISummer20ULPrePremix-UL18_106X_upgrade2018_realistic_v11_L1v1-v2_PREMIX.pkl"
     if not os.path.isfile(puname):
         print "retrieving "+puname
-        os.system("xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/"+puname+" .")
+        os.system("xrdcp -f root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/"+puname+" .")
         if not os.path.isfile(puname):
             raise Exception("Could not retrieve pileup input list.")
     import cPickle as pickle
