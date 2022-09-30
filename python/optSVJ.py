@@ -14,7 +14,7 @@ options.register("syst", False, VarParsing.multiplicity.singleton, VarParsing.va
 options.register("suep", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("channel", "s", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("boost", 0.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
-options.register("boostvar", "pt", VarParsing.multiplicity.singleton, VarParsing.varType.string)
+options.register("boostvar", "madpt", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("mingenjetpt", 0.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("mMediator", 3000.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("mDark", 20.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
