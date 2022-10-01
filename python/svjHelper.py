@@ -423,7 +423,7 @@ class svjHelper(object):
                 # for boosted
                 madpt = "{:g}".format(self.boost if self.boostvar=="madpt" else 0.),
                 # for t-channel
-                npOrder = "" if self.yukawaOrder is None else "NP={:g}".format(self.yukawaOrder),
+                npOrder = "" if self.yukawaOrder is None else "NP=={:g}".format(self.yukawaOrder),
             )
 
         return mg_model_dir, mg_input_dir
