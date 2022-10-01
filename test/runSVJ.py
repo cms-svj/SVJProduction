@@ -128,7 +128,7 @@ if options.signal:
             process.ProductionFilterSequence += process.pgen
             process.ProductionFilterSequence += process.genjetptFilter
 
-    if options.nMediator>=0 and hasattr(process,'ProductionFilterSequence'):
+    if not options.sepproc and options.nMediator>=0 and hasattr(process,'ProductionFilterSequence'):
         # apply LHE-level filter *before* pythia
         process.nmedfilter = cms.EDFilter("LHENParticleFilter",
             min = cms.int32(options.nMediator),

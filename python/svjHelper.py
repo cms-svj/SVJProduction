@@ -124,7 +124,7 @@ class svjHelper(object):
         return 1000*math.exp(-math.pi/(self.b0*alpha))
 
     # has to be "lambdaHV" because "lambda" is a keyword
-    def setModel(self,channel,mMediator,mDark,rinv,alpha,yukawa=None,lambdaHV=None,generate=True,boost=0.,boostvar=None,nMediator=None):
+    def setModel(self,channel,mMediator,mDark,rinv,alpha,yukawa=None,lambdaHV=None,generate=True,boost=0.,boostvar=None,nMediator=None,sepproc=False):
         # check for issues
         if channel!="s" and channel!="t": raise ValueError("Unknown channel: "+channel)
         # store the basic parameters
@@ -146,7 +146,10 @@ class svjHelper(object):
             if nMediator is not None:
                 if nMediator!=2 and generate:
                     raise ValueError("Pythia-only generation can only be used for pair production")
+            elif sepproc:
+                raise ValueError("sepproc can only be used if nMed is specified")
             self.nMediator = nMediator
+            self.sepproc = sepproc
 
             self.yukawa = yukawa
             if self.yukawa is None: raise ValueError("yukawa value must be provided for madgraph t-channel")
@@ -420,6 +423,10 @@ class svjHelper(object):
                 # for boosted
                 madpt = "{:g}".format(self.boost if self.boostvar=="madpt" else 0.),
                 # for t-channel
+                procInclusive = "" if not self.sepproc else "#",
+                procPair = "" if self.sepproc and self.nMediator==2 else "#",
+                procSingle = "" if self.sepproc and self.nMediator==1 else "#",
+                procNonresonant = "" if self.sepproc and self.nMediator==0 else "#",
             )
 
         return mg_model_dir, mg_input_dir
