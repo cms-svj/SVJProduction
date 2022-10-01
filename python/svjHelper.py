@@ -124,7 +124,7 @@ class svjHelper(object):
         return 1000*math.exp(-math.pi/(self.b0*alpha))
 
     # has to be "lambdaHV" because "lambda" is a keyword
-    def setModel(self,channel,mMediator,mDark,rinv,alpha,yukawa=None,lambdaHV=None,generate=True,boost=0.,boostvar=None,nMediator=None,yukawaOrder=None):
+    def setModel(self,channel,mMediator,mDark,rinv,alpha,yukawa=None,lambdaHV=None,generate=True,boost=0.,boostvar=None,nMediator=None):
         # check for issues
         if channel!="s" and channel!="t": raise ValueError("Unknown channel: "+channel)
         # store the basic parameters
@@ -139,7 +139,6 @@ class svjHelper(object):
 
         self.nMediator = None
         self.yukawa = None
-        self.yukawaOrder = None
         # yukawa not used by pythia "t-channel" generation (only includes strong pair prod)
         # but will still be included in name if provided in model setting
         if self.channel=="t":
@@ -151,7 +150,6 @@ class svjHelper(object):
 
             self.yukawa = yukawa
             if self.yukawa is None: raise ValueError("yukawa value must be provided for madgraph t-channel")
-            self.yukawaOrder = yukawaOrder
 
         # boosting
         allowed_boostvars = ["pt","madpt"]
@@ -193,7 +191,6 @@ class svjHelper(object):
             if len(self.alphaName)>0: _outname += "_alpha-{}".format(self.alphaName)
             else: _outname += "_alpha-{:g}".format(self.alpha)
             if self.yukawa is not None: _outname += "_yukawa-{:g}".format(self.yukawa)
-            if self.yukawaOrder is not None: _outname += "_order-{:g}".format(self.yukawaOrder)
             if self.boost>0: _outname += "_{}{:g}".format(self.boostvar.upper(),self.boost)
         # todo: include tune in name? depends on year
         if self.generate is not None:
@@ -423,7 +420,6 @@ class svjHelper(object):
                 # for boosted
                 madpt = "{:g}".format(self.boost if self.boostvar=="madpt" else 0.),
                 # for t-channel
-                npOrder = "" if self.yukawaOrder is None else "NP=={:g}".format(self.yukawaOrder),
             )
 
         return mg_model_dir, mg_input_dir

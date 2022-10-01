@@ -73,7 +73,6 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `rinv=[val]`: invisible fraction value (default = 0.3)
 * `alpha=[val]`: hidden sector force coupling value (default = peak)
 * `yukawa=[val]`: Yukawa coupling for bifundamental mediator (t channel) (default = 1.0)
-* `yukawaOrder=[val]`: only generate processes with this order of Yukawa coupling (default = -1 -> none)
 * `nMediator=[val]`: generate exclusive signal process based on number of on-shell mediators (default = -1 -> inclusive)
 * `temperature=[val]`: temperature for SUEP model (default = 2.0)
 * `decay=[str]`: decay mode for SUEP model (default = generic)

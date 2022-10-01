@@ -25,8 +25,8 @@ define gv~ = gv11~ gv12~ gv21~ gv22~
 define q = u c t d b s
 define q~ = u~ c~ t~ d~ b~ s~
 define j = g q q~
-generate p p > gv gv~ $npOrder
-add process p p > gv gv~ j $npOrder
-add process p p > gv gv~ j j $npOrder
+generate p p > gv gv~
+add process p p > gv gv~ j
+add process p p > gv gv~ j j
 # Output directory
 output $modelName
