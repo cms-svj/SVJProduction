@@ -183,19 +183,27 @@ class svjHelper(object):
         else:
             self.lambdaHV = self.calcLambda(self.alpha)
 
-    def getOutName(self,events=0,signal=True,outpre="outpre",part=None,sanitize=False):
+    def getOutName(self,events=0,signal=True,outpre="outpre",part=None,sanitize=False,gridpack=False):
         _outname = outpre
         if signal:
-            _outname += "_{}-channel".format(self.channel)
-            if self.nMediator is not None: _outname += "_nMed-{:g}".format(self.nMediator)
-            _outname += "_mMed-{:g}".format(self.mMediator)
-            _outname += "_mDark-{:g}".format(self.mDark)
-            _outname += "_rinv-{:g}".format(self.rinv)
-            if len(self.alphaName)>0: _outname += "_alpha-{}".format(self.alphaName)
-            else: _outname += "_alpha-{:g}".format(self.alpha)
-            if self.yukawa is not None: _outname += "_yukawa-{:g}".format(self.yukawa)
-            if self.boost>0: _outname += "_{}{:g}".format(self.boostvar.upper(),self.boost)
-        # todo: include tune in name? depends on year
+            params = [
+                ("channel", "{}-channel".format(self.channel)),
+            ]
+            if self.nMediator is not None: params.append(("nMediator", "nMed-{:g}".format(self.nMediator)))
+            params.extend([
+                ("mMediator", "mMed-{:g}".format(self.mMediator)),
+                ("mDark", "mDark-{:g}".format(self.mDark)),
+                ("rinv", "rinv-{:g}".format(self.rinv)),
+                ("alpha", "alpha-{}".format(self.alphaName) if len(self.alphaName)>0 else "alpha-{:g}".format(self.alpha)),
+            ])
+            if self.yukawa is not None: params.append(("yukawa","yukawa-{:g}".format(self.yukawa)))
+            if self.boost>0: params.append(("boost","{}{:g}".format(self.boostvar.upper(),self.boost)))
+            not_for_gridpack = ["rinv","alpha"]
+            if not self.sepproc: not_for_gridpack.append("nMediator")
+            if self.boostvar=="pt": not_for_gridpack.append("boost")
+            for pname, pval in params:
+                if gridpack and pname in not_for_gridpack: continue
+                _outname += "_"+pval
         if self.generate is not None:
             if self.generate:
                 _outname += "_13TeV-pythia8"
@@ -408,7 +416,7 @@ class svjHelper(object):
         ParamCardWriter(param_card_file, generic=True)
 
         mg_input_dir = os.path.expandvars(base_dir+"mg_input_templates")
-        modname = self.getOutName(events=events,outpre="SVJ",sanitize=True)
+        modname = self.getOutName(events=events,outpre="SVJ",sanitize=True,gridpack=True)
         template_paths = [p for ftype in ["dat","patch"] for p in glob(os.path.join(mg_input_dir, "*."+ftype))]
         for template in template_paths:
             fname_orig = os.path.join(mg_input_dir,template)

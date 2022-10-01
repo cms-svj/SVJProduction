@@ -20,8 +20,6 @@ def fix_inname(inname,options,lhe=False):
     if len(options.indir)>0: inname = options.indir+"/"+inname
     if len(options.redir)>0 and inname.startswith("/store"): inname = options.redir+inname
     if not lhe and not inname.startswith("/store") and not inname.startswith("root:"): inname = "file:"+inname
-    # nMed is implemented as a post-MG cut
-    if lhe and options.nMediator>=0: inname = inname.replace("_nMed-{:g}".format(options.nMediator),"")
     return inname
 
 # import process
@@ -34,7 +32,7 @@ if len(_inname)>0:
         _inname = fix_inname(_inname,options)
         process.source.fileNames = cms.untracked.vstring(_inname)
     elif hasattr(process,"externalLHEProducer"):
-        _inname = _helper.getOutName(events=options.maxEventsIn,outpre=options.inpre)+".tar.xz"
+        _inname = _helper.getOutName(events=options.maxEventsIn,outpre=options.inpre,gridpack=True)+".tar.xz"
         _inname = fix_inname(_inname,options,True)
         # fetch the gridpack file from xrootd
         if _inname.startswith("root:"):
