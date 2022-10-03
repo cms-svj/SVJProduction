@@ -124,7 +124,7 @@ class svjHelper(object):
         return 1000*math.exp(-math.pi/(self.b0*alpha))
 
     # has to be "lambdaHV" because "lambda" is a keyword
-    def setModel(self,channel,mMediator,mDark,rinv,alpha,yukawa=None,lambdaHV=None,generate=True,boost=0.,boostvar=None,nMediator=None,sepproc=False):
+    def setModel(self,channel,mMediator,mDark,rinv,alpha,yukawa=None,lambdaHV=None,generate=True,boost=0.,boostvar=None,nMediator=None,sepproc=True):
         # check for issues
         if channel!="s" and channel!="t": raise ValueError("Unknown channel: "+channel)
         # store the basic parameters
@@ -139,6 +139,7 @@ class svjHelper(object):
 
         self.nMediator = None
         self.yukawa = None
+        self.sepproc = sepproc
         # yukawa not used by pythia "t-channel" generation (only includes strong pair prod)
         # but will still be included in name if provided in model setting
         if self.channel=="t":
@@ -146,10 +147,7 @@ class svjHelper(object):
             if nMediator is not None:
                 if nMediator!=2 and generate:
                     raise ValueError("Pythia-only generation can only be used for pair production")
-            elif sepproc:
-                raise ValueError("sepproc can only be used if nMed is specified")
             self.nMediator = nMediator
-            self.sepproc = sepproc
 
             self.yukawa = yukawa
             if self.yukawa is None: raise ValueError("yukawa value must be provided for madgraph t-channel")
