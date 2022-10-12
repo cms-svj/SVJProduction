@@ -146,7 +146,7 @@ class svjHelper(object):
 
         # boosting
         allowed_boostvars = ["pt","madpt"]
-        if boostvar is not None:
+        if boost>0 and boostvar is not None:
             if boostvar not in allowed_boostvars:
                 raise ValueError("Unknown boost variable {}".format(boostvar))
             # some filters are implemented in madgraph
