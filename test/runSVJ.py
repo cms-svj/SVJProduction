@@ -118,15 +118,8 @@ if options.signal:
         process.ProductionFilterSequence += process.darkquarkFilter
 
     if options.boost>0 and hasattr(process,'ProductionFilterSequence'):
-        # apply HT cut for boosted search, including dark quarks
-        if options.boostvar=="ht":
-            process.bsmHtFilter = cms.EDFilter("BSMHTFilter",
-                particleIDs = cms.vint32(4900101),
-                htMin = cms.double(options.boost),
-            )
-            process.ProductionFilterSequence += process.bsmHtFilter
         # apply GenJet pt cut for boosted search
-        elif options.boostvar=="pt":
+        if options.boostvar=="pt":
             process.genjetptFilter = cms.EDFilter("GenJetPTFilter",
                 ptMin = cms.double(options.boost),
             )
