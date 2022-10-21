@@ -58,7 +58,8 @@ for iout,output in enumerate(options.output):
 # reset all random numbers to ensure statistically distinct but reproducible jobs
 from IOMC.RandomEngine.RandomServiceHelper import RandomNumberServiceHelper
 randHelper = RandomNumberServiceHelper(process.RandomNumberGeneratorService)
-randHelper.resetSeeds(options.maxEvents+options.part)
+# CHANGED from maxEvents+part because concurrent LHE generation adds thread number to default random seed -> degeneracy
+randHelper.resetSeeds(int(str(options.part)+str(options.maxEvents)))
 
 if options.signal:
     if len(options.scan)>0:
