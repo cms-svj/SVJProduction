@@ -20,11 +20,23 @@
 #************************************************************
 
 import model $modelName
+define sd = sd11 sd12 sd21 sd22 ss11 ss12 ss21 ss22 sb11 sb12 sb21 sb22 su11 su12 su21 su22 sc11 sc12 sc21 sc22 st11 st12 st21 st22
+define sd~ = sd11~ sd12~ sd21~ sd22~ ss11~ ss12~ ss21~ ss22~ sb11~ sb12~ sb21~ sb22~ su11~ su12~ su21~ su22~ sc11~ sc12~ sc21~ sc22~ st11~ st12~ st21~ st22~
 define gv = gv11 gv12 gv21 gv22
 define gv~ = gv11~ gv12~ gv21~ gv22~
-define j = g u c t d b s g u~ c~ t~ d~ b~ s~
-generate p p > gv gv~
-add process p p > gv gv~ j
-add process p p > gv gv~ j j
+define q = u c t d b s
+define q~ = u~ c~ t~ d~ b~ s~
+define j = g q q~
+$procInclusive generate p p > gv gv~
+$procInclusive add process p p > gv gv~ j
+$procInclusive add process p p > gv gv~ j j
+$procPair generate p p > sd sd~, (sd > q gv~), (sd~ > q~ gv)
+$procSingle generate p p > sd gv $$ sd~ , (sd > q gv~)
+$procSingle add process p p > sd~ gv~ $$ sd , (sd~ > q~ gv)
+$procSingle add process p p > sd gv j $$ sd~ , (sd > q gv~)
+$procSingle add process p p > sd~ gv~ j $$ sd , (sd~ > q~ gv)
+$procNonresonant generate p p > gv gv~ $$ sd sd~
+$procNonresonant add process p p > gv gv~ j $$ sd sd~
+$procNonresonant add process p p > gv gv~ j j $$ sd sd~
 # Output directory
 output $modelName

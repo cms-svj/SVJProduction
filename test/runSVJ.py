@@ -32,11 +32,11 @@ if len(_inname)>0:
         _inname = fix_inname(_inname,options)
         process.source.fileNames = cms.untracked.vstring(_inname)
     elif hasattr(process,"externalLHEProducer"):
-        _inname = _helper.getOutName(events=options.maxEventsIn,outpre=options.inpre)+".tar.xz"
+        _inname = _helper.getOutName(events=options.maxEventsIn,outpre=options.inpre,gridpack=True)+".tar.xz"
         _inname = fix_inname(_inname,options,True)
         # fetch the gridpack file from xrootd
         if _inname.startswith("root:"):
-            os.system("xrdcp "+_inname+" .")
+            os.system("xrdcp -f "+_inname+" .")
             _inname = _inname.split('/')[-1]
         process.externalLHEProducer.args = cms.vstring(os.path.join(os.getcwd(),_inname))
         process.externalLHEProducer.nEvents = cms.untracked.uint32(options.maxEvents)
@@ -58,7 +58,8 @@ for iout,output in enumerate(options.output):
 # reset all random numbers to ensure statistically distinct but reproducible jobs
 from IOMC.RandomEngine.RandomServiceHelper import RandomNumberServiceHelper
 randHelper = RandomNumberServiceHelper(process.RandomNumberGeneratorService)
-randHelper.resetSeeds(options.maxEvents+options.part)
+# CHANGED from maxEvents+part because concurrent LHE generation adds thread number to default random seed -> degeneracy
+randHelper.resetSeeds(int(str(options.part)+str(options.maxEvents)))
 
 if options.signal:
     if len(options.scan)>0:
@@ -126,6 +127,15 @@ if options.signal:
             process.ProductionFilterSequence += process.pgen
             process.ProductionFilterSequence += process.genjetptFilter
 
+    if not options.sepproc and options.nMediator>=0 and hasattr(process,'ProductionFilterSequence'):
+        # apply LHE-level filter *before* pythia
+        process.nmedfilter = cms.EDFilter("LHENParticleFilter",
+            min = cms.int32(options.nMediator),
+            max = cms.int32(options.nMediator),
+            particleIDs = cms.vint32(4900001,4900002,4900003,4900004,4900005,4900006),
+        )
+        process.ProductionFilterSequence.insert(0,process.nmedfilter)
+
 if hasattr(process,'generator') and hasattr(process.generator,'maxEventsToPrint'):
     process.generator.maxEventsToPrint = options.printEvents
 
@@ -176,7 +186,7 @@ if hasattr(process,"mixData"):
     elif options.year=="2018": puname = "Neutrino_E-10_gun_RunIISummer20ULPrePremix-UL18_106X_upgrade2018_realistic_v11_L1v1-v2_PREMIX.pkl"
     if not os.path.isfile(puname):
         print "retrieving "+puname
-        os.system("xrdcp root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/"+puname+" .")
+        os.system("xrdcp -f root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/"+puname+" .")
         if not os.path.isfile(puname):
             raise Exception("Could not retrieve pileup input list.")
     import cPickle as pickle

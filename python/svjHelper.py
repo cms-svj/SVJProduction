@@ -124,7 +124,7 @@ class svjHelper(object):
         return 1000*math.exp(-math.pi/(self.b0*alpha))
 
     # has to be "lambdaHV" because "lambda" is a keyword
-    def setModel(self,channel,mMediator,mDark,rinv,alpha,yukawa=None,lambdaHV=None,generate=True,boost=0.,boostvar=None):
+    def setModel(self,channel,mMediator,mDark,rinv,alpha,yukawa=None,lambdaHV=None,generate=True,boost=0.,boostvar=None,nMediator=None,sepproc=True):
         # check for issues
         if channel!="s" and channel!="t": raise ValueError("Unknown channel: "+channel)
         # store the basic parameters
@@ -137,10 +137,18 @@ class svjHelper(object):
         if isinstance(alpha,str) and alpha[0].isalpha(): self.setAlpha(alpha)
         else: self.alpha = float(alpha)
 
+        self.nMediator = None
         self.yukawa = None
+        self.sepproc = sepproc
         # yukawa not used by pythia "t-channel" generation (only includes strong pair prod)
         # but will still be included in name if provided in model setting
         if self.channel=="t":
+            if nMediator<0: nMediator = None
+            if nMediator is not None:
+                if nMediator!=2 and generate:
+                    raise ValueError("Pythia-only generation can only be used for pair production")
+            self.nMediator = nMediator
+
             self.yukawa = yukawa
             if self.yukawa is None: raise ValueError("yukawa value must be provided for madgraph t-channel")
 
@@ -173,18 +181,27 @@ class svjHelper(object):
         else:
             self.lambdaHV = self.calcLambda(self.alpha)
 
-    def getOutName(self,events=0,signal=True,outpre="outpre",part=None,sanitize=False):
+    def getOutName(self,events=0,signal=True,outpre="outpre",part=None,sanitize=False,gridpack=False):
         _outname = outpre
         if signal:
-            _outname += "_{}-channel".format(self.channel)
-            _outname += "_mMed-{:g}".format(self.mMediator)
-            _outname += "_mDark-{:g}".format(self.mDark)
-            _outname += "_rinv-{:g}".format(self.rinv)
-            if len(self.alphaName)>0: _outname += "_alpha-{}".format(self.alphaName)
-            else: _outname += "_alpha-{:g}".format(self.alpha)
-            if self.yukawa is not None: _outname += "_yukawa-{:g}".format(self.yukawa)
-            if self.boost>0: _outname += "_{}{:g}".format(self.boostvar.upper(),self.boost)
-        # todo: include tune in name? depends on year
+            params = [
+                ("channel", "{}-channel".format(self.channel)),
+            ]
+            if self.nMediator is not None: params.append(("nMediator", "nMed-{:g}".format(self.nMediator)))
+            params.extend([
+                ("mMediator", "mMed-{:g}".format(self.mMediator)),
+                ("mDark", "mDark-{:g}".format(self.mDark)),
+                ("rinv", "rinv-{:g}".format(self.rinv)),
+                ("alpha", "alpha-{}".format(self.alphaName) if len(self.alphaName)>0 else "alpha-{:g}".format(self.alpha)),
+            ])
+            if self.yukawa is not None: params.append(("yukawa","yukawa-{:g}".format(self.yukawa)))
+            if self.boost>0: params.append(("boost","{}{:g}".format(self.boostvar.upper(),self.boost)))
+            not_for_gridpack = ["rinv","alpha"]
+            if not self.sepproc: not_for_gridpack.append("nMediator")
+            if self.boostvar=="pt": not_for_gridpack.append("boost")
+            for pname, pval in params:
+                if gridpack and pname in not_for_gridpack: continue
+                _outname += "_"+pval
         if self.generate is not None:
             if self.generate:
                 _outname += "_13TeV-pythia8"
@@ -397,17 +414,25 @@ class svjHelper(object):
         ParamCardWriter(param_card_file, generic=True)
 
         mg_input_dir = os.path.expandvars(base_dir+"mg_input_templates")
-        modname = self.getOutName(events=events,outpre="SVJ",sanitize=True)
+        modname = self.getOutName(events=events,outpre="SVJ",sanitize=True,gridpack=True)
         template_paths = [p for ftype in ["dat","patch"] for p in glob(os.path.join(mg_input_dir, "*."+ftype))]
         for template in template_paths:
+            fname_orig = os.path.join(mg_input_dir,template)
+            fname_new = os.path.join(mg_input_dir,template.replace("modelname",modname))
             fill_template(
-                os.path.join(mg_input_dir,template),
-                os.path.join(mg_input_dir,template.replace("modelname",modname)),
+                fname_orig,
+                fname_new,
                 modelName = modname,
                 totalEvents = "{:g}".format(events),
                 cores = "{:g}".format(cores),
                 lhaid = "{:g}".format(lhaid),
+                # for boosted
                 madpt = "{:g}".format(self.boost if self.boostvar=="madpt" else 0.),
+                # for t-channel
+                procInclusive = "" if not self.sepproc else "#",
+                procPair = "" if self.sepproc and self.nMediator==2 else "#",
+                procSingle = "" if self.sepproc and self.nMediator==1 else "#",
+                procNonresonant = "" if self.sepproc and self.nMediator==0 else "#",
             )
 
         return mg_model_dir, mg_input_dir

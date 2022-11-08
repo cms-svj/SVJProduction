@@ -116,6 +116,7 @@ class jobSubmitterSVJ(jobSubmitter):
         # get dicts
         flist = __import__(self.dicts.replace(".py","")).flist
         # loop over dicts
+        svj_extras = ["boost","boostvar","yukawa","nMediator","sepproc"]
         for pdict in flist:
             # create protojob
             job = protoJob()
@@ -137,7 +138,7 @@ class jobSubmitterSVJ(jobSubmitter):
                 else:
                     model_args = [pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"]]
                     model_kwargs = {}
-                    for key in ["boost","boostvar","yukawa"]:
+                    for key in svj_extras:
                         if key in pdict: model_kwargs[key] = pdict[key]
                     model_kwargs["generate"] = not (self.madgraph or self.gridpack)
                     self.helper.setModel(*model_args,**model_kwargs)
@@ -194,10 +195,8 @@ class jobSubmitterSVJ(jobSubmitter):
                             "rinv="+str(pdict["rinv"]),
                             "alpha="+str(pdict["alpha"]),
                         ]
-                        if "boost" in pdict: arglist.append("boost="+str(pdict["boost"]))
-                        if "boostvar" in pdict: arglist.append("boostvar="+str(pdict["boostvar"]))
-                        if "yukawa" in pdict: arglist.append("yukawa="+str(pdict["yukawa"]))
-                        if "filterZ2" in pdict: arglist.append("filterZ2="+str(pdict["filterZ2"]))
+                        for extra in svj_extras+["filterZ2"]:
+                            if extra in pdict: arglist.append("{}={}".format(extra,str(pdict[extra])))
                     arglist.extend([
                         "maxEvents="+str(self.maxEvents),
                         "outpre="+self.outpre,

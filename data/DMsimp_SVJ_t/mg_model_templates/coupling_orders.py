@@ -14,3 +14,7 @@ QED = CouplingOrder(name = 'QED',
                     expansion_order = 99,
                     hierarchy = 2)
 
+NP = CouplingOrder(name = 'NP',
+                   expansion_order = 99,
+                   hierarchy = 1)
+

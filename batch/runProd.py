@@ -117,7 +117,7 @@ if __name__=="__main__":
             "ops will be applied in order provided"
         ])
     )
-    parser.add_argument("-S", "--store", metavar="pos/name", type=parse_pos_name, default=[], action="append", help="store output for intermediate step (position or name) (can be called multiple times)")
+    parser.add_argument("-S", "--store", metavar="pos/name", type=parse_pos_name, default=[], action="append", help="store output for intermediate step (position or name) (can be called multiple times) (-1 or all: store all steps' output)")
     parser.add_argument("-G", "--global", dest="global_opts", type=str, default="", help='global arguments for submitJobs (use syntax: -G="...")')
     parser.add_argument("-L", "--local", metavar=("pos/name","LOCAL"), action=ModifyAction, nargs=2, default=[], help='local arguments for submitJobs for a specific step')
     # arguments forward from (or similar to) jobSubmitter or createChain
@@ -145,7 +145,8 @@ if __name__=="__main__":
             ModifyAction._allowed_ops[mod[0]](chain, *mod[1:])
 
     # set up list of intermediate output stores and other options
-    keep_output = [pos_name if isinstance(pos_name,str) else chain[pos_name] for pos_name in args.store]
+    if -1 in args.store or "all" in args.store: keep_output = chain[:]
+    else: keep_output = [pos_name if isinstance(pos_name,str) else chain[pos_name] for pos_name in args.store]
     local_opts = defaultdict(str)
     for key,val in args.local:
         local_opts[key if isinstance(key,str) else chain[key]] = val

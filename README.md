@@ -73,6 +73,8 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `rinv=[val]`: invisible fraction value (default = 0.3)
 * `alpha=[val]`: hidden sector force coupling value (default = peak)
 * `yukawa=[val]`: Yukawa coupling for bifundamental mediator (t channel) (default = 1.0)
+* `nMediator=[val]`: generate exclusive signal process based on number of on-shell mediators (default = -1 -> inclusive)
+* `sepproc=[bool]`: use exclusive signal process at gridpack level rather than LHE level (default = True)
 * `temperature=[val]`: temperature for SUEP model (default = 2.0)
 * `decay=[str]`: decay mode for SUEP model (default = generic)
 * `filterHT=[val]`: value of the gen-level HT cut on the SUEP analysis (default = -1.0, no cut)
@@ -186,11 +188,11 @@ The basic [CondorProduction](https://github.com/kpedro88/CondorProduction) setup
 
 Gridpack:
 ```
-python submitJobs.py -p -d signalsV3_1 -E 50000 -N 1 --outpre step_GRIDPACK --year 2016 --gridpack -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/GRIDPACK/ -s
+python submitJobs.py -p -d signalsV3_1 -E 10000 -N 1 --outpre step_GRIDPACK --year 2016 --gridpack -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/GRIDPACK/ -s
 ```
 LHE-GEN-SIM:
 ```
-python submitJobs.py -p -d signalsV3_1 -E 1000 -N 100 -I 50000 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/GRIDPACK/ --inpre step_GRIDPACK --outpre step_LHE-GEN-SIM --year 2016 --config step_LHE-GEN-SIM --madgraph -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/GEN-SIM/ -s
+python submitJobs.py -p -d signalsV3_1 -E 1000 -N 100 -I 10000 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/GRIDPACK/ --inpre step_GRIDPACK --outpre step_LHE-GEN-SIM --year 2016 --config step_LHE-GEN-SIM --madgraph -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/GEN-SIM/ -s
 ```
 GEN-SIM:
 ```
@@ -222,7 +224,7 @@ The script has several options:
     * op = insert, remove, change
     * pos/name = position (number) or name of step in predefined chain
     * step = name of step to insert/substitute
-* `-S, --store [pos/name]`: store output for intermediate step (position or name) (can be called multiple times)
+* `-S, --store [pos/name]`: store output for intermediate step (position or name) (can be called multiple times) (-1 or all: store all steps' output)
 * `-G, --global [opts]`: global arguments for submitJobs (use syntax: -G="...")
 * `-L, --local [pos/name] [opts]`: local arguments for submitJobs for a specific step
 * `-n, --name [name]`: base-level name for chain job
@@ -249,9 +251,9 @@ python runProd.py -P P8 -G="-p -d signals_P8_ex -E 10 -N 1 --cpus 4 --memory 800
 
 MadGraph+Pythia generation:
 ```
-python submitJobs.py -p -d signals_MG_ex -E 50000 -N 1 --memory 4000 --outpre step_GRIDPACK --year 2016 --gridpack -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/GRIDPACK -s
+python submitJobs.py -p -d signals_MG_ex -E 10000 -N 1 --memory 4000 --outpre step_GRIDPACK --year 2016 --gridpack -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/GRIDPACK -s
 [wait for jobs to finish]
-python runProd.py -P MG -G="-p -d signals_MG_ex --madgraph -E 10 -N 1 --cpus 4 --memory 8000" -L 0 "-I 50000 --indir /store/user/lpcdarkqcd/SVJ2017/testUL/GRIDPACK --inpre step_GRIDPACK" -y 2016 -n chain2016_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -c -s
+python runProd.py -P MG -G="-p -d signals_MG_ex --madgraph -E 10 -N 1 --cpus 4 --memory 8000" -L 0 "-I 10000 --indir /store/user/lpcdarkqcd/SVJ2017/testUL/GRIDPACK --inpre step_GRIDPACK" -y 2016 -n chain2016_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -c -s
 ```
 </details>
 
