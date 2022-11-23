@@ -78,7 +78,8 @@ fi
 
 install_CMSSW(){
 	THIS_CMSSW="$1"
-	MINIMAL="$2"
+	MINIMAL=
+	UPDATE_HLT=
 
 	# -------------------------------------------------------------------------------------
 	# CMSSW release area
@@ -87,12 +88,16 @@ install_CMSSW(){
 		case $THIS_CMSSW in
 		CMSSW_8_0_*)
 			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc530
+			UPDATE_HLT=1
+			MINIMAL=1
 		;;
 		CMSSW_9_4_*)
 			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc630
+			MINIMAL=1
 		;;
 		CMSSW_10_2_*)
 			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc700
+			MINIMAL=1
 		;;
 		CMSSW_10_6_*)
 			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc700
@@ -120,6 +125,10 @@ install_CMSSW(){
 
 		git clone ${ACCESS_GITHUB}kpedro88/CondorProduction Condor/Production
 		git clone ${ACCESS_GITHUB}${FORK}/SVJProduction SVJ/Production -b ${BRANCH}
+
+		if [ -n "$UPDATE_HLT" ]; then
+			git cms-merge-topic -u cms-svj:ScoutingContent80Xmin
+		fi
 
 		if [ -n "$MINIMAL" ]; then
 			# don't need to compile SVJ-specific code for HLT
@@ -165,6 +174,6 @@ if [ -n "$HLT" ]; then
 	mkdir -p $HLT_DIR
 	for HLT_CMSSW in CMSSW_8_0_33_UL CMSSW_9_4_14_UL_patch1 CMSSW_10_2_16_UL; do
 		cd $HLT_DIR
-		install_CMSSW $HLT_CMSSW 1
+		install_CMSSW $HLT_CMSSW
 	done
 fi
