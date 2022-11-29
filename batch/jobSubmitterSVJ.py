@@ -184,9 +184,6 @@ class jobSubmitterSVJ(jobSubmitter):
                         if "filterHT" in pdict:
                             if pdict["filterHT"] > 0:
                                 arglist.append("filterHT=%1.3f"%pdict["filterHT"])
-                        if "scout" in pdict:
-                            arglist.append("scout="+str(pdict["scout"]))
- 
                     else:
                         arglist = [
                             "channel="+str(pdict["channel"]),
@@ -197,6 +194,8 @@ class jobSubmitterSVJ(jobSubmitter):
                         ]
                         for extra in svj_extras+["filterZ2"]:
                             if extra in pdict: arglist.append("{}={}".format(extra,str(pdict[extra])))
+                    if "scout" in pdict:
+                        arglist.append("scout="+str(pdict["scout"]))
                     arglist.extend([
                         "maxEvents="+str(self.maxEvents),
                         "outpre="+self.outpre,
