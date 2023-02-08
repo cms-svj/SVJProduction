@@ -429,7 +429,7 @@ class svjHelper(object):
                 # for boosted
                 madpt = "{:g}".format(self.boost if self.boostvar=="madpt" else 0.),
                 # for t-channel
-                procInclusive = "" if not self.sepproc else "#",
+                procInclusive = "" if not self.sepproc or self.nMediator is None else "#",
                 procPair = "" if self.sepproc and self.nMediator==2 else "#",
                 procSingle = "" if self.sepproc and self.nMediator==1 else "#",
                 procNonresonant = "" if self.sepproc and self.nMediator==0 else "#",
