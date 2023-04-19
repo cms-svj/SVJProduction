@@ -47,9 +47,8 @@ set -e
 cd {0}
 ln -sf {1} .
 eval `scram unsetenv -sh`
-export DO_MG_SYSTEMATICS={6}
-export GRIDPACK_NEVENTS={7}
-export NO_GRIDPACK={8}
+export GRIDPACK_NEVENTS={6}
+export NO_GRIDPACK={7}
 ./gridpack_generation.sh {2} {3}
 mv {2}_*.tar.xz {4}
 cd {4}
@@ -61,7 +60,6 @@ cd {4}
     os.path.basename(mg_input_dir),
     os.getcwd(),
     "echo" if options.dump else "rm -rf", # use options.dump to keep gridpack dir
-    "true" if options.syst else "",
     options.maxEvents,
     "true" if options.nogridpack else "",
 )

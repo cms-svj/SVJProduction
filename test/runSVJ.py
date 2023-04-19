@@ -40,6 +40,7 @@ if len(_inname)>0:
             _inname = _inname.split('/')[-1]
         process.externalLHEProducer.args = cms.vstring(os.path.join(os.getcwd(),_inname))
         process.externalLHEProducer.nEvents = cms.untracked.uint32(options.maxEvents)
+        if options.syst: process.externalLHEProducer.scriptName = cms.FileInPath("SVJ/Production/test/run_svj_tarball_syst.sh")
 if process.source.type_()=='EmptySource':
     process.source.firstEvent = cms.untracked.uint32((options.part-1)*options.maxEvents+1)
     if len(options.scan)>0: process.source.numberEventsInLuminosityBlock = cms.untracked.uint32(100)

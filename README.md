@@ -63,7 +63,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `fragment=[string]`: name of file w/ `processParameters` fragment
 * `madgraph=[bool]`: generation with MadGraph (instead of default Pythia8)
 * `nogridpack=[bool]`: disable gridpack mode and just generate events (only for `runMG`) (default = False)
-* `syst=[bool]`: enable systematics for generation with MadGraph (default = False)
+* `syst=[bool]`: enable systematics for generation with MadGraph (used in LHE step) (default = False)
 * `suep=[bool]`: run SUEP simulation (default = False)
 * `channel=[string]`: process to generate (default = s, alternative = t)
 * `boost=[float]`: applies a minimum cut of this value (default = 0.0)
