@@ -34,12 +34,9 @@ if len(_inname)>0:
     elif hasattr(process,"externalLHEProducer"):
         _inname = _helper.getOutName(events=options.maxEventsIn,outpre=options.inpre,gridpack=True)+".tar.xz"
         _inname = fix_inname(_inname,options,True)
-        # fetch the gridpack file from xrootd
-        if _inname.startswith("root:"):
-            os.system("xrdcp -f "+_inname+" .")
-            _inname = _inname.split('/')[-1]
-        process.externalLHEProducer.args = cms.vstring(os.path.join(os.getcwd(),_inname))
+        process.externalLHEProducer.args = cms.vstring(_inname)
         process.externalLHEProducer.nEvents = cms.untracked.uint32(options.maxEvents)
+        if options.syst: process.externalLHEProducer.scriptName = cms.FileInPath("SVJ/Production/test/run_svj_tarball_syst.sh")
 if process.source.type_()=='EmptySource':
     process.source.firstEvent = cms.untracked.uint32((options.part-1)*options.maxEvents+1)
     if len(options.scan)>0: process.source.numberEventsInLuminosityBlock = cms.untracked.uint32(100)

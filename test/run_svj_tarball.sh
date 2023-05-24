@@ -1,5 +1,13 @@
 #!/bin/bash -e
 
+# fetch the gridpack file from xrootd
+in_path=${1}
+if [[ "$in_path" == "root://"* ]]; then
+	xrdcp -f $in_path .
+	# reset arg to be passed to CMSSW script below
+	set -- "$PWD/$(basename $in_path)" "${@:2}"
+fi
+
 $CMSSW_RELEASE_BASE/src/GeneratorInterface/LHEInterface/data/run_generic_tarball_cvmfs.sh "$@"
 
 # convert madgraph ids to pythia ids
