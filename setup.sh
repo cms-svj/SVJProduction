@@ -7,9 +7,13 @@ esac
 
 # defaults
 ACCESS=https
-WHICH_CMSSW=CMSSW_10_6_29_patch1
+YEAR=2022
+declare -A CMSSW_YEARS
+CMSSW_YEARS[2022]=CMSSW_12_4_15
+CMSSW_YEARS[2023]=CMSSW_13_0_13
+WHICH_CMSSW=
 FORK=cms-svj
-BRANCH=Run2_UL
+BRANCH=Run3
 CORES=8
 HLT=""
 
@@ -17,20 +21,22 @@ usage() {
 	$ECHO "setup.sh [options]"
 	$ECHO
 	$ECHO "Options:"
-	$ECHO "-c [release]  \tCMSSW release to install (default = $WHICH_CMSSW)"
+	$ECHO "-y [year]     \tyear to simulate, determines default CMSSW release (choices: ${!CMSSW_YEARS[@]}) (default = $YEAR)"
+	$ECHO "-c [release]  \tCMSSW release to install (default = ${CMSSW_YEARS[$YEAR]})"
 	$ECHO "-f [fork]     \tclone from specified fork (default = $FORK)"
 	$ECHO "-b [branch]   \tclone specified branch (default = $BRANCH)"
 	$ECHO "-s [protocol] \tuse protocol to clone (default = ${ACCESS}, alternative = ssh)"
 	$ECHO "-j [cores]    \t# cores for CMSSW compilation (default = ${CORES})"
-	$ECHO "-t            \tinstall HLT releases"
 	$ECHO "-h            \tprint this message and exit"
 	exit $1
 }
 
 CUR_DIR=`pwd`
 #check arguments
-while getopts "c:f:b:s:j:th" opt; do
+while getopts "y:c:f:b:s:j:th" opt; do
 	case "$opt" in
+	y) YEAR=$OPTARG
+	;;
 	c) WHICH_CMSSW=$OPTARG
 	;;
 	f) FORK=$OPTARG
@@ -41,12 +47,19 @@ while getopts "c:f:b:s:j:th" opt; do
 	;;
 	j) CORES=$OPTARG
 	;;
-	t) HLT=true
-	;;
 	h) usage 0
 	;;
 	esac
 done
+
+if [[ -z "${CMSSW_YEARS[$YEAR]}" ]]; then
+	$ECHO "Unknown year $YEAR"
+	usage 1
+fi
+
+if [ -z "$WHICH_CMSSW" ]; then
+	WHICH_CMSSW=${CMSSW_YEARS[$YEAR]}
+fi
 
 if [ "$ACCESS" = "ssh" ]; then
 	export ACCESS_GITHUB=git@github.com:
@@ -60,47 +73,44 @@ fi
 
 # OS check: try redhat-release first to handle Singularity case
 # kept in view of handling post-SL7 OS
+declare -A OS_PREFIX
+OS_PREFIX[7]=slc7
+OS_PREFIX[8]=el8
+POSSIBLE_VERSIONS=( 7 8 )
 if [[ -f "/etc/redhat-release" ]]; then
 	VERSION_TMP=`awk -F'[ .]' '{print $4}' "/etc/redhat-release"`
-	POSSIBLE_VERSIONS=( 7 )
 	if [[ "${POSSIBLE_VERSIONS[@]} " =~ "${VERSION_TMP}" ]]; then
-		SLC_VERSION="slc${VERSION_TMP}"
+		SLC_VERSION="${OS_PREFIX[${VERSION_TMP}]}"
 	else
 		echo "WARNING::Unknown SLC version. Defaulting to SLC7."
 		SLC_VERSION="slc7"
 	fi
-elif [[ `uname -r` == *"el7"* ]]; then
-	SLC_VERSION="slc7"
 else
-	echo "WARNING::Unknown SLC version. Defaulting to SLC7."
-SLC_VERSION="slc7"
+	for POSVER in ${POSSIBLE_VERSIONS[@]}; do
+		if [[ `uname -r` == *"el${POSVER}"* ]]; then
+			SLC_VERSION="${OS_PREFIX[$POSVER]}"
+			break
+		fi
+	done
+	if [ -z "$SLC_VERSION" ]; then
+		echo "WARNING::Unknown SLC version. Defaulting to SLC7."
+		SLC_VERSION="slc7"
+	fi
 fi
 
 install_CMSSW(){
 	THIS_CMSSW="$1"
-	MINIMAL=
-	UPDATE_HLT=
 
 	# -------------------------------------------------------------------------------------
 	# CMSSW release area
 	# -------------------------------------------------------------------------------------
 	if [ -n "$THIS_CMSSW" ]; then
 		case $THIS_CMSSW in
-		CMSSW_8_0_*)
-			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc530
-			UPDATE_HLT=1
-			MINIMAL=1
+		CMSSW_12_4_*)
+			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc10
 		;;
-		CMSSW_9_4_*)
-			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc630
-			MINIMAL=1
-		;;
-		CMSSW_10_2_*)
-			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc700
-			MINIMAL=1
-		;;
-		CMSSW_10_6_*)
-			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc700
+		CMSSW_13_0_*)
+			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc11
 		;;
 		*)
 			$ECHO "Unknown architecture for release $THIS_CMSSW"
@@ -126,35 +136,18 @@ install_CMSSW(){
 		git clone ${ACCESS_GITHUB}kpedro88/CondorProduction Condor/Production
 		git clone ${ACCESS_GITHUB}${FORK}/SVJProduction SVJ/Production -b ${BRANCH}
 
-		if [ -n "$UPDATE_HLT" ]; then
-			git cms-merge-topic -u cms-svj:ScoutingContent80Xmin
-		fi
-
-		if [ -n "$MINIMAL" ]; then
-			# don't need to compile SVJ-specific code for HLT
-			cd SVJ/Production
-			git config core.sparsecheckout true
-			{
-				echo '/batch'
-				echo '/python'
-				echo '/test'
-			} > .git/info/sparse-checkout
-			git read-tree -mu HEAD
-			# skip genproductions entirely
-		else
-			# use as little of genproductions as possible
-			git clone --depth 1 --no-checkout ${ACCESS_GITHUB}cms-svj/genproductions -b Run2_UL Configuration/GenProduction
-			# setup sparse checkout
-			cd Configuration/GenProduction
-			git config core.sparsecheckout true
-			{
-				echo '/Utilities'
-				echo '/bin/MadGraph5_aMCatNLO'
-				echo '!/bin/MadGraph5_aMCatNLO/cards'
-				echo '/MetaData'
-			} > .git/info/sparse-checkout
-			git read-tree -mu HEAD
-		fi
+		# use as little of genproductions as possible
+		git clone --depth 1 --no-checkout ${ACCESS_GITHUB}cms-svj/genproductions -b Run3 Configuration/GenProduction
+		# setup sparse checkout
+		cd Configuration/GenProduction
+		git config core.sparsecheckout true
+		{
+			echo '/Utilities'
+			echo '/bin/MadGraph5_aMCatNLO'
+			echo '!/bin/MadGraph5_aMCatNLO/cards'
+			echo '/MetaData'
+		} > .git/info/sparse-checkout
+		git read-tree -mu HEAD
 
 		cd $CMSSW_BASE/src
 		scram b -j $CORES
@@ -169,11 +162,3 @@ install_CMSSW(){
 # run the installations
 cd $CUR_DIR
 install_CMSSW $WHICH_CMSSW
-if [ -n "$HLT" ]; then
-	HLT_DIR=${CUR_DIR}/HLT
-	mkdir -p $HLT_DIR
-	for HLT_CMSSW in CMSSW_8_0_33_UL CMSSW_9_4_14_UL_patch1 CMSSW_10_2_16_UL; do
-		cd $HLT_DIR
-		install_CMSSW $HLT_CMSSW
-	done
-fi
