@@ -148,7 +148,7 @@ class jobSubmitterSVJ(jobSubmitter):
             job.name = self.helper.getOutName(events=self.maxEvents,outpre=outpre,signal=signal)
             if len(self.chainName)>0: job.chainName = self.chainName
             if self.verbose:
-                print "Creating job: "+job.name
+                print("Creating job: "+job.name)
             self.generatePerJob(job)
 
             # for auto skipping
@@ -226,7 +226,7 @@ class jobSubmitterSVJ(jobSubmitter):
                 iActualJob = iJob+int(self.firstPart)
 
                 if (self.skipParts=="auto" and injob.makeName(iActualJob) not in infiles) or (type(self.skipParts)==set and iActualJob in self.skipParts):
-                    if self.verbose: print "  skipping part "+str(iActualJob)+" ("+injob.makeName(iActualJob)+")"
+                    if self.verbose: print("  skipping part "+str(iActualJob)+" ("+injob.makeName(iActualJob)+")")
                     continue
 
                 if self.actualEvents:

@@ -45,9 +45,9 @@ for im,mDark in enumerate(masses):
     ymax_idx = next(i for i,y in enumerate(list(pts)) if y==ymax_tmp)
     ymax = max(ymax,ymax_tmp)
 
-    print "peak for mDark = "+str(mDark)+" :"
-    print "mZprime = "+str(list(xpts)[ymax_idx-1:ymax_idx+2])
-    print "nHV = "+str(list(pts)[ymax_idx-1:ymax_idx+2])
+    print("peak for mDark = "+str(mDark)+" :")
+    print("mZprime = "+str(list(xpts)[ymax_idx-1:ymax_idx+2]))
+    print("nHV = "+str(list(pts)[ymax_idx-1:ymax_idx+2]))
 
     graph.SetMarkerColor(colors[im])
     graphs.append(graph)

@@ -62,7 +62,7 @@ def find_nearest(val,xy):
 # function to retrieve multiplied relative acceptance
 def get_acc(point):
     this_acc = 1.0
-    for param,pval in point.iteritems():
+    for param,pval in point.items():
         pval = alpha_vals[pval] if param=="alpha" else pval
         this_acc *= find_nearest(pval,acc[param])/base_acc
     return this_acc
@@ -74,19 +74,19 @@ sigs = set()
 params_rinv = deepcopy(params)
 params_rinv["mDark"] = [20]
 params_rinv["alpha"] = ["peak"]
-varyAll(0,list(params_rinv.iteritems()),[],sigs)
+varyAll(0,list(params_rinv.items()),[],sigs)
 
 # 2D scans vs. mDark
 params_mDark = deepcopy(params)
 params_mDark["rinv"] = [0.3]
 params_mDark["alpha"] = ["peak"]
-varyAll(0,list(params_mDark.iteritems()),[],sigs)
+varyAll(0,list(params_mDark.items()),[],sigs)
 
 # 2D scans vs. alpha
 params_alpha = deepcopy(params)
 params_alpha["rinv"] = [0.3]
 params_alpha["mDark"] = [20]
-varyAll(0,list(params_alpha.iteritems()),[],sigs)
+varyAll(0,list(params_alpha.items()),[],sigs)
 
 # format first part of output config
 first_part = """

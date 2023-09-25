@@ -16,7 +16,7 @@ for p in params:
 sigs.add(stmp)
 
 # vary one at a time
-for i, (p, vals) in enumerate(params.iteritems()):
+for i, (p, vals) in enumerate(params.items()):
     for v in vals[1]:
         tmp = list(stmp)
         tmp[i] = v
@@ -25,8 +25,8 @@ for i, (p, vals) in enumerate(params.iteritems()):
 
 from signalsV3_1 import sigs as sigs1
 sigs = sigs - sigs1
-print len(sigs)
+print(len(sigs))
 
 flist = [OrderedDict([("channel", "s"), "mMediator", x[0]), ("mDark", x[1]), ("rinv", x[2]), ("alpha", x[3])]) for x in sorted(sigs)]
 
-#print flist
+#print(flist)

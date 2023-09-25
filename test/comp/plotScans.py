@@ -35,13 +35,13 @@ axnames = {
     "alpha": "#alpha_{dark}",
 }
 
-for scan,params in scans.iteritems():
+for scan,params in scans.items():
     x = []
     y = []
     z = []
     for point in parsed:
         good_point = True
-        for param,pval in params.iteritems():
+        for param,pval in params.items():
             if point[param]!=pval: good_point = False
         if not good_point: continue
         x.append(point["mZprime"])

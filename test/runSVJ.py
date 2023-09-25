@@ -182,7 +182,7 @@ if hasattr(process,"mixData"):
     elif options.year=="2017": puname = "Neutrino_E-10_gun_RunIISummer20ULPrePremix-UL17_106X_mc2017_realistic_v6-v3_PREMIX.pkl"
     elif options.year=="2018": puname = "Neutrino_E-10_gun_RunIISummer20ULPrePremix-UL18_106X_upgrade2018_realistic_v11_L1v1-v2_PREMIX.pkl"
     if not os.path.isfile(puname):
-        print "retrieving "+puname
+        print("retrieving "+puname)
         os.system("xrdcp -f root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/"+puname+" .")
         if not os.path.isfile(puname):
             raise Exception("Could not retrieve pileup input list.")
@@ -224,5 +224,5 @@ if options.tmi:
     process = customise(process)
     
 if options.dump:
-    print process.dumpPython()
+    print(process.dumpPython())
     sys.exit(0)

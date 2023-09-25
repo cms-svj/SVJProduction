@@ -63,7 +63,7 @@ cd {4}
     options.maxEvents,
     "true" if options.nogridpack else "",
 )
-if options.dump: print cmd
+if options.dump: print(cmd)
 subprocess.check_call(cmd, shell=True)
 
 # move output to desired name

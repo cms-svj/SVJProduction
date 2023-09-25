@@ -169,7 +169,7 @@ if __name__=="__main__":
         ]
         cmd = '\n'.join(cmd).format(hlt_versions[args.year]["CMSSW_VERSION"], args.tardir)
         stdout = None
-        if args.verbose: print cmd
+        if args.verbose: print(cmd)
         else: stdout = open(os.devnull, 'w')
         subprocess.check_call(cmd, shell=True, stdout=stdout, stderr=subprocess.STDOUT)
 

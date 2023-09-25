@@ -47,9 +47,9 @@ ymax_tmp = max(list(pts))
 ymax_idx = next(i for i,y in enumerate(list(pts)) if y==ymax_tmp)
 ymax = max(ymax,ymax_tmp)
 
-print "peak for mDark = "+str(mDark)+" :"
-print "alpha = "+str(list(xpts)[ymax_idx-1:ymax_idx+2])
-print "nHV = "+str(list(pts)[ymax_idx-1:ymax_idx+2])
+print("peak for mDark = "+str(mDark)+" :")
+print("alpha = "+str(list(xpts)[ymax_idx-1:ymax_idx+2]))
+print("nHV = "+str(list(pts)[ymax_idx-1:ymax_idx+2]))
 
 graph.SetMarkerColor(color)
 graphs.append(graph)
@@ -61,7 +61,7 @@ ymax = ymax*2.0
 lines = []
 
 alpha_m = alpha_fn(mDark)
-print "alpha_m = "+str(alpha_m)
+print("alpha_m = "+str(alpha_m))
 line1 = TLine(alpha_m,0,alpha_m,ymax)
 line1.SetLineStyle(7)
 line1.SetLineWidth(2)
@@ -70,7 +70,7 @@ lines.append(line1)
 leg.AddEntry(line1,"#Lambda_{dark} = ^{}m_{dark}","l")
 
 alpha_p = alpha_fn(lambda_peak(mDark))
-print "alpha_p = "+str(alpha_p)
+print("alpha_p = "+str(alpha_p))
 line2 = TLine(alpha_p,0,alpha_p,ymax)
 line2.SetLineStyle(7)
 line2.SetLineWidth(2)
