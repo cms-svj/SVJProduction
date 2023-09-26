@@ -1,4 +1,4 @@
-import os,subprocess,shlex
+import os,subprocess,shlex,glob
 from collections import OrderedDict, defaultdict
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, RawTextHelpFormatter, RawDescriptionHelpFormatter, _AppendAction
 
@@ -90,10 +90,8 @@ class ModifyAction(_AppendAction):
 
 if __name__=="__main__":
     predefined_chains = OrderedDict([
-        ("P8",["GEN-SIM","DIGI","HLT","RECO","MINIAOD"]),
-        ("P8-lite",["GEN-SIM","DIGI-HLT","RECO","MINIAOD"]),
-        ("MG",["LHE-GEN-SIM","DIGI","HLT","RECO","MINIAOD"]),
-        ("MG-lite",["LHE-GEN-SIM","DIGI-HLT","RECO","MINIAOD"]),
+        ("P8",["GEN-SIM","DIGI","RECO","MINIAOD","NANOAOD"]),
+        ("MG",["LHE-GEN-SIM","DIGI","RECO","MINIAOD","NANOAOD"]),
     ])
     desc = ["runProd.py prepares and executes batch submission for a chain of steps to produce specified signal samples.","Several predefined chains are provided (and can be modified with command-line options):"]
     desc += ["{}: {}".format(key, ", ".join("{}. {}".format(istep, step) for istep, step in enumerate(val))) for key,val in predefined_chains.items()]
@@ -117,7 +115,7 @@ if __name__=="__main__":
             "ops will be applied in order provided"
         ])
     )
-    parser.add_argument("-S", "--store", metavar="pos/name", type=parse_pos_name, default=[], action="append", help="store output for intermediate step (position or name) (can be called multiple times) (-1 or all: store all steps' output)")
+    parser.add_argument("-S", "--store", metavar="pos/name", type=parse_pos_name, default=["MINIAOD"], nargs='*', help="store output for intermediate step(s) (position or name) (-1 or all: store all steps' output)")
     parser.add_argument("-G", "--global", dest="global_opts", type=str, default="", help='global arguments for submitJobs (use syntax: -G="...")')
     parser.add_argument("-L", "--local", metavar=("pos/name","LOCAL"), action=ModifyAction, nargs=2, default=[], help='local arguments for submitJobs for a specific step')
     # arguments forward from (or similar to) jobSubmitter or createChain
@@ -151,27 +149,42 @@ if __name__=="__main__":
     for key,val in args.local:
         local_opts[key if isinstance(key,str) else chain[key]] = val
 
-    # list of HLT step CMSSW versions
-    hlt_versions = {
-        "2016": {"CMSSW_VERSION": "CMSSW_8_0_33_UL", "SCRAM_ARCH": "slc7_amd64_gcc530"},
-        "2016APV": {"CMSSW_VERSION": "CMSSW_8_0_33_UL", "SCRAM_ARCH": "slc7_amd64_gcc530"},
-        "2017": {"CMSSW_VERSION": "CMSSW_9_4_14_UL_patch1", "SCRAM_ARCH": "slc7_amd64_gcc630"},
-        "2018": {"CMSSW_VERSION": "CMSSW_10_2_16_UL", "SCRAM_ARCH": "slc7_amd64_gcc700"},
+    # list of CMSSW versions for different steps
+    env_keys = ["CMSSW_VERSION", "SCRAM_ARCH"]
+    this_env = {key:os.getenv(key) for key in env_keys}
+    step_versions = {
+        "2022": defaultdict(lambda: {"CMSSW_VERSION": "CMSSW_12_4_15"})
     }
+    step_versions["2022"]["NANOAOD"] = {"CMSSW_VERSION": "CMSSW_12_6_5"}
+    step_versions["2022EE"] = deepcopy(step_versions["2022"])
 
-    # create and copy tarball for HLT CMSSW version
-    if "HLT" in chain and not args.keep:
-        cmd = [
-            "CUR_DIR=$PWD",
-            "cd $CMSSW_BASE/../HLT/{0}/src/SVJ/Production/batch",
-            "eval `scramv1 runtime -sh`",
-            "./checkVomsTar.sh -i {1}"
-        ]
-        cmd = '\n'.join(cmd).format(hlt_versions[args.year]["CMSSW_VERSION"], args.tardir)
-        stdout = None
-        if args.verbose: print(cmd)
-        else: stdout = open(os.devnull, 'w')
-        subprocess.check_call(cmd, shell=True, stdout=stdout, stderr=subprocess.STDOUT)
+    # create and copy tarball for other CMSSW versions
+    extra_tarballs = []
+    for step in chain:
+        step_version = step_versions[args.year][step]
+        if step_version["CMSSW_VERSION"]==this_env["CMSSW_VERSION"]:
+            step_version["SCRAM_ARCH"] = this_env["SCRAM_ARCH"]
+        else:
+            CMSSW_PATH = os.path.expandvars("$CMSSW_BASE/../{0}".format(step_version["CMSSW_VERSION"]))
+            SCRAM_PATH = glob.glob(CMSSW_PATH+"/lib/*")
+            if len(SCRAM_PATH)==0:
+                raise RuntimeError("Can't find SCRAM_ARCH for dir {}".format(CMSSW_PATH))
+            step_version["SCRAM_ARCH"] = SCRAM_PATH.split("/")[-1]
+
+            if not args.keep:
+                if step_version["CMSSW_VERSION"] not in extra_tarballs:
+                    cmd = [
+                        "CUR_DIR=$PWD",
+                        "cd $CMSSW_BASE/../{0}/src/SVJ/Production/batch",
+                        "eval `scramv1 runtime -sh`",
+                        "./checkVomsTar.sh -i {1}"
+                    ]
+                    cmd = '\n'.join(cmd).format(step_version["CMSSW_VERSION"], args.tardir)
+                    stdout = None
+                    if args.verbose: print(cmd)
+                    else: stdout = open(os.devnull, 'w')
+                    subprocess.check_call(cmd, shell=True, stdout=stdout, stderr=subprocess.STDOUT)
+                    extra_tarballs.append(step_version["CMSSW_VERSION"])
 
     # create step JDLs (one list per job)
     jdls = []
@@ -202,12 +215,11 @@ if __name__=="__main__":
         opts = shlex.split(" ".join(opt for opt in opts if len(opt)>0))
         if args.verbose: print(opts)
 
-        # HLT: use 10_6_X jobSubmitterSVJ, but make it specify the correct CMSSW version in JDL
-        env_keys = ["CMSSW_VERSION", "SCRAM_ARCH"]
-        old_env = {key:os.getenv(key) for key in env_keys}
-        if step=="HLT":
+        # use current jobSubmitterSVJ, but make it specify the correct CMSSW version in JDL
+        step_version = step_versions[args.year][step]
+        if step_version["CMSSW_VERSION"]!=this_env["CMSSW_VERSION"]:
             for key in env_keys:
-                os.environ[key] = hlt_versions[args.year][key]
+                os.environ[key] = step_version[key]
 
         from jobSubmitterSVJ import jobSubmitterSVJ
         jobSub = jobSubmitterSVJ(argv=opts)
@@ -228,10 +240,10 @@ if __name__=="__main__":
             jdls[ijob].append(job.jdl)
             if istep==0: logs.append(job.name)
 
-        # revert HLT env changes
-        if step=="HLT":
+        # revert any env changes
+        if step_version["CMSSW_VERSION"]!=this_env["CMSSW_VERSION"]:
             for key in env_keys:
-                os.environ[key] = old_env[key]
+                os.environ[key] = this_env[key]
 
     # create chain jdl
     if prepare:
