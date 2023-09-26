@@ -4,7 +4,7 @@
 
 All of the necessary setup (including checkout of this repo, dependencies, and CMSSW compilation) is performed by [setup.sh](./setup.sh).
 
-For Run 3 MC production, `CMSSW_12_4_15` (2022) and `CMSSW_13_0_13) (2023) are used.
+For Run 3 MC production, `CMSSW_12_4_15` and `CMSSW_12_6_5` (2022) and `CMSSW_13_0_13` (2023) are used.
 ```
 wget https://raw.githubusercontent.com/cms-svj/SVJProduction/Run2_UL/setup.sh
 chmod +x setup.sh
@@ -16,7 +16,7 @@ cd SVJ/Production
 
 The setup script has several options:
 * `-y [year]`: year to simulate, determines default CMSSW release (choices: 2022 2023) (default = 2022)
-* `-c [release]`: CMSSW release to install (default = CMSSW_12_4_15)
+* `-c [release]`: CMSSW release(s) to install, comma-separated (default = CMSSW_12_4_15,CMSSW_12_6_5)
 * `-f [fork]`: clone from specified fork (default = cms-svj)
 * `-b [branch]`: clone specified branch (default = Run3)
 * `-s [protocol]`: use protocol to clone (default = https, alternative = ssh)

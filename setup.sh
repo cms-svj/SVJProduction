@@ -9,8 +9,8 @@ esac
 ACCESS=https
 YEAR=2022
 declare -A CMSSW_YEARS
-CMSSW_YEARS[2022]=CMSSW_12_4_15
-CMSSW_YEARS[2023]=CMSSW_13_0_13
+CMSSW_YEARS[2022]="CMSSW_12_4_15,CMSSW_12_6_5"
+CMSSW_YEARS[2023]="CMSSW_13_0_13"
 WHICH_CMSSW=
 FORK=cms-svj
 BRANCH=Run3
@@ -22,7 +22,7 @@ usage() {
 	$ECHO
 	$ECHO "Options:"
 	$ECHO "-y [year]     \tyear to simulate, determines default CMSSW release (choices: ${!CMSSW_YEARS[@]}) (default = $YEAR)"
-	$ECHO "-c [release]  \tCMSSW release to install (default = ${CMSSW_YEARS[$YEAR]})"
+	$ECHO "-c [release]  \tCMSSW release(s) to install, comma-separated (default = ${CMSSW_YEARS[$YEAR][@]})"
 	$ECHO "-f [fork]     \tclone from specified fork (default = $FORK)"
 	$ECHO "-b [branch]   \tclone specified branch (default = $BRANCH)"
 	$ECHO "-s [protocol] \tuse protocol to clone (default = ${ACCESS}, alternative = ssh)"
@@ -37,7 +37,7 @@ while getopts "y:c:f:b:s:j:th" opt; do
 	case "$opt" in
 	y) YEAR=$OPTARG
 	;;
-	c) WHICH_CMSSW=$OPTARG
+	c) IFS="," read -a WHICH_CMSSW <<< "$OPTARG"
 	;;
 	f) FORK=$OPTARG
 	;;
@@ -58,7 +58,7 @@ if [[ -z "${CMSSW_YEARS[$YEAR]}" ]]; then
 fi
 
 if [ -z "$WHICH_CMSSW" ]; then
-	WHICH_CMSSW=${CMSSW_YEARS[$YEAR]}
+	IFS="," read -a WHICH_CMSSW <<< "${CMSSW_YEARS[$YEAR]}"
 fi
 
 if [ "$ACCESS" = "ssh" ]; then
@@ -107,6 +107,9 @@ install_CMSSW(){
 	if [ -n "$THIS_CMSSW" ]; then
 		case $THIS_CMSSW in
 		CMSSW_12_4_*)
+			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc10
+		;;
+		CMSSW_12_6_*)
 			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc10
 		;;
 		CMSSW_13_0_*)
@@ -160,5 +163,7 @@ install_CMSSW(){
 }
 
 # run the installations
-cd $CUR_DIR
-install_CMSSW $WHICH_CMSSW
+for WC in ${WHICH_CMSSW[@]}; do
+	cd $CUR_DIR
+	install_CMSSW $WC
+done
