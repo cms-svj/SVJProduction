@@ -178,15 +178,14 @@ if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNo
 
 # DIGI settings
 if hasattr(process,"mixData"):
-    if options.year.startswith("2016"): puname = "Neutrino_E-10_gun_RunIISummer20ULPrePremix-UL16_106X_mcRun2_asymptotic_v13-v1_PREMIX.pkl"
-    elif options.year=="2017": puname = "Neutrino_E-10_gun_RunIISummer20ULPrePremix-UL17_106X_mc2017_realistic_v6-v3_PREMIX.pkl"
-    elif options.year=="2018": puname = "Neutrino_E-10_gun_RunIISummer20ULPrePremix-UL18_106X_upgrade2018_realistic_v11_L1v1-v2_PREMIX.pkl"
+    if options.year.startswith("2022"): puname = "Neutrino_E-10_gun_Run3Summer21PrePremix-Summer22_124X_mcRun3_2022_realistic_v11-v2_PREMIX.pkl"
+	else: raise ValueError("Unknown premix dataset for year {}".format(options.year))
     if not os.path.isfile(puname):
         print("retrieving "+puname)
         os.system("xrdcp -f root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/"+puname+" .")
         if not os.path.isfile(puname):
             raise Exception("Could not retrieve pileup input list.")
-    import cPickle as pickle
+    import pickle
     process.mixData.input.fileNames = cms.untracked.vstring(*pickle.load(open(puname,"rb")))
 
 # miniAOD settings

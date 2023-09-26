@@ -1,7 +1,7 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from Configuration.Applications.ConfigBuilder import filesFromList
-import cPickle as pickle
-from StringIO import StringIO
+import pickle
+from io import StringIO
 import os, sys
 
 class NullIO(StringIO):
