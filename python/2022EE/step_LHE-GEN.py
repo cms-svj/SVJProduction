@@ -148,7 +148,7 @@ process.generator = cms.EDFilter("Pythia8ConcurrentHadronizerFilter",
             'UncertaintyBands:ISRpTmin2Fac = 20'
         )
     ),
-    comEnergy = cms.double(13000.0),
+    comEnergy = cms.double(13600.0),
     filterEfficiency = cms.untracked.double(1.0),
     maxEventsToPrint = cms.untracked.int32(1),
     pythiaHepMCVerbosity = cms.untracked.bool(False),
