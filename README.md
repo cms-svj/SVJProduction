@@ -65,7 +65,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `nogridpack=[bool]`: disable gridpack mode and just generate events (only for `runMG`) (default = False)
 * `syst=[bool]`: enable systematics for generation with MadGraph (used in LHE step) (default = False)
 * `suep=[bool]`: run SUEP simulation (default = False)
-* `channel=[string]`: process to generate (default = s, alternative = t)
+* `channel=[string]`: process to generate (SVJ: default = s, alternative = t; SUEP: default = ggH, alternative = WH, ZH)
 * `boost=[float]`: applies a minimum cut of this value (default = 0.0)
 * `boostvar=[string]`: applies the above minimum cut to this variable (default = "madpt", alternatives = "pt")
 * `mMediator=[val]`: mediator mass value (default = 3000.0)
