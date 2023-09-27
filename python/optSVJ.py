@@ -78,10 +78,11 @@ elif len(options.fragment)>0:
     if len(options.inpre)>0: options.inpre += "_"+options.fragment
 
 if options.suep:
+    # change default
+    if options.channel=='s': options.channel = 'ggH'
     _helper = suepHelper()
-    _helper.setModel(options.mMediator,options.mDark,options.temperature,options.decay)
+    _helper.setModel(options.channel,options.mMediator,options.mDark,options.temperature,options.decay)
     options.filterZ2 = False
-    options.channel = ""
 else:
     _helper = svjHelper()
     _helper.setModel(options.channel,options.mMediator,options.mDark,options.rinv,options.alpha,generate=None if options.scan else not options.madgraph,boost=options.boost,boostvar=options.boostvar,yukawa=options.yukawa,nMediator=options.nMediator,sepproc=options.sepproc)
