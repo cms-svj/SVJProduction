@@ -134,7 +134,7 @@ class jobSubmitterSVJ(jobSubmitter):
                 signal = False
             else:
                 if self.suep:
-                    self.helper.setModel(pdict["mMediator"],pdict["mDark"],pdict["temperature"],pdict["decay"])
+                    self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["temperature"],pdict["decay"])
                 else:
                     model_args = [pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"]]
                     model_kwargs = {}
@@ -176,6 +176,7 @@ class jobSubmitterSVJ(jobSubmitter):
                     elif self.suep:
                         arglist = [
                             "suep=1",
+                            "channel="+str(pdict["channel"]),
                             "mMediator="+str(pdict["mMediator"]),
                             "mDark="+str(pdict["mDark"]),
                             "temperature="+str(pdict["temperature"]),
