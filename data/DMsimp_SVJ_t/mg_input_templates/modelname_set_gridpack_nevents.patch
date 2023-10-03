@@ -1,7 +1,7 @@
-diff -ruN MG5_aMC_v2_6_5_orig/madgraph/interface/madevent_interface.py MG5_aMC_v2_6_5/madgraph/interface/madevent_interface.py
---- MG5_aMC_v2_6_5_orig/madgraph/interface/madevent_interface.py	2019-02-04 05:19:42.000000000 -0600
-+++ MG5_aMC_v2_6_5/madgraph/interface/madevent_interface.py	2020-08-19 20:26:41.852746604 -0500
-@@ -2486,7 +2486,7 @@
+diff -ruN MG5_aMC_v2_9_13_orig/madgraph/interface/madevent_interface.py MG5_aMC_v2_9_13/madgraph/interface/madevent_interface.py
+--- MG5_aMC_v2_9_13_orig/madgraph/interface/madevent_interface.py	2022-12-16 02:05:07.000000000 -0600
++++ MG5_aMC_v2_9_13/madgraph/interface/madevent_interface.py	2023-10-03 04:48:34.205435475 -0500
+@@ -2491,7 +2491,7 @@
          if self.run_card['gridpack'] in self.true:        
              # Running gridpack warmup
              gridpack_opts=[('accuracy', 0.01),
