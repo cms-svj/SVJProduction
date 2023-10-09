@@ -6,7 +6,7 @@ All of the necessary setup (including checkout of this repo, dependencies, and C
 
 For Run 2 ultra-legacy MC production (2016APV, 2016, 2017, 2018), `CMSSW_10_6_29_patch1` is used.
 ```
-wget https://raw.githubusercontent.com/cms-svj/SVJProduction/master/setup.sh
+wget https://raw.githubusercontent.com/cms-svj/SVJProduction/Run2_UL/setup.sh
 chmod +x setup.sh
 ./setup.sh
 cd CMSSW_10_6_29_patch1/src
