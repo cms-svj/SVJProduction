@@ -15,7 +15,11 @@ WHICH_CMSSW=
 FORK=cms-svj
 BRANCH=Run3
 CORES=8
-HLT=""
+TOOLS=(
+pythia8 \
+evtgen \
+tauolapp \
+)
 
 usage() {
 	$ECHO "setup.sh [options]"
@@ -32,8 +36,8 @@ usage() {
 }
 
 CUR_DIR=`pwd`
-#check arguments
-while getopts "y:c:f:b:s:j:th" opt; do
+# check arguments
+while getopts "y:c:f:b:s:j:h" opt; do
 	case "$opt" in
 	y) YEAR=$OPTARG
 	;;
@@ -100,66 +104,91 @@ fi
 
 install_CMSSW(){
 	THIS_CMSSW="$1"
+	if [ -z "$THIS_CMSSW" ]; then
+		return
+	fi
 
 	# -------------------------------------------------------------------------------------
 	# CMSSW release area
 	# -------------------------------------------------------------------------------------
-	if [ -n "$THIS_CMSSW" ]; then
-		case $THIS_CMSSW in
-		CMSSW_12_4_*)
-			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc10
-		;;
-		CMSSW_12_6_*)
-			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc10
-		;;
-		CMSSW_13_0_*)
-			export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc11
-		;;
-		*)
-			$ECHO "Unknown architecture for release $THIS_CMSSW"
-			exit 1
-		;;
-		esac
-		scramv1 project CMSSW $THIS_CMSSW
-		cd $THIS_CMSSW
-		eval `scramv1 runtime -sh`
-		$ECHO "setup $CMSSW_VERSION"
-	fi
+
+	case $THIS_CMSSW in
+	CMSSW_12_4_*)
+		export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc10
+	;;
+	CMSSW_12_6_*)
+		export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc10
+	;;
+	CMSSW_13_0_*)
+		export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc11
+	;;
+	*)
+		$ECHO "Unknown architecture for release $THIS_CMSSW"
+		exit 1
+	;;
+	esac
+	scramv1 project CMSSW $THIS_CMSSW
+	cd $THIS_CMSSW
+	eval `scramv1 runtime -sh`
+	$ECHO "setup $CMSSW_VERSION"
 
 	# -------------------------------------------------------------------------------------
 	# CMSSW compilation
 	# -------------------------------------------------------------------------------------
 
-	if [ -n "$THIS_CMSSW" ]; then
-		# reinitialize environment
-		eval `scramv1 runtime -sh`
-		cd src
-		git cms-init $ACCESS_CMSSW
+	# reinitialize environment
+	eval `scramv1 runtime -sh`
+	cd src
+	git cms-init $ACCESS_CMSSW
 
-		git clone ${ACCESS_GITHUB}kpedro88/CondorProduction Condor/Production
-		git clone ${ACCESS_GITHUB}${FORK}/SVJProduction SVJ/Production -b ${BRANCH}
+	git clone ${ACCESS_GITHUB}kpedro88/CondorProduction Condor/Production
+	git clone ${ACCESS_GITHUB}${FORK}/SVJProduction SVJ/Production -b ${BRANCH}
 
-		# use as little of genproductions as possible
-		git clone --depth 1 --no-checkout ${ACCESS_GITHUB}cms-svj/genproductions -b Run3 Configuration/GenProduction
-		# setup sparse checkout
-		cd Configuration/GenProduction
+	# use as little of genproductions as possible
+	git clone --depth 1 --no-checkout ${ACCESS_GITHUB}cms-svj/genproductions -b Run3 Configuration/GenProduction
+	# setup sparse checkout
+	cd Configuration/GenProduction
+	git config core.sparsecheckout true
+	{
+		echo '/Utilities'
+		echo '/bin/MadGraph5_aMCatNLO'
+		echo '!/bin/MadGraph5_aMCatNLO/cards'
+		echo '/MetaData'
+	} > .git/info/sparse-checkout
+	git read-tree -mu HEAD
+
+	# patched pythia
+	cd $CMSSW_BASE
+	git clone ${ACCESS_GITHUB}cms-svj/build
+	cd build
+	PDIR=${THIS_CMSSW}/${SCRAM_ARCH}/tools
+	if [ -d $PDIR ]; then
+		# only keep relevant artifacts
 		git config core.sparsecheckout true
-		{
-			echo '/Utilities'
-			echo '/bin/MadGraph5_aMCatNLO'
-			echo '!/bin/MadGraph5_aMCatNLO/cards'
-			echo '/MetaData'
-		} > .git/info/sparse-checkout
+		echo $PDIR > .git/info/sparse-checkout
 		git read-tree -mu HEAD
-
+		# link the unchanged external files
+		for TOOL in ${TOOLS[@]}; do
+			LATESTDIR=$(ls -drt ${PDIR}/${TOOL}/* | tail -1)
+			ORIGDIR=$(dirname $(scram tool tag $TOOL LIBDIR))
+			# existing (changed) files will be kept
+			lndir $ORIGDIR $LATESTDIR
+			cp ${PDIR}/${TOOL}.xml ${CMSSW_BASE}/config/toolbox/${SCRAM_ARCH}/tools/selected/
+			scram setup $TOOL
+		done
 		cd $CMSSW_BASE/src
-		scram b -j $CORES
-		cd SVJ/Production/batch
-		python $CMSSW_BASE/src/Condor/Production/python/linkScripts.py
-		python $CMSSW_BASE/src/Condor/Production/python/cacheAll.py
-		ln -s $CMSSW_BASE/src/Condor/Production/python/manageJobs.py .
-		ln -s $CMSSW_BASE/src/Condor/Production/python/createChain.py .
+		scram b checkdeps
+	else
+		$ECHO "WARNING: patched Pythia not available for $PDIR; some signal models may not work"
 	fi
+
+	cd $CMSSW_BASE/src
+	scram b -j $CORES
+	cd SVJ/Production/batch
+	python $CMSSW_BASE/src/Condor/Production/python/linkScripts.py
+	python $CMSSW_BASE/src/Condor/Production/python/cacheAll.py
+	ln -s $CMSSW_BASE/src/Condor/Production/python/manageJobs.py .
+	ln -s $CMSSW_BASE/src/Condor/Production/python/createChain.py .
 }
 
 # run the installations
