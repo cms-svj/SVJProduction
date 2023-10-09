@@ -6,7 +6,7 @@ All of the necessary setup (including checkout of this repo, dependencies, and C
 
 For Run 3 MC production, `CMSSW_12_4_15` and `CMSSW_12_6_5` (2022) and `CMSSW_13_0_13` (2023) are used.
 ```
-wget https://raw.githubusercontent.com/cms-svj/SVJProduction/Run2_UL/setup.sh
+wget https://raw.githubusercontent.com/cms-svj/SVJProduction/Run3/setup.sh
 chmod +x setup.sh
 ./setup.sh
 cd CMSSW_12_4_15/src
