@@ -74,7 +74,7 @@ if options.signal:
             process.generator.PythiaParameters.processParameters = cms.vstring(_helper.getPythiaSettings())
             if hasattr(process.generator.PythiaParameters,"JetMatchingParameters"):
                 process.generator.PythiaParameters.JetMatchingParameters = cms.vstring(_helper.getJetMatchSettings())
-            if options.suep:
+            if options.model=="suep":
                 process.generator.UserCustomization = cms.VPSet(
                     _helper.getHookSettings()
                 )
@@ -88,6 +88,15 @@ if options.signal:
                     if hasattr(process,'ProductionFilterSequence'):
                         process.ProductionFilterSequence += process.pgen
                         process.ProductionFilterSequence += process.genHTFilter
+            if options.model=="emj":
+                # forcing no limit on particle lifetime
+                new_settings = [
+                  x for x in process.generator.PythiaParameters.pythia8CommonSettings
+                  if not x.startswith('ParticleDecays:limitTau0')
+                  and not x.startswith('ParticleDecays:tau0Max')
+                ]
+                new_settings.append('ParticleDecays:limitTau0 = off')
+                process.generator.PythiaParameters.pythia8CommonSettings = cms.vstring(new_settings)
     # gen filter settings
     # pythia implementation of model has 4900111/211 -> -51 51 and 4900113/213 -> -53 53
     # this is a stand-in for direct production of a single stable dark meson in the hadronization
@@ -191,12 +200,15 @@ if hasattr(process,"mixData"):
 # miniAOD settings
 _pruned = ["prunedGenParticlesWithStatusOne","prunedGenParticles"]
 _keeps = ["keep (4900001 <= abs(pdgId) <= 4900991 )", "keep (51 <= abs(pdgId) <= 53)"]
-if options.suep: 
+if options.model=="suep":
     _keeps = ["keep 999998 <= abs(pdgId) <= 999999", "++keep  abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 1 || abs(pdgId) == 211", "keep++ abs(pdgId) == 1" ]
     # keep dark pions, darkphotons 
     # higgs already kept
     # keep SM decay products, electrons, muons, pions, uubar
     # keep decays of uubar
+if options.model=="emj":
+    # forcing decay chain to be saved
+    _keeps.append("keep++ (4900101 <= abs(pdgId) <= 4900103 )")
 for _prod in _pruned:
     if hasattr(process,_prod):
         # keep HV & DM particles

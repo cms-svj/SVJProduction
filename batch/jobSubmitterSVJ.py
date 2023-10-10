@@ -1,10 +1,36 @@
 from Condor.Production.jobSubmitter import *
 from SVJ.Production.svjHelper import svjHelper
 from SVJ.Production.suepHelper import suepHelper
+from SVJ.Production.emjHelper import emjHelper
 from glob import glob
 
 def makeNameSVJ(self,num):
     return self.name+"_part-"+str(num)
+
+def pygfalls(pfn):
+    results = filter(
+        None,
+        subprocess.Popen(
+            "gfal-ls "+pfn,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ).communicate()[0].split('\n')
+    )
+    return results
+
+def generalized_ls(redir,indir):
+    filelist = None
+    if indir.startswith("/store/"):
+        if redir.startswith("root://"):
+            filelist = pyxrdfsls(redir+indir)
+        elif redir.startswith("gsiftp://"):
+            filelist = pygfalls(redir+indir)
+        else:
+            raise ValueError("Unknown redir {}".format(redir))
+    else:
+        filelist = glob(self.indir+"/*.root"
+    return filelist
 
 protoJob.makeName = makeNameSVJ
 
@@ -12,10 +38,12 @@ class jobSubmitterSVJ(jobSubmitter):
     def __init__(self,argv=None,parser=None):
         super(jobSubmitterSVJ,self).__init__(argv,parser)
 
-        if self.suep:
-            self.helper = suepHelper()
-        else:
+        if self.model=="svj":
             self.helper = svjHelper()
+        elif self.model=="suep":
+            self.helper = suepHelper()
+        elif self.model=="emj":
+            self.helper = emjHelper()
 
     def addDefaultOptions(self,parser):
         super(jobSubmitterSVJ,self).addDefaultOptions(parser)
@@ -43,7 +71,7 @@ class jobSubmitterSVJ(jobSubmitter):
         parser.add_option("--config", dest="config", default="", help="CMSSW config to run (required unless madgraph) (default = %default)")
         parser.add_option("--gridpack", dest="gridpack", default=False, action="store_true", help="gridpack production (default = %default)")
         parser.add_option("--madgraph", dest="madgraph", default=False, action="store_true", help="sample generated w/ madgraph (rather than pythia) (default = %default)")
-        parser.add_option("--suep", dest="suep", default=False, action="store_true", help="run SUEP simulation (default = %default)")
+        parser.add_option("--model", dest="model", default="svj", choices=["svj","suep","emj"], help="model to simulate (default = %default)")
         parser.add_option("-A", "--args", dest="args", default="", help="additional common args to use for all jobs (default = %default)")
         parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true", help="enable verbose output (default = %default)")
         parser.add_option("--chain-name", dest="chainName", default="", help="value for job.chainName (default = %default)")
@@ -133,15 +161,17 @@ class jobSubmitterSVJ(jobSubmitter):
                 inpre = self.inpre+"_"+pdict["scan"]
                 signal = False
             else:
-                if self.suep:
-                    self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["temperature"],pdict["decay"])
-                else:
+                if self.model=="svj":
                     model_args = [pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["rinv"],pdict["alpha"]]
                     model_kwargs = {}
                     for key in svj_extras:
                         if key in pdict: model_kwargs[key] = pdict[key]
                     model_kwargs["generate"] = not (self.madgraph or self.gridpack)
                     self.helper.setModel(*model_args,**model_kwargs)
+                elif self.model=="suep":
+                    self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["temperature"],pdict["decay"])
+                elif self.model=="emj":
+                    self.helper.setModel(pdict["mMediator"],pdict["mDark"],pdict["kappa"],pdict["mode"],pdict["type"])
                 outpre = self.outpre
                 inpre = self.inpre
                 signal = True
@@ -155,7 +185,7 @@ class jobSubmitterSVJ(jobSubmitter):
             if self.skipParts=="auto":
                 injob = protoJob()
                 injob.name = self.helper.getOutName(events=self.maxEventsIn if self.maxEventsIn>0 else self.maxEvents,outpre=inpre,signal=signal)
-                infiles = {x.split('/')[-1].replace(".root","") for x in (pyxrdfsls(self.redir+self.indir) if self.indir.startswith("/store/") else glob(self.indir+"/*.root"))}
+                infiles = {x.split('/')[-1].replace(".root","") for x in generalized_ls(self.redir,self.indir)}
 
             # set this after making name to avoid duplicating pythia8 in name
             if "scan" in pdict:
@@ -173,9 +203,20 @@ class jobSubmitterSVJ(jobSubmitter):
                         arglist = [
                             "scan="+str(pdict["scan"]),
                         ]
-                    elif self.suep:
+                    elif self.model=="svj":
                         arglist = [
-                            "suep=1",
+                            "model=svj",
+                            "channel="+str(pdict["channel"]),
+                            "mMediator="+str(pdict["mMediator"]),
+                            "mDark="+str(pdict["mDark"]),
+                            "rinv="+str(pdict["rinv"]),
+                            "alpha="+str(pdict["alpha"]),
+                        ]
+                        for extra in svj_extras+["filterZ2"]:
+                            if extra in pdict: arglist.append("{}={}".format(extra,str(pdict[extra])))
+                    elif self.model=="suep":
+                        arglist = [
+                            "model=suep",
                             "channel="+str(pdict["channel"]),
                             "mMediator="+str(pdict["mMediator"]),
                             "mDark="+str(pdict["mDark"]),
@@ -185,16 +226,15 @@ class jobSubmitterSVJ(jobSubmitter):
                         if "filterHT" in pdict:
                             if pdict["filterHT"] > 0:
                                 arglist.append("filterHT=%1.3f"%pdict["filterHT"])
-                    else:
+                    elif self.model=="emj":
                         arglist = [
-                            "channel="+str(pdict["channel"]),
+                            "model=emj",
                             "mMediator="+str(pdict["mMediator"]),
                             "mDark="+str(pdict["mDark"]),
-                            "rinv="+str(pdict["rinv"]),
-                            "alpha="+str(pdict["alpha"]),
+                            "kappa="+str(pdict["kappa"]),
+                            "mode="+str(pdict["mode"]),
+                            "type="+str(pdict["type"]),
                         ]
-                        for extra in svj_extras+["filterZ2"]:
-                            if extra in pdict: arglist.append("{}={}".format(extra,str(pdict[extra])))
                     if "scout" in pdict:
                         arglist.append("scout="+str(pdict["scout"]))
                     arglist.extend([

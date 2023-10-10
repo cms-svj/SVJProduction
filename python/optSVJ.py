@@ -2,6 +2,7 @@ import FWCore.ParameterSet.Config as cms
 from FWCore.ParameterSet.VarParsing import VarParsing
 from SVJ.Production.svjHelper import svjHelper
 from SVJ.Production.suepHelper import suepHelper
+from SVJ.Production.emjHelper import emjHelper
 import os
 
 options = VarParsing("analysis")
@@ -11,11 +12,10 @@ options.register("fragment", "", VarParsing.multiplicity.singleton, VarParsing.v
 options.register("madgraph", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("nogridpack", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("syst", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
-options.register("suep", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
+options.register("model", "svj", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("channel", "s", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("boost", 0.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("boostvar", "madpt", VarParsing.multiplicity.singleton, VarParsing.varType.string)
-options.register("mingenjetpt", 0.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("mMediator", 3000.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("mDark", 20.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("rinv", 0.3, VarParsing.multiplicity.singleton, VarParsing.varType.float)
@@ -23,10 +23,13 @@ options.register("alpha", "peak", VarParsing.multiplicity.singleton, VarParsing.
 options.register("yukawa", 1.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("nMediator", -1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("sepproc", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
+options.register("filterZ2", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("temperature", 2.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("filterHT", -1.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("decay", "generic", VarParsing.multiplicity.singleton, VarParsing.varType.string)
-options.register("filterZ2", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
+options.register("kappa", 1.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
+options.register("mode", "aligned", VarParsing.multiplicity.singleton, VarParsing.varType.string)
+options.register("type", "down", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("scout", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("part", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("indir", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
@@ -77,12 +80,19 @@ elif len(options.fragment)>0:
     options._outpre = [x+"_"+options.fragment for x in options._outpre]
     if len(options.inpre)>0: options.inpre += "_"+options.fragment
 
-if options.suep:
+if options.model=="svj":
+    _helper = svjHelper()
+    _helper.setModel(options.channel,options.mMediator,options.mDark,options.rinv,options.alpha,generate=None if options.scan else not options.madgraph,boost=options.boost,boostvar=options.boostvar,yukawa=options.yukawa,nMediator=options.nMediator,sepproc=options.sepproc)
+elif options.model=="suep":
     # change default
     if options.channel=='s': options.channel = 'ggH'
     _helper = suepHelper()
     _helper.setModel(options.channel,options.mMediator,options.mDark,options.temperature,options.decay)
     options.filterZ2 = False
+elif options.model=="emj":
+    _helper = emjHelper()
+    _helper.setModel(options.mMediator,options.mDark,options.kappa,options.mode,options.type)
+    options.filterZ2 = False
+    options.channel = ""
 else:
-    _helper = svjHelper()
-    _helper.setModel(options.channel,options.mMediator,options.mDark,options.rinv,options.alpha,generate=None if options.scan else not options.madgraph,boost=options.boost,boostvar=options.boostvar,yukawa=options.yukawa,nMediator=options.nMediator,sepproc=options.sepproc)
+    raise ValueError("Unknown model {}".format(options.model))
