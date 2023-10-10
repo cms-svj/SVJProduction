@@ -1,10 +1,32 @@
 # SVJProduction
 
+A repository for private production of CMS Run 3 simulated samples for dark QCD signal models.
+
+Table of Contents
+=================
+
+* [Setup](#setup)
+* [Overview](#overview)
+* [Steps](#steps)
+* [runSVJ script](#runsvj-script)
+* [Basic usage](#basic-usage)
+   * [Gen-level analysis](#gen-level-analysis)
+   * [Gen-level for SUEP](#gen-level-for-suep)
+   * [Gen-level for EMJ](#gen-level-for-emj)
+* [Condor submission](#condor-submission)
+   * [Example commands](#example-commands)
+   * [Chain submission](#chain-submission)
+   * [Ntuple production](#ntuple-production)
+* [cmsDriver commands](#cmsdriver-commands)
+   * [Pileup input files](#pileup-input-files)
+
+<!-- Created by https://github.com/ekalinin/github-markdown-toc -->
+
 ## Setup
 
-All of the necessary setup (including checkout of this repo, dependencies, and CMSSW compilation) is performed by [setup.sh](./setup.sh).
+All of the necessary setup (including creation of CMSSW release areas, checkout of this repo, dependencies, and compilation) is performed by [setup.sh](./setup.sh).
+The user's operating system (`slc7` or `el8`) is automatically detected.
 
-For Run 3 MC production, `CMSSW_12_4_15` and `CMSSW_12_6_5` (2022) and `CMSSW_13_0_13` (2023) are used.
 ```
 wget https://raw.githubusercontent.com/cms-svj/SVJProduction/Run3/setup.sh
 chmod +x setup.sh
@@ -22,6 +44,17 @@ The setup script has several options:
 * `-s [protocol]`: use protocol to clone (default = https, alternative = ssh)
 * `-j [cores]`: # cores for CMSSW compilation (default = 8)
 * `-h`: print help message and exit
+
+## Overview
+
+Run 3 MC production includes the following scenarios that use the corresponding CMSSW releases:
+* 2022: `CMSSW_12_4_15` and `CMSSW_12_6_5` (NanoAOD)
+* 2022EE: see 2022
+* 2023: coming soon
+* 2023BPix: see 2023
+
+[Chain submission](#chain-submission) is the recommended way to produce samples.
+Standalone Condor commands are also provided for reference or unusual cases.
 
 ## Steps
 
@@ -93,23 +126,23 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 
 ## Basic usage
 
-### GEN-level analysis
+### Gen-level analysis
 
 To run generator-level sample production interactively with example parameters:
 ```
 cd SVJ/Production/test
-cmsRun runSVJ.py year=2016 config=step_GEN outpre=step_GEN mMediator=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
+cmsRun runSVJ.py year=2022 config=step_GEN outpre=step_GEN mMediator=3000.0 mDark=20.0 rinv=0.3 alpha=peak part=1 maxEvents=10
 ```
 
-To run a GEN-level analyzer:
+To run a Gen-level analyzer:
 ```
-cmsRun runSVJ.py config=genmassanalyzer_cfg output=TFileService outpre=genmassanalysis inpre=step_GEN mMediator=3000.0 mDark=20.0 rinv=0.3 alpha=0.1 part=1 maxEvents=10
+cmsRun runSVJ.py config=genmassanalyzer_cfg output=TFileService outpre=genmassanalysis inpre=step_GEN mMediator=3000.0 mDark=20.0 rinv=0.3 alpha=peak part=1 maxEvents=10
 ```
 
 To run the softdrop algorithm on GenJets/GenParticles from an existing sample, and analyze the result:
 ```
-cmsRun runSVJ.py config=softDropGenJets outpre=softdropgen indir=/store/user/lpcsusyhad/SVJ2017/ProductionV4/GEN/ inpre=step_GEN redir=root://cmseos.fnal.gov/ mMediator=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
-cmsRun runSVJ.py config=softdropanalyzer_cfg outpre=softdropana output=TFileService inpre=softdropgen mMediator=3000 mDark=20 rinv=0.3 alpha=0.2 maxEvents=500 part=1
+cmsRun runSVJ.py config=softDropGenJets outpre=softdropgen indir=/store/user/lpcdarkqcd/SVJ2017/ProductionV5/GEN/ inpre=step_GEN redir=root://cmseos.fnal.gov/ mMediator=3000 mDark=20 rinv=0.3 alpha=peak maxEvents=500 part=1
+cmsRun runSVJ.py config=softdropanalyzer_cfg outpre=softdropana output=TFileService inpre=softdropgen mMediator=3000 mDark=20 rinv=0.3 alpha=peak maxEvents=500 part=1
 ```
 
 ### Gen-level for SUEP
@@ -117,7 +150,15 @@ cmsRun runSVJ.py config=softdropanalyzer_cfg outpre=softdropana output=TFileServ
 To run the sample production interactively for SUEP with example parameters:
 ```
 cd SVJ/Production/test
-cmsRun runSVJ.py suep=1 year=2018 config=step_GEN outpre=step_GEN mMediator=125 mDark=2.0 temperature=2.0 decay=generic part=1 maxEvents=10
+cmsRun runSVJ.py model=suep year=2022 config=step_GEN outpre=step_GEN mMediator=125 mDark=2.0 temperature=2.0 decay=generic part=1 maxEvents=10
+```
+
+### Gen-level for EMJ
+
+To run the sample production interactively for EMJ with example parameters:
+```
+cd SVJ/Production/test
+cmsRun runSVJ.py model=emj year=2022 config=step_GEN outpre=step_GEN mMediator=1000.0 mDark=20.0 kappa=1 mode=aligned type=down part=1 maxEvents=10
 ```
 
 ## Condor submission
@@ -158,7 +199,7 @@ Python:
 * `--year [num]`: which year to simulate
 * `--gridpack`: gridpack production
 * `--madgraph`: sample generated w/ madgraph (rather than pythia)
-* `--model`: model to simulate (default = svj, alternative = suep, emj)
+* `--model [str]`: model to simulate (default = svj, alternative = suep, emj)
 * `--actualEvents`: count actual number of events from each input file (for python file list, requires `-K auto`)
 * `-A, --args [list]`: additional common args to use for all jobs (passed to [runSVJ.py](./test/runSVJ.py))
 * `-v, --verbose`: enable verbose output (default = False)
@@ -183,15 +224,15 @@ The basic [CondorProduction](https://github.com/kpedro88/CondorProduction) setup
 
 Gridpack:
 ```
-python submitJobs.py -p -d signalsV3_1 -E 10000 -N 1 --outpre step_GRIDPACK --gridpack -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV4/GRIDPACK/ -s
+python submitJobs.py -p -d signalsV3_1 -E 10000 -N 1 --outpre step_GRIDPACK --gridpack -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/ProductionV5/GRIDPACK/ -s
 ```
 LHE-GEN-SIM:
 ```
-python submitJobs.py -p -d signalsV3_1 -E 1000 -N 100 -I 10000 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV4/GRIDPACK/ --inpre step_GRIDPACK --outpre step_LHE-GEN-SIM --year 2016 --config step_LHE-GEN-SIM --madgraph -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/GEN-SIM/ -s
+python submitJobs.py -p -d signalsV3_1 -E 1000 -N 100 -I 10000 --indir /store/user/lpcdarkqcd/SVJ2017/ProductionV5/GRIDPACK/ --inpre step_GRIDPACK --outpre step_LHE-GEN-SIM --year 2022 --config step_LHE-GEN-SIM --madgraph -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/ProductionV5/2022/GEN-SIM/ -s
 ```
 GEN-SIM:
 ```
-python submitJobs.py -p -d signalsV3_1 -E 1000 -N 100 --outpre step_GEN-SIM --year 2016 --config step_GEN-SIM -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/GEN-SIM/ -s
+python submitJobs.py -p -d signalsV3_1 -E 1000 -N 100 --outpre step_GEN-SIM --year 2022 --config step_GEN-SIM -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/ProductionV5/2022/GEN-SIM/ -s
 ```
 </details>
 
@@ -199,6 +240,7 @@ python submitJobs.py -p -d signalsV3_1 -E 1000 -N 100 --outpre step_GEN-SIM --ye
 
 The script [runProd.py](./batch/runProd.py) can create and submit a chain of jobs to run all\* signal production steps.
 This script automates the creation of a [job chain](https://github.com/kpedro88/CondorProduction#job-chains).
+It can be run from any CMSSW release in the chain and will execute each step in its appropriate CMSSW release.
 
 \* Gridpack production should be run separately, since a single gridpack can be reused by multiple jobs.
 
@@ -239,30 +281,25 @@ mode, input dict(s), number of events per job, number of parts, resource require
 
 Pythia-only generation:
 ```
-python runProd.py -P P8 -G="-p -d signals_P8_ex -E 10 -N 1 --cpus 4 --memory 8000" -y 2016 -n chain2016_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -c -s
+python runProd.py -P P8 -G="-p -d signals_P8_ex -E 10 -N 1 --cpus 4 --memory 8000" -y 2016 -n chain2016_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -c -s
 ```
 
 MadGraph+Pythia generation:
 ```
-python submitJobs.py -p -d signals_MG_ex -E 10000 -N 1 --memory 4000 --outpre step_GRIDPACK --gridpack -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/GRIDPACK -s
+python submitJobs.py -p -d signals_MG_ex -E 10000 -N 1 --memory 4000 --outpre step_GRIDPACK --gridpack -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/GRIDPACK -s
 [wait for jobs to finish]
-python runProd.py -P MG -G="-p -d signals_MG_ex --madgraph -E 10 -N 1 --cpus 4 --memory 8000" -L 0 "-I 10000 --indir /store/user/lpcdarkqcd/SVJ2017/testUL/GRIDPACK --inpre step_GRIDPACK" -y 2016 -n chain2016_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testUL/ -c -s
+python runProd.py -P MG -G="-p -d signals_MG_ex --madgraph -E 10 -N 1 --cpus 4 --memory 8000" -L 0 "-I 10000 --indir /store/user/lpcdarkqcd/SVJ2017/testRun3/GRIDPACK --inpre step_GRIDPACK" -y 2016 -n chain2016_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -c -s
 ```
 </details>
 
 ### Ntuple production
 
-To prepare the file lists (and associated metadata):
+NanoAOD is the recommended format for ntuples in Run 3 and is produced by default.
+MiniAOD files are also saved by default in case additional information needs to be added to the standard nanoAOD.
+To get a list of the produced files (and associated metadata):
 ```
-python submitJobs.py -y --actualEvents -K auto -d signalsV3_1 -E 1000 -N 100 --indir /store/user/lpcsusyhad/SVJ2017/ProductionV4/2016/MINIAOD --inpre step_MINIAOD --outpre SVJ_2016
+python submitJobs.py -y --actualEvents -K auto -d signalsV3_1 -E 1000 -N 100 --indir /store/user/lpcdarkqcd/SVJ2017/ProductionV5/2022/NANOAOD --inpre step_NANOAOD --outpre SVJ_2022
 ```
-
-Ntuple production uses the [TreeMaker](https://github.com/TreeMaker/TreeMaker) repository, which has its own [Condor submission instructions](https://github.com/TreeMaker/TreeMaker#submit-production-to-condor).
-To submit the ntuple jobs:
-```
-python submitJobs.py -p -d svj -N 200 --cpus 4 -o root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/ProductionV4/Ntuples/ --args "redir=root://cmseos.fnal.gov/" -s
-```
-N.B. this command uses `submitJobs.py` from TreeMaker, not from this repository.
 
 ## cmsDriver commands
 
