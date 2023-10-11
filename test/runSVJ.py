@@ -4,7 +4,7 @@ from SVJ.Production.optSVJ import options, _helper
 
 # output name definition
 _outname = _helper.getOutName(
-    options.maxEvents,
+    events=options.maxEvents,
     part=options.part,
     signal=options.signal and len(options.scan)==0 and len(options.fragment)==0,
     outpre="outpre",
@@ -152,7 +152,7 @@ for _prod in _particles:
         getattr(process,_prod).ignoreParticleIDs.extend([51,52,53])
 if hasattr(process,'recoGenJets') and hasattr(process,'recoAllGenJetsNoNu'):
     process.recoGenJets += process.recoAllGenJetsNoNu
-	# to get hadronFlavour at gen level
+    # to get hadronFlavour at gen level
     process.load("PhysicsTools.PatAlgos.slimming.genParticles_cff")
     process.recoGenJets += process.prunedGenParticlesWithStatusOne
     process.recoGenJets += process.prunedGenParticles
@@ -188,7 +188,7 @@ if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNo
 # DIGI settings
 if hasattr(process,"mixData"):
     if options.year.startswith("2022"): puname = "Neutrino_E-10_gun_Run3Summer21PrePremix-Summer22_124X_mcRun3_2022_realistic_v11-v2_PREMIX.pkl"
-	else: raise ValueError("Unknown premix dataset for year {}".format(options.year))
+    else: raise ValueError("Unknown premix dataset for year {}".format(options.year))
     if not os.path.isfile(puname):
         print("retrieving "+puname)
         os.system("xrdcp -f root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup/"+puname+" .")
