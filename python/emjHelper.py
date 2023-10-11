@@ -3,6 +3,9 @@ import numpy as np
 
 class emjHelper(object):
     def __init__(self):
+        cols = np.loadtxt(os.path.join(os.path.expandvars('$CMSSW_BASE'),'src/SVJ/Production/test/dict_xsec_pair.txt'))
+        from scipy.interpolate import CubicSpline
+        self.xsecs = CubicSpline(cols[:,0], cols[:,1])
         # Aligned mixing elements
         self.s12 = 0
         self.s13 = 0
@@ -18,6 +21,7 @@ class emjHelper(object):
         self.kappa0 = kappa
         self.mode = mode
         self.type = type
+        self.xsec = self.xsecs(self.mMed)*3 # number of colors
 
         # Checking the alignment mode
         if self.mode == 'aligned':
