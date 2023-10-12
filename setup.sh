@@ -184,11 +184,7 @@ install_CMSSW(){
 
 	cd $CMSSW_BASE/src
 	scram b -j $CORES
-	cd SVJ/Production/batch
-	python $CMSSW_BASE/src/Condor/Production/python/linkScripts.py
-	python $CMSSW_BASE/src/Condor/Production/python/cacheAll.py
-	ln -s $CMSSW_BASE/src/Condor/Production/python/manageJobs.py .
-	ln -s $CMSSW_BASE/src/Condor/Production/python/createChain.py .
+	$CMSSW_BASE/src/Condor/Production/scripts/postInstall.sh -b $CMSSW_BASE/src/SVJ/Production/batch -c -p
 }
 
 # run the installations
