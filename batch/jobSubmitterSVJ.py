@@ -29,7 +29,7 @@ def generalized_ls(redir,indir):
         else:
             raise ValueError("Unknown redir {}".format(redir))
     else:
-        filelist = glob(self.indir+"/*.root"
+        filelist = glob(self.indir+"/*.root")
     return filelist
 
 protoJob.makeName = makeNameSVJ
@@ -252,7 +252,7 @@ class jobSubmitterSVJ(jobSubmitter):
                         arglist.append("inpre="+self.inpre)
                     if len(self.args)>0:
                         arglist.insert(0,self.args)
-                    if self.cpus>1:
+                    if int(self.cpus)>1:
                         arglist.append("threads="+str(self.cpus))
                     if len(self.redir)>1:
                         arglist.append("redir="+self.redir)
@@ -261,7 +261,7 @@ class jobSubmitterSVJ(jobSubmitter):
                     argfile.write(" ".join(arglist))
 
             # start loop over N jobs
-            for iJob in xrange(int(self.nParts)):
+            for iJob in six.moves.range(int(self.nParts)):
                 # get real part number
                 iActualJob = iJob+int(self.firstPart)
 

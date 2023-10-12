@@ -1,4 +1,5 @@
 import os,subprocess,shlex,glob
+from copy import deepcopy
 from collections import OrderedDict, defaultdict
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, RawTextHelpFormatter, RawDescriptionHelpFormatter, _AppendAction
 
@@ -169,7 +170,7 @@ if __name__=="__main__":
             SCRAM_PATH = glob.glob(CMSSW_PATH+"/lib/*")
             if len(SCRAM_PATH)==0:
                 raise RuntimeError("Can't find SCRAM_ARCH for dir {}".format(CMSSW_PATH))
-            step_version["SCRAM_ARCH"] = SCRAM_PATH.split("/")[-1]
+            step_version["SCRAM_ARCH"] = SCRAM_PATH[0].split("/")[-1]
 
             if not args.keep:
                 if step_version["CMSSW_VERSION"] not in extra_tarballs:
