@@ -173,7 +173,7 @@ it will submit to Condor the specified number of jobs for the specified signal m
 ```
 test/lnbatch.sh myProduction
 cd myProduction
-python submitJobs.py -p -o root://cmseos.fnal.gov//store/user/YOURUSERNAME/myProduction -d signals2 -E 500 -N 20 --outpre step_GEN-SIM --config SVJ.Production.2016.step_GEN-SIM -s
+python submitJobs.py -p -o root://cmseos.fnal.gov//store/user/YOURUSERNAME/myProduction -d signals2 -E 500 -N 20 --outpre step_GEN-SIM --config SVJ.Production.2022.step_GEN-SIM -s
 ```
 [submitJobs.py](./batch/submitJobs.py) can also:
 * count the expected number of jobs to submit (for planning purposes),
@@ -281,14 +281,14 @@ mode, input dict(s), number of events per job, number of parts, resource require
 
 Pythia-only generation:
 ```
-python runProd.py -P P8 -G="-p -d signals_P8_ex -E 10 -N 1 --cpus 4 --memory 8000" -y 2016 -n chain2016_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -c -s
+python runProd.py -P P8 -G="-p -d signals_P8_ex -E 10 -N 1 --cpus 4 --memory 8000" -y 2022 -n chain2022_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -c -s
 ```
 
 MadGraph+Pythia generation:
 ```
 python submitJobs.py -p -d signals_MG_ex -E 10000 -N 1 --memory 4000 --outpre step_GRIDPACK --gridpack -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/GRIDPACK -s
 [wait for jobs to finish]
-python runProd.py -P MG -G="-p -d signals_MG_ex --madgraph -E 10 -N 1 --cpus 4 --memory 8000" -L 0 "-I 10000 --indir /store/user/lpcdarkqcd/SVJ2017/testRun3/GRIDPACK --inpre step_GRIDPACK" -y 2016 -n chain2016_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -c -s
+python runProd.py -P MG -G="-p -d signals_MG_ex --madgraph -E 10 -N 1 --cpus 4 --memory 8000" -L 0 "-I 10000 --indir /store/user/lpcdarkqcd/SVJ2017/testRun3/GRIDPACK --inpre step_GRIDPACK" -y 2022 -n chain2022_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -c -s
 ```
 </details>
 
