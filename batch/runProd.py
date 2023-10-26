@@ -161,6 +161,8 @@ if __name__=="__main__":
         "2022": defaultdict(lambda: {"CMSSW_VERSION": "CMSSW_12_4_15"})
     }
     step_versions["2022"]["NANOAODv11"] = {"CMSSW_VERSION": "CMSSW_12_6_5"}
+    step_versions["2022"]["MINIAODv4"] = {"CMSSW_VERSION": "CMSSW_13_0_13"}
+    step_versions["2022"]["NANOAODv12"] = {"CMSSW_VERSION": "CMSSW_13_0_13"}
     step_versions["2022EE"] = deepcopy(step_versions["2022"])
 
     # create and copy tarball for other CMSSW versions
