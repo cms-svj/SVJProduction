@@ -38,7 +38,7 @@ cd SVJ/Production
 
 The setup script has several options:
 * `-y [year]`: year to simulate, determines default CMSSW release (choices: 2022 2023) (default = 2022)
-* `-c [release]`: CMSSW release(s) to install, comma-separated (default = CMSSW_12_4_15,CMSSW_12_6_5)
+* `-c [release]`: CMSSW release(s) to install, comma-separated (default = CMSSW_12_4_15,CMSSW_12_6_5,CMSSW_13_0_13)
 * `-f [fork]`: clone from specified fork (default = cms-svj)
 * `-b [branch]`: clone specified branch (default = Run3)
 * `-s [protocol]`: use protocol to clone (default = https, alternative = ssh)
@@ -48,7 +48,7 @@ The setup script has several options:
 ## Overview
 
 Run 3 MC production includes the following scenarios that use the corresponding CMSSW releases:
-* 2022: `CMSSW_12_4_15` and `CMSSW_12_6_5` (NanoAOD)
+* 2022: `CMSSW_12_4_15`, `CMSSW_12_6_5` (NanoAODv11), `CMSSW_13_0_13` (MiniAODv4, NanoAODv12)
 * 2022EE: see 2022
 * 2023: coming soon
 * 2023BPix: see 2023
@@ -245,8 +245,12 @@ It can be run from any CMSSW release in the chain and will execute each step in 
 \* Gridpack production should be run separately, since a single gridpack can be reused by multiple jobs.
 
 Several predefined chains are provided:  
-P8: 0. GEN-SIM, 1. DIGI, 2. RECO, 3. MINIAOD, 4. NANOAOD  
-MG: 0. LHE-GEN-SIM, 1. DIGI, 2. RECO, 3. MINIAOD, 4. NANOAOD  
+P8v10: 0. GEN-SIM, 1. DIGI, 2. RECO, 3. MINIAODv3, 4. NANOAODv10  
+MGv10: 0. LHE-GEN-SIM, 1. DIGI, 2. RECO, 3. MINIAODv3, 4. NANOAODv10  
+P8v11: 0. GEN-SIM, 1. DIGI, 2. RECO, 3. MINIAODv3, 4. NANOAODv11  
+MGv11: 0. LHE-GEN-SIM, 1. DIGI, 2. RECO, 3. MINIAODv3, 4. NANOAODv11  
+P8v12: 0. GEN-SIM, 1. DIGI, 2. RECO, 3. MINIAODv4, 4. NANOAODv12  
+MGv12: 0. LHE-GEN-SIM, 1. DIGI, 2. RECO, 3. MINIAODv4, 4. NANOAODv12  
 
 These predefined chains can be modified with the script's command-line options, or (as an exclusive option) a custom chain of steps can be used.
 
@@ -281,14 +285,14 @@ mode, input dict(s), number of events per job, number of parts, resource require
 
 Pythia-only generation:
 ```
-python3 runProd.py -P P8 -G="-p -d signals_P8_ex -E 10 -N 1 --cpus 4 --memory 8000" -y 2022 -n chain2022_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -c -s
+python3 runProd.py -P P8v11 -G="-p -d signals_P8_ex -E 10 -N 1 --cpus 4 --memory 8000" -y 2022 -n chain2022_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -c -s
 ```
 
 MadGraph+Pythia generation:
 ```
 python3 submitJobs.py -p -d signals_MG_ex -E 10000 -N 1 --memory 4000 --outpre step_GRIDPACK --gridpack -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/GRIDPACK -s
 [wait for jobs to finish]
-python3 runProd.py -P MG -G="-p -d signals_MG_ex --madgraph -E 10 -N 1 --cpus 4 --memory 8000" -L 0 "-I 10000 --indir /store/user/lpcdarkqcd/SVJ2017/testRun3/GRIDPACK --inpre step_GRIDPACK" -y 2022 -n chain2022_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -c -s
+python3 runProd.py -P MGv11 -G="-p -d signals_MG_ex --madgraph -E 10 -N 1 --cpus 4 --memory 8000" -L 0 "-I 10000 --indir /store/user/lpcdarkqcd/SVJ2017/testRun3/GRIDPACK --inpre step_GRIDPACK" -y 2022 -n chain2022_ -o root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -t root://cmseos.fnal.gov//store/user/lpcdarkqcd/SVJ2017/testRun3/ -c -s
 ```
 </details>
 
@@ -298,13 +302,13 @@ NanoAOD is the recommended format for ntuples in Run 3 and is produced by defaul
 MiniAOD files are also saved by default in case additional information needs to be added to the standard nanoAOD.
 To get a list of the produced files (and associated metadata):
 ```
-python3 submitJobs.py -y --actualEvents -K auto -d signalsV3_1 -E 1000 -N 100 --indir /store/user/lpcdarkqcd/SVJ2017/ProductionV5/2022/NANOAOD --inpre step_NANOAOD --outpre SVJ_2022
+python3 submitJobs.py -y --actualEvents -K auto -d signalsV3_1 -E 1000 -N 100 --indir /store/user/lpcdarkqcd/SVJ2017/ProductionV5/2022/NANOAODv11 --inpre step_NANOAODv11 --outpre SVJ_2022
 ```
 
 ## cmsDriver commands
 
 These commands are based on the [PdmVMcCampaigns twiki](https://twiki.cern.ch/twiki/bin/view/CMS/PdmVMcCampaigns), specifically the pages for the `Run3Summer22` campaigns in McM.
-The steps are: LHE-GEN, LHE-GEN-SIM, GEN, GEN-SIM, SIM, DIGI, DIGI-HLT, HLT, RECO, MINIAOD, NANOAOD.
+The steps are: LHE-GEN, LHE-GEN-SIM, GEN, GEN-SIM, SIM, DIGI, DIGI-HLT, HLT, RECO, MINIAOD, NANOAOD (various versions).
 
 <details>
 <summary>Commands (2022):</summary>
@@ -316,8 +320,11 @@ cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --eventcontent RAWSIM  -
 cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --eventcontent RAWSIM  --datatier GEN --fileout file:step0.root --conditions 124X_mcRun3_2022_realistic_v12 --beamspot Realistic25ns13p6TeVEarly2022Collision --step GEN --geometry DB:Extended --era Run3 --no_exec --mc --python_filename python/2022/step_GEN.py --no_exec
 cmsDriver.py  --eventcontent PREMIXRAW  --datatier GEN-SIM-RAW --fileout file:step0.root --pileup_input pileup.root --conditions 124X_mcRun3_2022_realistic_v12 --step DIGI,DATAMIX,L1,DIGI2RAW,HLT:2022v12 --procModifiers premix_stage2,siPixelQualityRawToDigi --geometry DB:Extended --filein file:step-1.root --datamix PreMix --era Run3 --no_exec --mc --python_filename python/2022/step_DIGI.py --no_exec
 cmsDriver.py  --eventcontent AODSIM  --datatier AODSIM --fileout file:step0.root --conditions 124X_mcRun3_2022_realistic_v12 --step RAW2DIGI,L1Reco,RECO,RECOSIM --procModifiers siPixelQualityRawToDigi --geometry DB:Extended --filein file:step-1.root --era Run3 --no_exec --mc --python_filename python/2022/step_RECO.py --no_exec
-cmsDriver.py  --eventcontent MINIAODSIM  --datatier MINIAODSIM --fileout file:step0.root --conditions 124X_mcRun3_2022_realistic_v12 --step PAT --geometry DB:Extended --filein file:step-1.root --era Run3 --no_exec --mc --python_filename python/2022/step_MINIAOD.py --no_exec
-cmsDriver.py  --eventcontent NANOAODSIM  --datatier NANOAODSIM --fileout file:step0.root --conditions 126X_mcRun3_2022_realistic_v2 --step NANO --scenario pp --filein file:step-1.root --era Run3,run3_nanoAOD_124 --no_exec --mc --python_filename python/2022/step_NANOAOD.py --no_exec
+cmsDriver.py  --eventcontent MINIAODSIM  --datatier MINIAODSIM --fileout file:step0.root --conditions 124X_mcRun3_2022_realistic_v12 --step PAT --geometry DB:Extended --filein file:step-1.root --era Run3 --no_exec --mc --python_filename python/2022/step_MINIAODv3.py --no_exec
+cmsDriver.py  --eventcontent MINIAODSIM  --datatier MINIAODSIM --fileout file:step0.root --conditions 130X_mcRun3_2022_realistic_v5 --step PAT --geometry DB:Extended --filein file:step-1.root --era Run3,run3_miniAOD_12X --no_exec --mc --python_filename python/2022/step_MINIAODv4.py --no_exec
+cmsDriver.py  --eventcontent NANOAODSIM --customise "PhysicsTools/NanoAOD/V10/nano_cff.nanoAOD_customizeV10",Configuration/DataProcessing/Utils.addMonitoring --datatier NANOAODSIM --fileout file:step0.root --conditions 124X_mcRun3_2022_realistic_v12 --step NANO --scenario pp --filein file:step-1.root --era Run3 --no_exec --mc --python_filename python/2022/step_NANOAODv10.py --no_exec
+cmsDriver.py  --eventcontent NANOAODSIM  --datatier NANOAODSIM --fileout file:step0.root --conditions 126X_mcRun3_2022_realistic_v2 --step NANO --scenario pp --filein file:step-1.root --era Run3,run3_nanoAOD_124 --no_exec --mc --python_filename python/2022/step_NANOAODv11.py --no_exec
+cmsDriver.py  --eventcontent NANOAODSIM  --datatier NANOAODSIM --fileout file:step0.root --conditions 130X_mcRun3_2022_realistic_v5 --step NANO --scenario pp --filein file:step-1.root --era Run3 --no_exec --mc --python_filename python/2022/step_NANOAODv12.py --no_exec
 ```
 </details>
 
@@ -331,8 +338,11 @@ cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --eventcontent RAWS
 cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --eventcontent RAWSIM  --datatier GEN --fileout file:step0.root --conditions 124X_mcRun3_2022_realistic_postEE_v1 --beamspot Realistic25ns13p6TeVEarly2022Collision  --step LHE,GEN --geometry DB:Extended --era Run3 --no_exec --mc --python_filename python/2022EE/step_LHE-GEN.py --no_exec
 cmsDriver.py  --eventcontent PREMIXRAW  --datatier GEN-SIM-RAW --fileout file:step0.root --pileup_input pileup.root --conditions 124X_mcRun3_2022_realistic_postEE_v1 --step DIGI,DATAMIX,L1,DIGI2RAW,HLT:2022v14 --procModifiers premix_stage2,siPixelQualityRawToDigi --geometry DB:Extended --filein file:step-1.root --datamix PreMix --era Run3 --no_exec --mc --python_filename python/2022EE/step_DIGI.py --no_exec
 cmsDriver.py  --eventcontent AODSIM  --datatier AODSIM --fileout file:step0.root --conditions 124X_mcRun3_2022_realistic_postEE_v1 --step RAW2DIGI,L1Reco,RECO,RECOSIM --procModifiers siPixelQualityRawToDigi --geometry DB:Extended --filein file:step-1.root --era Run3 --no_exec --mc --python_filename python/2022EE/step_RECO.py --no_exec
-cmsDriver.py  --eventcontent MINIAODSIM  --datatier MINIAODSIM --fileout file:step0.root --conditions 124X_mcRun3_2022_realistic_postEE_v1 --step PAT --geometry DB:Extended --filein file:step-1.root --era Run3 --no_exec --mc --python_filename python/2022EE/step_MINIAOD.py --no_exec
-cmsDriver.py  --eventcontent NANOAODSIM  --datatier NANOAODSIM --fileout file:step0.root --conditions 126X_mcRun3_2022_realistic_postEE_v1 --step NANO --scenario pp --filein file:step-1.root --era Run3,run3_nanoAOD_124 --no_exec --mc --python_filename python/2022EE/step_NANOAOD.py --no_exec
+cmsDriver.py  --eventcontent MINIAODSIM  --datatier MINIAODSIM --fileout file:step0.root --conditions 124X_mcRun3_2022_realistic_postEE_v1 --step PAT --geometry DB:Extended --filein file:step-1.root --era Run3 --no_exec --mc --python_filename python/2022EE/step_MINIAODv3.py --no_exec
+cmsDriver.py  --eventcontent MINIAODSIM  --datatier MINIAODSIM --fileout file:step0.root --conditions 130X_mcRun3_2022_realistic_postEE_v6 --step PAT --geometry DB:Extended --filein file:step-1.root --era Run3,run3_miniAOD_12X --no_exec --mc --python_filename python/2022EE/step_MINIAODv4.py --no_exec
+cmsDriver.py  --eventcontent NANOAODSIM --customise "PhysicsTools/NanoAOD/V10/nano_cff.nanoAOD_customizeV10",Configuration/DataProcessing/Utils.addMonitoring --datatier NANOAODSIM --fileout file:step0.root --conditions 124X_mcRun3_2022_realistic_postEE_v1 --step NANO --scenario pp --filein file:step-1.root --era Run3 --no_exec --mc --python_filename python/2022EE/step_NANOAODv10.py --no_exec
+cmsDriver.py  --eventcontent NANOAODSIM  --datatier NANOAODSIM --fileout file:step0.root --conditions 126X_mcRun3_2022_realistic_postEE_v1 --step NANO --scenario pp --filein file:step-1.root --era Run3,run3_nanoAOD_124 --no_exec --mc --python_filename python/2022EE/step_NANOAODv11.py --no_exec
+cmsDriver.py  --eventcontent NANOAODSIM  --datatier NANOAODSIM --fileout file:step0.root --conditions 130X_mcRun3_2022_realistic_postEE_v6 --step NANO --scenario pp --filein file:step-1.root --era Run3 --no_exec --mc --python_filename python/2022EE/step_NANOAODv12.py --no_exec
 ```
 </details>
 

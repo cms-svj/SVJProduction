@@ -9,7 +9,7 @@ esac
 ACCESS=https
 YEAR=2022
 declare -A CMSSW_YEARS
-CMSSW_YEARS[2022]="CMSSW_12_4_15,CMSSW_12_6_5"
+CMSSW_YEARS[2022]="CMSSW_12_4_15,CMSSW_12_6_5,CMSSW_13_0_13"
 CMSSW_YEARS[2023]="CMSSW_13_0_13"
 WHICH_CMSSW=
 FORK=cms-svj
@@ -180,6 +180,8 @@ install_CMSSW(){
 		scram b checkdeps
 	else
 		$ECHO "WARNING: patched Pythia not available for $PDIR; some signal models may not work"
+		cd $CMSSW_BASE
+		rm -rf $CMSSW_BASE/build
 	fi
 
 	cd $CMSSW_BASE/src

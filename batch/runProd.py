@@ -91,8 +91,12 @@ class ModifyAction(_AppendAction):
 
 if __name__=="__main__":
     predefined_chains = OrderedDict([
-        ("P8",["GEN-SIM","DIGI","RECO","MINIAOD","NANOAOD"]),
-        ("MG",["LHE-GEN-SIM","DIGI","RECO","MINIAOD","NANOAOD"]),
+        ("P8v10",["GEN-SIM","DIGI","RECO","MINIAODv3","NANOAODv10"]),
+        ("MGv10",["LHE-GEN-SIM","DIGI","RECO","MINIAODv3","NANOAODv10"]),
+        ("P8v11",["GEN-SIM","DIGI","RECO","MINIAODv3","NANOAODv11"]),
+        ("MGv11",["LHE-GEN-SIM","DIGI","RECO","MINIAODv3","NANOAODv11"]),
+        ("P8v12",["GEN-SIM","DIGI","RECO","MINIAODv4","NANOAODv12"]),
+        ("MGv12",["LHE-GEN-SIM","DIGI","RECO","MINIAODv4","NANOAODv12"]),
     ])
     desc = ["runProd.py prepares and executes batch submission for a chain of steps to produce specified signal samples.","Several predefined chains are provided (and can be modified with command-line options):"]
     desc += ["{}: {}".format(key, ", ".join("{}. {}".format(istep, step) for istep, step in enumerate(val))) for key,val in predefined_chains.items()]
@@ -116,7 +120,7 @@ if __name__=="__main__":
             "ops will be applied in order provided"
         ])
     )
-    parser.add_argument("-S", "--store", metavar="pos/name", type=parse_pos_name, default=["MINIAOD"], nargs='*', help="store output for intermediate step(s) (position or name) (-1 or all: store all steps' output)")
+    parser.add_argument("-S", "--store", metavar="pos/name", type=parse_pos_name, default=["MINIAODv3"], nargs='*', help="store output for intermediate step(s) (position or name) (-1 or all: store all steps' output)")
     parser.add_argument("-G", "--global", dest="global_opts", type=str, default="", help='global arguments for submitJobs (use syntax: -G="...")')
     parser.add_argument("-L", "--local", metavar=("pos/name","LOCAL"), action=ModifyAction, nargs=2, default=[], help='local arguments for submitJobs for a specific step')
     # arguments forward from (or similar to) jobSubmitter or createChain
@@ -156,7 +160,7 @@ if __name__=="__main__":
     step_versions = {
         "2022": defaultdict(lambda: {"CMSSW_VERSION": "CMSSW_12_4_15"})
     }
-    step_versions["2022"]["NANOAOD"] = {"CMSSW_VERSION": "CMSSW_12_6_5"}
+    step_versions["2022"]["NANOAODv11"] = {"CMSSW_VERSION": "CMSSW_12_6_5"}
     step_versions["2022EE"] = deepcopy(step_versions["2022"])
 
     # create and copy tarball for other CMSSW versions
