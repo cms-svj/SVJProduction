@@ -31,6 +31,7 @@ options.register("kappa", 1.0, VarParsing.multiplicity.singleton, VarParsing.var
 options.register("mode", "aligned", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("type", "down", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("scout", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
+options.register("l1nano", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("part", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("indir", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("inpre", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)

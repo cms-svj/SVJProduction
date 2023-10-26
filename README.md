@@ -108,6 +108,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
         * `mode=[string]`: mixing scenario to use (default = aligned, alternative = unflavored)
         * `type=[string]`: SM quark coupling type (default = down, alternative = up)
 * `scout=[bool]`: keep scouting collections in miniAOD (default = False)
+* `l1nano=[bool]`: keep L1 info in nanoAOD (default = False)
 * `part=[num]`: part number when producing a sample in multiple jobs (default = 1)
 * `indir=[str]`: directory for input file (local or logical)
 * `inpre=[str]`: prefix for input file name

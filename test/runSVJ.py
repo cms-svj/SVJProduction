@@ -223,6 +223,15 @@ if options.scout and "MINIAOD" in options.config:
                 'keep *_hltScouting*_*_*',
             ])
 
+# nanoAOD settings
+if hasattr(process,'NANOAODSIMoutput'):
+	# "to avoid segfault errors in the output module when producing flat ntuples"
+    # "as it is done in the merge jobs in central production"
+    process.add_(cms.Service('InitRootHandlers', EnableIMT = cms.untracked.bool(False)))
+if options.l1nano:
+    from PhysicsTools.NanoAOD.nano_cff import nanoL1TrigObjCustomizeFull
+    process = nanoL1TrigObjCustomizeFull(process)
+
 # multithreading options
 if options.threads>0:
     if not hasattr(process,"options"):
