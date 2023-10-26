@@ -244,13 +244,16 @@ It can be run from any CMSSW release in the chain and will execute each step in 
 
 \* Gridpack production should be run separately, since a single gridpack can be reused by multiple jobs.
 
-Several predefined chains are provided:  
-P8v10: 0. GEN-SIM, 1. DIGI, 2. RECO, 3. MINIAODv3, 4. NANOAODv10  
-MGv10: 0. LHE-GEN-SIM, 1. DIGI, 2. RECO, 3. MINIAODv3, 4. NANOAODv10  
-P8v11: 0. GEN-SIM, 1. DIGI, 2. RECO, 3. MINIAODv3, 4. NANOAODv11  
-MGv11: 0. LHE-GEN-SIM, 1. DIGI, 2. RECO, 3. MINIAODv3, 4. NANOAODv11  
-P8v12: 0. GEN-SIM, 1. DIGI, 2. RECO, 3. MINIAODv4, 4. NANOAODv12  
-MGv12: 0. LHE-GEN-SIM, 1. DIGI, 2. RECO, 3. MINIAODv4, 4. NANOAODv12  
+Several predefined chains are provided:
+
+| Name | | | Steps | | |
+| ----- |-|-|-|-|-|
+| P8v10 | 0. GEN-SIM     | 1. DIGI | 2. RECO | 3. MINIAODv3 | 4. NANOAODv10 |
+| MGv10 | 0. LHE-GEN-SIM | 1. DIGI | 2. RECO | 3. MINIAODv3 | 4. NANOAODv10 |
+| P8v11 | 0. GEN-SIM     | 1. DIGI | 2. RECO | 3. MINIAODv3 | 4. NANOAODv11 |
+| MGv11 | 0. LHE-GEN-SIM | 1. DIGI | 2. RECO | 3. MINIAODv3 | 4. NANOAODv11 |
+| P8v12 | 0. GEN-SIM     | 1. DIGI | 2. RECO | 3. MINIAODv4 | 4. NANOAODv12 |
+| MGv12 | 0. LHE-GEN-SIM | 1. DIGI | 2. RECO | 3. MINIAODv4 | 4. NANOAODv12 |
 
 These predefined chains can be modified with the script's command-line options, or (as an exclusive option) a custom chain of steps can be used.
 
