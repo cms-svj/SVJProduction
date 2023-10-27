@@ -39,11 +39,15 @@ shutil.make_archive(
 if options.dryrun: sys.exit(0)
 
 # run gridpack in genproductions dir (creates separate env)
-gen_prod_dir = os.path.expandvars("$CMSSW_BASE/src/Configuration/GenProduction/bin/MadGraph5_aMCatNLO/")
+# outside of CMSSW area
+gen_base_dir = os.path.expandvars("$CMSSW_BASE/src/Configuration/GenProduction")
+gen_copy_dir = os.path.expandvars("$CMSSW_BASE/../GenProduction")
+gen_prod_dir = os.path.expandvars("$CMSSW_BASE/../GenProduction/bin/MadGraph5_aMCatNLO/")
 # cleanup previous dir just in case
 shutil.rmtree(os.path.join(gen_prod_dir,_modname),ignore_errors=True)
 cmd = '''
 set -e
+cp -rf {8} {9}
 cd {0}
 ln -sf {1} .
 eval `scram unsetenv -sh`
@@ -52,6 +56,7 @@ export NO_GRIDPACK={7}
 ./gridpack_generation.sh {2} {3}
 mv {2}_*.tar.xz {4}
 cd {4}
+{5} {9}
 {5} {1}/{2}
 '''.format(
     gen_prod_dir,
@@ -59,9 +64,11 @@ cd {4}
     _modname,
     os.path.basename(mg_input_dir),
     os.getcwd(),
-    "echo" if options.dump else "rm -rf", # use options.dump to keep gridpack dir
+    "echo" if options.dump else "rm -rf", # use options.dump to keep gridpack dirs
     options.maxEvents,
     "true" if options.nogridpack else "",
+    gen_base_dir,
+    gen_copy_dir,
 )
 if options.dump: print(cmd)
 subprocess.check_call(cmd, shell=True)
