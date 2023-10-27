@@ -4,7 +4,7 @@ __date__ = "02 Aug 2012"
 __author__ = 'olivier.mattelaer@uclouvain.be'
 
 from function_library import *
-
+from functools import cmp_to_key
 
 class ParamCardWriter(object):
 
@@ -76,7 +76,7 @@ class ParamCardWriter(object):
         for lhablock in all_lhablock:
             self.write_block(lhablock)
             need_writing = [param for param in all_ext_param if param.lhablock == lhablock]
-            need_writing.sort(self.order_param)
+            need_writing.sort(key=cmp_to_key(self.order_param))
             [self.write_param(param, lhablock) for param in need_writing]
 
             if self.generic_output:
