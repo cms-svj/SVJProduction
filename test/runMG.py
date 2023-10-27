@@ -32,7 +32,7 @@ shutil.make_archive(
     base_name = os.path.join(mg_input_dir,_modname),
     format = "tar",
     root_dir = mg_dir,
-	base_dir = os.path.basename(mg_model_dir_new),
+    base_dir = os.path.basename(mg_model_dir_new),
 )
 
 # in case of tests that don't actually need to run madgraph
@@ -57,7 +57,7 @@ export NO_GRIDPACK={7}
 mv {2}_*.tar.xz {4}
 cd {4}
 {5} {9}
-{5} {1}/{2}
+{5} {10}
 '''.format(
     gen_prod_dir,
     mg_input_dir,
@@ -69,9 +69,17 @@ cd {4}
     "true" if options.nogridpack else "",
     gen_base_dir,
     gen_copy_dir,
+    mg_dir,
 )
 if options.dump: print(cmd)
-subprocess.check_call(cmd, shell=True)
+try:
+    subprocess.check_call(cmd, shell=True)
+except Exception as e:
+    # ensure cleanup happens even if some previous step fails
+    cleanup_cmd = ''.join(cmd.splitlines(keepends=True)[-3:])
+    if options.dump: print(cleanup_cmd)
+    subprocess.check_call(cleanup_cmd, shell=True)
+    raise e
 
 # move output to desired name
 tfiles = glob(_modname+"*.tar.xz")
