@@ -120,7 +120,7 @@ if __name__=="__main__":
             "ops will be applied in order provided"
         ])
     )
-    parser.add_argument("-S", "--store", metavar="pos/name", type=parse_pos_name, default=["MINIAODv3"], nargs='*', help="store output for intermediate step(s) (position or name) (-1 or all: store all steps' output)")
+    parser.add_argument("-S", "--store", metavar="pos/name", type=parse_pos_name, default=["MINIAODv3","MINIAODv4"], nargs='*', help="store output for intermediate step(s) (position or name) (-1 or all: store all steps' output)")
     parser.add_argument("-G", "--global", dest="global_opts", type=str, default="", help='global arguments for submitJobs (use syntax: -G="...")')
     parser.add_argument("-L", "--local", metavar=("pos/name","LOCAL"), action=ModifyAction, nargs=2, default=[], help='local arguments for submitJobs for a specific step')
     # arguments forward from (or similar to) jobSubmitter or createChain
