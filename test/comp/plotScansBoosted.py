@@ -1,23 +1,15 @@
-from SVJ.Production.SVJ_Boosted_Scan_TuneCP5_13TeV_pythia8_cff import points
-from collections import OrderedDict
+import os,sys
+sys.path.append(os.path.expandvars("$CMSSW_BASE/src/SVJ/Production/batch"))
+from signals_boosted_scan import flist
+
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+parser.add_argument("-n","--num", dest="num", type=int, default=1000, help="number of events per job for model point w/ weight 1.0 (before filter)")
+args = parser.parse_args()
+
 from array import array
 import ROOT as r
 r.gROOT.SetBatch(True)
-
-def parseName(point):
-    name = point["name"]
-    namesplit = name.split('_')[1:]
-    vals = OrderedDict()
-    for n in namesplit:
-        nsplit = n.split('-')
-        try:
-            vals[nsplit[0]] = float(nsplit[1])
-        except:
-            vals[nsplit[0]] = nsplit[1]
-    vals["weight"] = point["weight"]
-    return vals
-
-parsed = [parseName(point) for point in points]
 
 scans = [
     ("rinv", {"mDark": 1}),
@@ -26,7 +18,7 @@ scans = [
 ]
 
 axnames = {
-    "mMed": "m_{Z'} [GeV]",
+    "mMediator": "m_{Z'} [GeV]",
     "rinv": "r_{inv}",
     "mDark": "m_{dark} [GeV]",
 }
@@ -35,20 +27,20 @@ for scan,params in scans:
     x = []
     y = []
     z = []
-    for point in parsed:
+    for point in flist:
         good_point = True
         for param,pval in params.iteritems():
             if point[param]!=pval: good_point = False
         if not good_point: continue
-        x.append(point["mMed"])
+        x.append(point["mMediator"])
         y.append(point[scan])
-        z.append(point["weight"])
+        z.append(float(point["maxEvents"])/float(args.num))
     xx = array('d',x)
     yy = array('d',y)
     zz = array('d',z)
     gwt = r.TGraph2D(len(x),xx,yy,zz)
     gwt.SetTitle("")
-    gwt.GetXaxis().SetTitle(axnames["mMed"])
+    gwt.GetXaxis().SetTitle(axnames["mMediator"])
     gwt.GetYaxis().SetTitle(axnames[scan])
     gwt.GetZaxis().SetTitle("weight")
     cwt = r.TCanvas()
