@@ -120,6 +120,9 @@ class jobSubmitterSVJ(jobSubmitter):
         for pdict in flist:
             # create protojob
             job = protoJob()
+            # extra attribute to store max events (in case of pseudo-scan)
+            job.maxEvents = self.maxEvents
+            if "maxEvents" in pdict: job.maxEvents = pdict["maxEvents"]
             # extra attribute to store actual events
             if self.actualEvents: job.actualEvents = 0
             # make name from params or scan/fragment
@@ -145,7 +148,7 @@ class jobSubmitterSVJ(jobSubmitter):
                 outpre = self.outpre
                 inpre = self.inpre
                 signal = True
-            job.name = self.helper.getOutName(events=self.maxEvents,outpre=outpre,signal=signal)
+            job.name = self.helper.getOutName(events=job.maxEvents,outpre=outpre,signal=signal)
             if len(self.chainName)>0: job.chainName = self.chainName
             if self.verbose:
                 print "Creating job: "+job.name
@@ -154,7 +157,7 @@ class jobSubmitterSVJ(jobSubmitter):
             # for auto skipping
             if self.skipParts=="auto":
                 injob = protoJob()
-                injob.name = self.helper.getOutName(events=self.maxEventsIn if self.maxEventsIn>0 else self.maxEvents,outpre=inpre,signal=signal)
+                injob.name = self.helper.getOutName(events=self.maxEventsIn if self.maxEventsIn>0 else job.maxEvents,outpre=inpre,signal=signal)
                 infiles = {x.split('/')[-1].replace(".root","") for x in (pyxrdfsls(self.redir+self.indir) if self.indir.startswith("/store/") else glob(self.indir+"/*.root"))}
 
             # set this after making name to avoid duplicating pythia8 in name
@@ -198,7 +201,7 @@ class jobSubmitterSVJ(jobSubmitter):
                     if "scout" in pdict:
                         arglist.append("scout="+str(pdict["scout"]))
                     arglist.extend([
-                        "maxEvents="+str(self.maxEvents),
+                        "maxEvents="+str(job.maxEvents),
                         "outpre="+self.outpre,
                         "year="+str(self.year),
                     ])
@@ -269,6 +272,6 @@ class jobSubmitterSVJ(jobSubmitter):
                     counter += 1
 
         with open(self.getpy_weights,'a') as wfile:
-            nEvents = job.actualEvents if self.actualEvents else int(self.maxEvents)*len(job.nums)
+            nEvents = job.actualEvents if self.actualEvents else int(job.maxEvents)*len(job.nums)
             line = '    MCSample("'+job.name+'", "", "", "Constant", '+str(nEvents)+'),';
             wfile.write(line+"\n")

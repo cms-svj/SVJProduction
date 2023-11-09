@@ -149,6 +149,7 @@ The class [jobSubmitterSVJ.py](./batch/jobSubmitterSVJ.py) extends the class `jo
 Python:
 * `-y, --getpy`: make python file list for ntuple production (new operation mode)
 * `-d, --dicts [file]`: file with list of input dicts; each dict contains signal parameters (required)
+    * dictionaries can also contain a `maxEvents` parameter, which will override the global value given in `-E, --maxEvents` below
 * `-o, --output [dir]`: path to output directory in which root files will be stored (required)
 * `-E, --maxEvents [num]`: number of events to process per job (default = 1)
 * `-I, --maxEventsIn [num]`: number of events from input file (if different from `-E`) (default = 1)
