@@ -66,21 +66,16 @@ def get_acc(point):
 
 # set to accumulate all scan points
 sigs = set()
+sigs_gridpack = set()
 
 # 3D scan
 params_3D = deepcopy(params)
 varyAll(0,list(params_3D.iteritems()),[],sigs)
-'''
-# 2D scans vs. rinv
-params_rinv = deepcopy(params)
-params_rinv["mDark"] = [10]
-varyAll(0,list(params_rinv.iteritems()),[],sigs)
 
-# 2D scans vs. mDark
+# 2D scan vs. mDark for gridpack
 params_mDark = deepcopy(params)
 params_mDark["rinv"] = [0.3]
-varyAll(0,list(params_mDark.iteritems()),[],sigs)
-'''
+varyAll(0,list(params_mDark.iteritems()),[],sigs_gridpack)
 
 # append process parameters for each model point
 helper = svjHelper()
@@ -88,13 +83,12 @@ points = []
 numevents_before = 0
 numevents_after = 0
 base_filter_eff = 0.5
+alpha = "peak"
 flist = []
-flist_gridpack = []
 for point in sorted(sigs):
     mZprime = point[0]
     mDark = point[1]
     rinv = point[2]
-    alpha = "peak"
 
     weight = 1.0
     filter_eff = base_filter_eff
@@ -112,12 +106,17 @@ for point in sorted(sigs):
 
     maxEvents = int(args.num*weight)
     flist.append(OrderedDict([("channel", "s"), ("mMediator", mZprime), ("mDark", mDark), ("rinv", rinv), ("alpha", alpha), ("maxEvents", maxEvents)]))
-    gridpack_point = OrderedDict([("channel", "s"), ("mMediator", mZprime), ("mDark", mDark)])
-    if gridpack_point not in flist_gridpack:
-       flist_gridpack.append(gridpack_point)
 
     numevents_before += maxEvents*args.jobs
     numevents_after += maxEvents*args.jobs*filter_eff
+
+flist_gridpack = []
+for point in sorted(sigs_gridpack):
+    mZprime = point[0]
+    mDark = point[1]
+    rinv = point[2]
+
+    flist_gridpack.append(OrderedDict([("channel", "s"), ("mMediator", mZprime), ("mDark", mDark), ("rinv", rinv), ("alpha", alpha)]))
 
 # some info on the scan
 print("This scan will contain "+str(len(sigs))+" model points, "+str(int(numevents_before))+" events before filter, "+str(int(numevents_after))+" events after filter")
