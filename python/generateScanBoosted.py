@@ -27,12 +27,6 @@ parser.add_argument("-j","--jobs", dest="jobs", type=int, default=20, help="numb
 parser.add_argument("-a","--acc", dest="acc", type=float, default=0.0, help="increase number of events based on acceptance up to this maximum factor")
 args = parser.parse_args()
 
-# specification of tunes
-tune_loc = "Configuration.Generator.MCTunes2017.PythiaCP5Settings_cfi"
-tune_block = "pythia8CP5SettingsBlock"
-tune_suff = "TuneCP5_13TeV_pythia8"
-gen_tag = "cms.InputTag('generator','unsmeared')"
-
 # complete set of parameter values
 params = OrderedDict([
     ("mZprime", range(200,600,50)),
@@ -40,14 +34,24 @@ params = OrderedDict([
     ("rinv", [0.0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]),
 ])
 
+# cross sections
+with open(os.path.expandvars('$CMSSW_BASE/src/SVJ/Production/test/dict_xsec_Zprime_boosted.txt'),'r') as xfile:
+    xsecs = {int(xline.split('\t')[0]): float(xline.split('\t')[1]) for xline in xfile}
+
 # acceptance values vs. each param
 acc = OrderedDict([
     ("mDark", ([1,5,10],[0.12,0.12,0.11])),
     ("mZprime", ([200,250,300,350,400,450,500,550],[0.081,0.089,0.099,0.11,0.12,0.12,0.13,0.14])),
     ("rinv", ([0,0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1],[0.017,0.024,0.045,0.082,0.11,0.12,0.13,0.13,0.12,0.11,0.081,0.058])),
 ])
+base_mZprime = 350
+base_index = acc["mZprime"][0].index(base_mZprime)
 # acceptance w/ benchmark param values
-base_acc = 0.11
+base_acc = acc["mZprime"][1][base_index]
+# include relative cross section in mZprime acc
+base_xsec = xsecs[base_mZprime]
+for i,mass in enumerate(acc["mZprime"][0]):
+    acc["mZprime"][1][i] *= base_xsec/xsecs[mass]
 # function to use pair of arrays as lookup table
 def find_nearest(val,xy):
     x_array = np.asarray(xy[0])
@@ -77,23 +81,6 @@ params_mDark = deepcopy(params)
 params_mDark["rinv"] = [0.3]
 varyAll(0,list(params_mDark.iteritems()),[],sigs)
 '''
-# format first part of output config
-first_part = """
-import FWCore.ParameterSet.Config as cms
-
-from Configuration.Generator.Pythia8CommonSettings_cfi import *
-from {0} import * 
-from Configuration.Generator.PSweightsPythia.PythiaPSweightsSettings_cfi import *
-
-generator = cms.EDFilter("Pythia8HadronizerFilter",
-    maxEventsToPrint = cms.untracked.int32(1),
-    pythiaPylistVerbosity = cms.untracked.int32(1),
-    filterEfficiency = cms.untracked.double(1.0),
-    pythiaHepMCVerbosity = cms.untracked.bool(False),
-    comEnergy = cms.double(13000.),
-    RandomizedParameters = cms.VPSet(),
-)
-""".format(tune_loc)
 
 # append process parameters for each model point
 helper = svjHelper()
