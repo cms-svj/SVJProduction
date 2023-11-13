@@ -31,14 +31,14 @@ The user's operating system (`slc7` or `el8`) is automatically detected.
 wget https://raw.githubusercontent.com/cms-svj/SVJProduction/Run3/setup.sh
 chmod +x setup.sh
 ./setup.sh
-cd CMSSW_12_4_15/src
+cd CMSSW_12_4_17/src
 cmsenv
 cd SVJ/Production
 ```
 
 The setup script has several options:
 * `-y [year]`: year to simulate, determines default CMSSW release (choices: 2022 2023) (default = 2022)
-* `-c [release]`: CMSSW release(s) to install, comma-separated (default = CMSSW_12_4_15,CMSSW_12_6_5,CMSSW_13_0_13)
+* `-c [release]`: CMSSW release(s) to install, comma-separated (default = CMSSW_12_4_17,CMSSW_12_6_5,CMSSW_13_0_13)
 * `-f [fork]`: clone from specified fork (default = cms-svj)
 * `-b [branch]`: clone specified branch (default = Run3)
 * `-s [protocol]`: use protocol to clone (default = https, alternative = ssh)
@@ -48,7 +48,7 @@ The setup script has several options:
 ## Overview
 
 Run 3 MC production includes the following scenarios that use the corresponding CMSSW releases:
-* 2022: `CMSSW_12_4_15`, `CMSSW_12_6_5` (NanoAODv11), `CMSSW_13_0_13` (MiniAODv4, NanoAODv12)
+* 2022: `CMSSW_12_4_17`, `CMSSW_12_6_5` (NanoAODv11), `CMSSW_13_0_13` (MiniAODv4, NanoAODv12)
 * 2022EE: see 2022
 * 2023: coming soon
 * 2023BPix: see 2023
