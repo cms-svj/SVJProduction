@@ -89,6 +89,7 @@ numevents_before = 0
 numevents_after = 0
 base_filter_eff = 0.5
 flist = []
+flist_gridpack = []
 for point in sorted(sigs):
     mZprime = point[0]
     mDark = point[1]
@@ -111,6 +112,9 @@ for point in sorted(sigs):
 
     maxEvents = int(args.num*weight)
     flist.append(OrderedDict([("channel", "s"), ("mMediator", mZprime), ("mDark", mDark), ("rinv", rinv), ("alpha", alpha), ("maxEvents", maxEvents)]))
+    gridpack_point = OrderedDict([("channel", "s"), ("mMediator", mZprime), ("mDark", mDark)])
+    if gridpack_point not in flist_gridpack:
+       flist_gridpack.append(gridpack_point)
 
     numevents_before += maxEvents*args.jobs
     numevents_after += maxEvents*args.jobs*filter_eff
@@ -120,4 +124,8 @@ print("This scan will contain "+str(len(sigs))+" model points, "+str(int(numeven
 
 with open(os.path.expandvars("$CMSSW_BASE/src/SVJ/Production/batch/signals_boosted_scan.py"),'w') as ofile:
     lines = ["flist = ["] + ['    '+json.dumps(d)+',' for d in flist] + ["]"]
+    ofile.write('\n'.join(lines))
+
+with open(os.path.expandvars("$CMSSW_BASE/src/SVJ/Production/batch/signals_boosted_scan_gridpack.py"),'w') as ofile:
+    lines = ["flist = ["] + ['    '+json.dumps(d)+',' for d in flist_gridpack] + ["]"]
     ofile.write('\n'.join(lines))
