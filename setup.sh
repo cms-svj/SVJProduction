@@ -161,7 +161,8 @@ install_CMSSW(){
 	cd $CMSSW_BASE
 	git clone ${ACCESS_GITHUB}cms-svj/build
 	cd build
-	PDIR=${THIS_CMSSW}/${SCRAM_ARCH}/tools
+	CMSSW_BRANCH=$(echo $THIS_CMSSW | cut -d'_' -f1-3)"_X"
+	PDIR=${CMSSW_BRANCH}/${SCRAM_ARCH}/tools
 	if [ -d $PDIR ]; then
 		# only keep relevant artifacts
 		git config core.sparsecheckout true
@@ -179,7 +180,7 @@ install_CMSSW(){
 		cd $CMSSW_BASE/src
 		scram b checkdeps
 	else
-		$ECHO "WARNING: patched Pythia not available for $PDIR; some signal models may not work"
+		$ECHO "WARNING: patched Pythia not available for $CMSSW_BRANCH; some signal models may not work"
 		cd $CMSSW_BASE
 		rm -rf $CMSSW_BASE/build
 	fi
