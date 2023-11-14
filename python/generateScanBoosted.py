@@ -84,6 +84,8 @@ numevents_before = 0
 numevents_after = 0
 base_filter_eff = 0.5
 alpha = "peak"
+boost = 300
+boostvar = "madpt"
 flist = []
 for point in sorted(sigs):
     mZprime = point[0]
@@ -105,7 +107,7 @@ for point in sorted(sigs):
         weight = np.clip(weight/this_acc,min_weight,max_weight)
 
     maxEvents = int(args.num*weight)
-    flist.append(OrderedDict([("channel", "s"), ("mMediator", mZprime), ("mDark", mDark), ("rinv", rinv), ("alpha", alpha), ("maxEvents", maxEvents)]))
+    flist.append(OrderedDict([("channel", "s"), ("mMediator", mZprime), ("mDark", mDark), ("rinv", rinv), ("alpha", alpha), ("boost", boost), ("boostvar", boostvar), ("maxEvents", maxEvents)]))
 
     numevents_before += maxEvents*args.jobs
     numevents_after += maxEvents*args.jobs*filter_eff
@@ -116,7 +118,7 @@ for point in sorted(sigs_gridpack):
     mDark = point[1]
     rinv = point[2]
 
-    flist_gridpack.append(OrderedDict([("channel", "s"), ("mMediator", mZprime), ("mDark", mDark), ("rinv", rinv), ("alpha", alpha)]))
+    flist_gridpack.append(OrderedDict([("channel", "s"), ("mMediator", mZprime), ("mDark", mDark), ("rinv", rinv), ("alpha", alpha), ("boost", boost), ("boostvar", boostvar)]))
 
 # some info on the scan
 print("This scan will contain "+str(len(sigs))+" model points, "+str(int(numevents_before))+" events before filter, "+str(int(numevents_after))+" events after filter")
