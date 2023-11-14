@@ -29,7 +29,7 @@ class suepHelper(object):
         if   decay == "darkPho"   : self.mPho = 0.5 # GeV    
         elif decay == "darkPhoHad": self.mPho = 0.7 # GeV, allows more pion decays
 
-    def getOutName(self,events=0,signal=True,outpre="outpre",part=None,sanitize=False):
+    def getOutName(self,events=0,signal=True,outpre="outpre",part=None,sanitize=False,gridpack=False):
         _outname = outpre
         if signal:
             _outname += "_{}-channel".format(self.channel)

@@ -72,7 +72,7 @@ class emjHelper(object):
         self.kappa = self.U12 * self.U13 * self.U23 * self.D
         self.kNorm = float(np.square(self.kappa).sum())
 
-    def getOutName(self, signal=True, events=0, outpre='outpre', part=None, sanitize=False):
+    def getOutName(self, signal=True, events=0, outpre='outpre', part=None, sanitize=False, gridpack=False):
         _outname = outpre
         if signal:
             _outname += '_mMed-{:g}'.format(self.mMed)
