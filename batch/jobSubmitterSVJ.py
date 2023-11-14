@@ -148,7 +148,7 @@ class jobSubmitterSVJ(jobSubmitter):
                 outpre = self.outpre
                 inpre = self.inpre
                 signal = True
-            job.name = self.helper.getOutName(events=job.maxEvents,outpre=outpre,signal=signal)
+            job.name = self.helper.getOutName(events=job.maxEvents,outpre=outpre,signal=signal,gridpack=self.gridpack)
             if len(self.chainName)>0: job.chainName = self.chainName
             if self.verbose:
                 print "Creating job: "+job.name
