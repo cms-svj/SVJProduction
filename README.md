@@ -169,6 +169,7 @@ Python:
 * `-A, --args [list]`: additional common args to use for all jobs (passed to [runSVJ.py](./test/runSVJ.py))
 * `-v, --verbose`: enable verbose output (default = False)
 * `--chain-name [str]`: value for job.chainName (default = )
+* `--production [str]`: value for production string in [TreeMaker weight file](#ntuple-production) (default = )
 
 Shell (in [step2.sh](./batch/step2.sh)):
 * `-o [dir]`: output directory

@@ -47,6 +47,7 @@ class jobSubmitterSVJ(jobSubmitter):
         parser.add_option("-A", "--args", dest="args", default="", help="additional common args to use for all jobs (default = %default)")
         parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true", help="enable verbose output (default = %default)")
         parser.add_option("--chain-name", dest="chainName", default="", help="value for job.chainName (default = %default)")
+        parser.add_option("--production", dest="production", default="", help="value for production string in TreeMaker weight file (default = %default)")
 
     def runPerJob(self,job):
         super(jobSubmitterSVJ,self).runPerJob(job)
@@ -273,5 +274,5 @@ class jobSubmitterSVJ(jobSubmitter):
 
         with open(self.getpy_weights,'a') as wfile:
             nEvents = job.actualEvents if self.actualEvents else int(job.maxEvents)*len(job.nums)
-            line = '    MCSample("'+job.name+'", "", "", "Constant", '+str(nEvents)+'),';
+            line = '    MCSample("'+job.name+'", "'+self.production+'", "", "Constant", '+str(nEvents)+'),';
             wfile.write(line+"\n")
