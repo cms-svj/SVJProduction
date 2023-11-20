@@ -5,12 +5,15 @@ export PART=""
 export OUTDIR=""
 export REDIR=""
 export MODE=""
+export USEFOLDERS=""
 export OPTIND=1
 while [[ $OPTIND -le $# ]]; do
 	OPTOLD=$OPTIND
 	# getopts in silent mode, don't exit on errors
-	getopts ":j:p:o:x:m:" opt || status=$?
+	getopts ":fj:p:o:x:m:" opt || status=$?
 	case "$opt" in
+		f) export USEFOLDERS="true"
+		;;
 		j) export JOBNAME=$OPTARG
 		;;
 		p) export PART=$OPTARG
@@ -33,6 +36,7 @@ echo "JOBNAME:    $JOBNAME"
 echo "PART:       $PART"
 echo "REDIR:      $REDIR"
 echo "MODE:       $MODE"
+echo "USEFOLDERS: $USEFOLDERS"
 echo ""
 
 if [[ "$MODE" == "madgraph" ]]; then
@@ -53,6 +57,9 @@ ARGS=$(cat args_${JOBNAME}.txt)
 ARGS="$ARGS part=$PART"
 if [[ -n "$REDIR" ]]; then
 	ARGS="$ARGS redir=${REDIR}"
+fi
+if [[ "${USEFOLDERS}" == "true" ]] && [[ "$ARGS" != *"useFolders"* ]] ; then
+	ARGS="$ARGS useFolders=1"
 fi
 echo "${EXE} ${SCRIPT} ${ARGS} 2>&1"
 ${EXE} ${SCRIPT} ${ARGS} 2>&1
@@ -81,8 +88,16 @@ fi
 # copy output to eos
 echo "$CMDSTR output for condor"
 for FILE in *${FTYPE}; do
-	echo "${CMDSTR} -f ${FILE} ${OUTDIR}/${FILE}"
-	stageOut ${GFLAG} -x "-f" -i ${FILE} -o ${OUTDIR}/${FILE} -r -c '*'${FTYPE} 2>&1
+	FILE_DST=${FILE}
+	if [[ "${USEFOLDERS}" == "true" ]]; then
+		echo "Changing to folder structure: <sample>/<part>.root"
+		echo -e "\tPrior to change: ${FILE_DST}"
+		FILE_DST=$(echo ${FILE_DST} | sed -E 's~(.*)_part~\1/part~'
+		echo -e "\t   After change: ${FILE_DST}"
+	fi
+
+	echo "${CMDSTR} -f ${FILE} ${OUTDIR}/${FILE_DST}"
+	stageOut ${GFLAG} -x "-f" -i ${FILE} -o ${OUTDIR}/${FILE_DST} -r -c '*'${FTYPE} 2>&1
 	XRDEXIT=$?
 	if [[ $XRDEXIT -ne 0 ]]; then
 		echo "exit code $XRDEXIT, failure in ${CMDSTR}"

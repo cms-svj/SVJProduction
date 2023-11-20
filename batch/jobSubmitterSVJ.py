@@ -2,8 +2,8 @@ from Condor.Production.jobSubmitter import *
 from SVJ.Production.svjHelper import svjHelper
 from SVJ.Production.suepHelper import suepHelper
 
-def makeNameSVJ(self,num):
-    return self.name+"_part-"+str(num)
+def makeNameSVJ(self,num,useFolders=False):
+    return self.name+("/" if useFolders else "_")+part-"+str(num)
 
 protoJob.makeName = makeNameSVJ
 
@@ -34,6 +34,7 @@ class jobSubmitterSVJ(jobSubmitter):
         parser.add_option("-F", "--firstPart", dest="firstPart", default=1, help="first part to process, in case extending a sample (default = %default)")
         parser.add_option("-N", "--nParts", dest="nParts", default=1, help="number of parts to process (default = %default)")
         parser.add_option("-K", "--skipParts", dest="skipParts", default="", help="comma-separated list of parts to skip, or auto (default = %default)")
+        parser.add_option("-f", "--use-folders", dest="useFolders", default=False, action="store_true", help="store the output in a folder for each sample (default = %default)")
         parser.add_option("--indir", dest="indir", default="", help="input file directory (LFN) (default = %default)")
         parser.add_option("--redir", dest="redir", default="root://cmseos.fnal.gov/", help="input file redirector (default = %default)")
         parser.add_option("--inpre", dest="inpre", default="", help="input file prefix (default = %default)")
@@ -93,7 +94,7 @@ class jobSubmitterSVJ(jobSubmitter):
         job.patterns.update([
             ("JOBNAME",job.name+"_part-$(Process)_$(Cluster)"),
             ("EXTRAINPUTS","input/args_"+job.name+".txt"),
-            ("EXTRAARGS","-j "+job.name+" -p $(Process) -o "+self.output+(" -m madgraph" if self.gridpack else "")),
+            ("EXTRAARGS","-j "+job.name+" -p $(Process) -o "+self.output+(" -m madgraph" if self.gridpack else "")+(" -f " if self.useFolders else "")),
         ])
         if "cmslpc" in os.uname()[1]:
             job.appends.append(
@@ -158,7 +159,9 @@ class jobSubmitterSVJ(jobSubmitter):
             if self.skipParts=="auto":
                 injob = protoJob()
                 injob.name = self.helper.getOutName(events=self.maxEventsIn if self.maxEventsIn>0 else job.maxEvents,outpre=inpre,signal=signal)
-                infiles = {x.split('/')[-1].replace(".root","") for x in generalized_ls(self.redir,self.indir)}
+                injobdir = self.indir
+                if self.useFolders: injobdir += "/"+injob.name
+                infiles = {self.finishedToJobName(x if injob.name in x else injob.name+"_"+x) for x in generalized_ls(self.redir,injobdir)}
 
             # set this after making name to avoid duplicating pythia8 in name
             if "scan" in pdict:
@@ -234,7 +237,7 @@ class jobSubmitterSVJ(jobSubmitter):
 
                 if self.actualEvents:
                     from ROOT import TFile,TTree
-                    iFile = TFile.Open(self.redir+self.indir+"/"+injob.makeName(iActualJob)+".root")
+                    iFile = TFile.Open(self.redir+self.indir+"/"+injob.makeName(iActualJob,self.useFolders)+".root")
                     iTree = iFile.Get("Events")
                     job.actualEvents += iTree.GetEntries()
 
@@ -262,7 +265,7 @@ class jobSubmitterSVJ(jobSubmitter):
             job.name = job.name.replace(self.outpre,self.inpre)
             # split into chunks of 255
             for ijob in job.nums:
-                iname = job.makeName(ijob)
+                iname = job.makeName(ijob,self.useFolders)
                 if counter==0: outfile.write("readFiles.extend( [\n")
                 outfile.write("       '"+("file:" if not self.indir.startswith("/store/") else "")+self.indir+"/"+iname+".root',\n")
                 if counter==254 or ijob==job.nums[-1]:
@@ -275,3 +278,37 @@ class jobSubmitterSVJ(jobSubmitter):
             nEvents = job.actualEvents if self.actualEvents else int(job.maxEvents)*len(job.nums)
             line = '    MCSample("'+job.name+'", "'+self.production+'", "", "Constant", '+str(nEvents)+'),';
             wfile.write(line+"\n")
+
+    def findFinishedJob(self,job):
+        if not hasattr(self,"checkedDirectories"):
+            setattr(self,"checkedDirectories",set())
+
+        if hasattr(self,"output"):
+            bottomDir = self.output + "/" + job.name
+            if bottomDir not in self.checkedDirectories:
+                finishedFilesPerJob = {self.finishedToJobName(finished) for finished in generalized_ls(bottomDir,"",self.minDate,self.maxDate)}
+                self.filesSet |= set(finishedFilesPerJob)
+                self.checkedDirectories.add(bottomDir)
+
+    def doMissing(self,job):
+        # add to finished files in case the files are folderized
+        if self.useFolders:
+            self.findFinishedJob(job)
+
+        # now do the rest of missing mode
+        super(jobSubmitterSVJ,self).doMissing(job)
+
+    def doClean(self,job):
+        # add to finished files in case the files are folderized
+        if self.useFolders:
+            self.findFinishedJob(job)
+
+        # now do the rest of clean mode
+        super(jobSubmitterSVJ,self).doClean(job)
+
+    def finishedToJobName(self,val):
+        if self.useFolders:
+            subval = "_".join(val.split("/")[-2:])
+        else:
+            subval = val.split("/")[-1]
+        return subval.replace(".root","")

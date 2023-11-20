@@ -87,6 +87,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `output=[list]`: list of output module names (default = `sorted(process.outputModules_())`)
 * `year=[str]`: which year to simulate (default = 0, for year-independent configs)
 * `config=[str]`: config file to customize and run (default = step_GEN)
+* `useFolders=[bool]`: read input files written with `--use-folders` option (see [Condor submission](#condor-submission))
 * `printEvents=[num]`: number of Pythia events to print (default = 1)
 * `threads=[num]`: number of threads to run (default = 1)
 * `streams=[num]`: number of streams to run (default = 0 -> streams = threads)
@@ -156,6 +157,7 @@ Python:
 * `-F, --firstPart [num]`: first part to process in case extending a sample (default = 1)
 * `-N, --nParts [num]`: number of parts to process
 * `-K, --skipParts [n1,n2,... or auto]`: comma-separated list of parts to skip (or auto, which checks existence of input files)
+* `-f, --use-folders`: store the output in a folder for each sample
 * `--indir [dir]`: input file directory (LFN)
 * `--redir [dir]`: input file redirector (default = root://cmseos.fnal.gov/)
 * `--inpre [str]`: input file prefix

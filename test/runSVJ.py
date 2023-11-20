@@ -2,6 +2,9 @@ import FWCore.ParameterSet.Config as cms
 import sys, os
 from SVJ.Production.optSVJ import options, _helper
 
+def replace_last(item,old,new):
+    return new.join(item.rsplit(old,1))
+
 # output name definition
 _outname = _helper.getOutName(
     options.maxEvents,
@@ -19,7 +22,11 @@ if len(options.inpre)>0:
 def fix_inname(inname,options,lhe=False):
     if len(options.indir)>0: inname = options.indir+"/"+inname
     if len(options.redir)>0 and inname.startswith("/store"): inname = options.redir+inname
-    if not lhe and not inname.startswith("/store") and not inname.startswith("root:"): inname = "file:"+inname
+    if not lhe:
+        if not inname.startswith("/store") and not inname.startswith("root:"): inname = "file:"+inname
+        # folderization only occurs in remote case
+        elif options.useFolders:
+            inname = replace_last(inname,"_part","/part")
     return inname
 
 # import process
