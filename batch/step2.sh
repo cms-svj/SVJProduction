@@ -78,14 +78,26 @@ if [[ $CMSEXIT -ne 0 ]]; then
 	exit $CMSEXIT
 fi
 
-# check for gfal case
-CMDSTR="xrdcp"
-GFLAG=""
-if [[ "$OUTDIR" == "gsiftp://"* ]]; then
-	CMDSTR="gfal-copy"
-	GFLAG="-g"
-fi
 # copy output to eos
+echo "CMSSITE currently set to: ${CMSSITE}"
+if [[ -z "$CMSSITE" ]] || [[ "$CMSSITE" == "" ]]; then
+	echo -e "\tGetting CMSSITE from the job ClassAd"
+	CMSSITE=$(getFromClassAd MachineAttrGLIDEIN_CMSSite0)
+	echo -e "\tCMSSITE is now set to: ${CMSSITE}"
+fi
+export CMDSTR="xrdcp"
+export GFLAG=""
+export COPYARGS="-f"
+if [[ ( "$CMSSITE" == *"T1_US_FNAL"* && "${OUTDIR}" == *"root://cmseos.fnal.gov/"* ) ]]; then
+	export WEBDAV_ENDPOINT="davs://cmseos.fnal.gov:9000/eos/uscms/store/user/"
+	export OUTDIR=${WEBDAV_ENDPOINT}${OUTDIR#root://cmseos.fnal.gov//store/user/}
+fi
+# check for gfal case
+if [[ "$OUTDIR" == "gsiftp://"* ]] || [[ "${OUTDIR}" == *"davs://"* ]]; then
+	export CMDSTR="gfal-copy"
+	export GFLAG="-g"
+	export COPYARGS="${COPYARGS} -p"
+fi
 echo "$CMDSTR output for condor"
 for FILE in *${FTYPE}; do
 	FILE_DST=${FILE}
@@ -97,7 +109,7 @@ for FILE in *${FTYPE}; do
 	fi
 
 	echo "${CMDSTR} -f ${FILE} ${OUTDIR}/${FILE_DST}"
-	stageOut ${GFLAG} -x "-f" -i ${FILE} -o ${OUTDIR}/${FILE_DST} -r -c '*'${FTYPE} 2>&1
+	stageOut ${GFLAG} -x "${COPYARGS}" -i ${FILE} -o ${OUTDIR}/${FILE_DST} -r -c '*'${FTYPE} 2>&1
 	XRDEXIT=$?
 	if [[ $XRDEXIT -ne 0 ]]; then
 		echo "exit code $XRDEXIT, failure in ${CMDSTR}"
