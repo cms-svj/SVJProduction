@@ -3,7 +3,7 @@ from SVJ.Production.svjHelper import svjHelper
 from SVJ.Production.suepHelper import suepHelper
 
 def makeNameSVJ(self,num,useFolders=False):
-    return self.name+("/" if useFolders else "_")+part-"+str(num)
+    return self.name+("/" if useFolders else "_")+"part-"+str(num)
 
 protoJob.makeName = makeNameSVJ
 

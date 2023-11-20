@@ -104,7 +104,7 @@ for FILE in *${FTYPE}; do
 	if [[ "${USEFOLDERS}" == "true" ]]; then
 		echo "Changing to folder structure: <sample>/<part>.root"
 		echo -e "\tPrior to change: ${FILE_DST}"
-		FILE_DST=$(echo ${FILE_DST} | sed -E 's~(.*)_part~\1/part~'
+		FILE_DST=$(echo ${FILE_DST} | sed -E 's~(.*)_part~\1/part~')
 		echo -e "\t   After change: ${FILE_DST}"
 	fi
 
