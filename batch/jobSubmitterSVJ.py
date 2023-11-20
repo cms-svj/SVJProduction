@@ -2,35 +2,9 @@ from Condor.Production.jobSubmitter import *
 from SVJ.Production.svjHelper import svjHelper
 from SVJ.Production.suepHelper import suepHelper
 from SVJ.Production.emjHelper import emjHelper
-from glob import glob
 
 def makeNameSVJ(self,num):
     return self.name+"_part-"+str(num)
-
-def pygfalls(pfn):
-    results = filter(
-        None,
-        subprocess.Popen(
-            "gfal-ls "+pfn,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        ).communicate()[0].split('\n')
-    )
-    return results
-
-def generalized_ls(redir,indir):
-    filelist = None
-    if indir.startswith("/store/"):
-        if redir.startswith("root://"):
-            filelist = pyxrdfsls(redir+indir)
-        elif redir.startswith("gsiftp://"):
-            filelist = pygfalls(redir+indir)
-        else:
-            raise ValueError("Unknown redir {}".format(redir))
-    else:
-        filelist = glob(self.indir+"/*.root")
-    return filelist
 
 protoJob.makeName = makeNameSVJ
 
