@@ -3,6 +3,31 @@ from SVJ.Production.svjHelper import svjHelper
 from SVJ.Production.suepHelper import suepHelper
 from glob import glob
 
+def pygfalls(pfn):
+    results = filter(
+        None,
+        subprocess.Popen(
+            "gfal-ls "+pfn,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ).communicate()[0].split('\n')
+    )
+    return results
+
+def generalized_ls(redir,indir):
+    filelist = None
+    if indir.startswith("/store/"):
+        if redir.startswith("root://"):
+            filelist = pyxrdfsls(redir+indir)
+        elif redir.startswith("gsiftp://"):
+            filelist = pygfalls(redir+indir)
+        else:
+            raise ValueError("Unknown redir {}".format(redir))
+    else:
+        filelist = glob(self.indir+"/*.root")
+    return filelist
+
 def makeNameSVJ(self,num):
     return self.name+"_part-"+str(num)
 
@@ -159,7 +184,7 @@ class jobSubmitterSVJ(jobSubmitter):
             if self.skipParts=="auto":
                 injob = protoJob()
                 injob.name = self.helper.getOutName(events=self.maxEventsIn if self.maxEventsIn>0 else job.maxEvents,outpre=inpre,signal=signal)
-                infiles = {x.split('/')[-1].replace(".root","") for x in (pyxrdfsls(self.redir+self.indir) if self.indir.startswith("/store/") else glob(self.indir+"/*.root"))}
+                infiles = {x.split('/')[-1].replace(".root","") for x in generalized_ls(self.redir,self.indir)}
 
             # set this after making name to avoid duplicating pythia8 in name
             if "scan" in pdict:
