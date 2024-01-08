@@ -174,12 +174,16 @@ if __name__=="__main__":
         subprocess.check_call(cmd, shell=True, stdout=stdout, stderr=subprocess.STDOUT)
 
     # create step JDLs (one list per job)
-    jdls = []
+    jdls = None
     # also track logfile names for first jobs
     logs = []
+    log_outpre = None
     prepare = False
+    missing = False
+    resub = ""
     for istep,step in enumerate(chain):
         prev_step = chain[istep-1] if istep>0 else ""
+        intermediate = step not in keep_output and istep<len(chain)-1
         # compose arguments to jobSubmitter
         opts = [
             args.global_opts,
@@ -194,13 +198,21 @@ if __name__=="__main__":
                 prev_step,
                 "../job{}".format(istep-1) if prev_step not in keep_output else "{1}/{0}".format(prev_step,args.output)
             ) if istep>0 else "",
-            "--intermediate" if step not in keep_output and istep<len(chain)-1 else "",
+            "--intermediate" if intermediate else "",
             "-k" if args.keep or istep>0 else "",
             "-v" if args.verbose else "",
         ]
         # aggregate then re-split, removing empty entries
         opts = shlex.split(" ".join(opt for opt in opts if len(opt)>0))
         if args.verbose: print(opts)
+
+        # check for missing mode
+        if any(arg in opts for arg in ["-m","--missing"]):
+            missing = True
+            resub_index = next((i for i,v in enumerate(opts) if any(arg==v for arg in ["-r","--resub"])), -1)
+            if resub_index>=0:
+                resub = opts[resub_index+1]
+            if intermediate: continue # only check steps with outputs
 
         # HLT: use 10_6_X jobSubmitterSVJ, but make it specify the correct CMSSW version in JDL
         env_keys = ["CMSSW_VERSION", "SCRAM_ARCH"]
@@ -221,27 +233,45 @@ if __name__=="__main__":
             jobSub.keep = False
         jobSub.run()
 
-        # initialize list of lists
-        if istep==0: jdls = [[] for _ in range(len(jobSub.protoJobs))]
-        # get JDL names
+        # initialize list of lists/sets
+        if jdls is None:
+            if missing: jdls = [set() for _ in range(len(jobSub.protoJobs))]
+            else: jdls = [[] for _ in range(len(jobSub.protoJobs))]
+        # union of missing jobs
         for ijob,job in enumerate(jobSub.protoJobs):
-            jdls[ijob].append(job.jdl)
-            if istep==0: logs.append(job.name)
+            if missing:
+                jdls[ijob] |= set(jobSub.missingNums.get(job.jdl,set()))
+            else:
+                jdls[ijob].append(job.jdl)
+            if log_outpre is None:
+                logs.append(job.name)
+        if log_outpre is None:
+            log_outpre = jobSub.outpre
 
         # revert HLT env changes
         if step=="HLT":
             for key in env_keys:
                 os.environ[key] = old_env[key]
 
-    # create chain jdl
-    if prepare:
-        for ijob,job in enumerate(jdls):
+    # operations on chain jdl
+    missingLines = []
+    for ijob,job in enumerate(jdls):
+        name = logs[ijob].replace(log_outpre,args.name)
+        chain_jdl = "jobExecCondor_{}.jdl".format(name)
+
+        if prepare:
             from createChain import createChain
-            name = args.name+logs[ijob]
             createChain(job, name, logs[ijob], args.checkpoint)
-            chain_jdl = "jobExecCondor_{}.jdl".format(name)
             if args.submit:
                 cmd = "condor_submit {}".format(chain_jdl)
                 if args.verbose: print(cmd)
                 os.system(cmd)
+        elif missing:
+            # edit chain jdl
+            numlist = sorted(list(jdls[ijob]))
+            if len(numlist)>0:
+                missingLines.extend(jobSub.editMissing(numlist, chain_jdl, True))
 
+    # resub script
+    if missing and len(resub)>0:
+        jobSub.makeResubmit(resub, missingLines)
