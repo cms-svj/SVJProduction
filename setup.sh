@@ -26,7 +26,7 @@ usage() {
 	$ECHO
 	$ECHO "Options:"
 	$ECHO "-y [year]     \tyear to simulate, determines default CMSSW release (choices: ${!CMSSW_YEARS[@]}) (default = $YEAR)"
-	$ECHO "-c [release]  \tCMSSW release(s) to install, comma-separated (default = ${CMSSW_YEARS[$YEAR][@]})"
+	$ECHO "-c [release]  \tCMSSW release(s) to install, comma-separated (default = ${CMSSW_YEARS[$YEAR]})"
 	$ECHO "-f [fork]     \tclone from specified fork (default = $FORK)"
 	$ECHO "-b [branch]   \tclone specified branch (default = $BRANCH)"
 	$ECHO "-s [protocol] \tuse protocol to clone (default = ${ACCESS}, alternative = ssh)"
@@ -82,7 +82,7 @@ OS_PREFIX[7]=slc7
 OS_PREFIX[8]=el8
 POSSIBLE_VERSIONS=( 7 8 )
 if [[ -f "/etc/redhat-release" ]]; then
-	VERSION_TMP=`awk -F'[ .]' '{print $4}' "/etc/redhat-release"`
+	VERSION_TMP=$(grep -o "[0-9]\+\." /etc/redhat-release | cut -d'.' -f1)
 	if [[ "${POSSIBLE_VERSIONS[@]} " =~ "${VERSION_TMP}" ]]; then
 		SLC_VERSION="${OS_PREFIX[${VERSION_TMP}]}"
 	else
