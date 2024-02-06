@@ -258,6 +258,11 @@ if options.tmi:
     from Validation.Performance.TimeMemoryInfo import customise
     process = customise(process)
 
+if options.content:
+    process.content = cms.EDAnalyzer("EventContentAnalyzer")
+    process.content_path = cms.Path(process.content)
+    process.schedule.append(process.content_path)
+
 if options.dump:
     print(process.dumpPython())
     sys.exit(0)

@@ -125,6 +125,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `tmi=[bool]`: enable [TimeMemoryInfo](https://github.com/cms-sw/cmssw/blob/master/Validation/Performance/python/TimeMemoryInfo.py) for simple profiling (default = False)
 * `dump=[bool]`: equivalent to `edmConfigDump`, but accounts for all command-line settings; exits without running (default = False)
    * for `runMG.py`, this option keeps the gridpack directory
+* `content=[bool]`: enable `EventContentAnalyzer` to print all available data products
 * `dryrun=[bool]`: for `runMG.py`, stop before actually running MadGraph
 
 ## Basic usage

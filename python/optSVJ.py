@@ -48,6 +48,7 @@ options.register("streams", 0, VarParsing.multiplicity.singleton, VarParsing.var
 options.register("redir", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("tmi", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("dump", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
+options.register("content", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("dryrun", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.parseArguments()
 
