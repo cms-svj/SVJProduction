@@ -209,7 +209,7 @@ _pruned = ["prunedGenParticlesWithStatusOne","prunedGenParticles"]
 _keeps = ["keep (4900001 <= abs(pdgId) <= 4900991 )", "keep (51 <= abs(pdgId) <= 53)"]
 if options.model=="suep":
     _keeps = ["keep 999998 <= abs(pdgId) <= 999999", "++keep  abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 1 || abs(pdgId) == 211", "keep++ abs(pdgId) == 1" ]
-    # keep dark pions, darkphotons 
+    # keep dark pions, darkphotons
     # higgs already kept
     # keep SM decay products, electrons, muons, pions, uubar
     # keep decays of uubar
@@ -221,14 +221,22 @@ for _prod in _pruned:
         # keep HV & DM particles
         getattr(process,_prod).select.extend(_keeps)
 
-if options.scout and "MINIAOD" in options.config:
+def add_outputs(output_list):
     for output in options.output:
         if len(output)==0: continue
         output_attr = getattr(oprocess,output)
         if hasattr(output_attr,"outputCommands"):
-            output_attr.outputCommands.extend([
-                'keep *_hltScouting*_*_*',
-            ])
+            output_attr.outputCommands.extend(output_list)
+
+if options.scout and "MINIAOD" in options.config:
+    add_outputs([
+        'keep *_hltScouting*_*_*',
+    ])
+
+if options.l1calo and any(key in options.config for key in ["DIGI","RECO","MINIAOD"]):
+    add_outputs([
+        'keep L1CaloRegions_simCaloStage2Layer1Digis_*_*',
+    ])
 
 # nanoAOD settings
 if hasattr(process,'NANOAODSIMoutput'):
@@ -249,7 +257,7 @@ if options.threads>0:
 if options.tmi:
     from Validation.Performance.TimeMemoryInfo import customise
     process = customise(process)
-    
+
 if options.dump:
     print(process.dumpPython())
     sys.exit(0)

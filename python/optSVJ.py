@@ -30,6 +30,7 @@ options.register("decay", "generic", VarParsing.multiplicity.singleton, VarParsi
 options.register("kappa", 1.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("mode", "aligned", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("type", "down", VarParsing.multiplicity.singleton, VarParsing.varType.string)
+options.register("l1calo", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("scout", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("l1nano", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("part", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)

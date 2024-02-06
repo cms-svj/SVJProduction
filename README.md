@@ -107,6 +107,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
         * `kappa=[val]`: kappa0 coupling (for aligned mode) or ctau lifetime [mm] (for unflavored mode) (default = 1.0)
         * `mode=[string]`: mixing scenario to use (default = aligned, alternative = unflavored)
         * `type=[string]`: SM quark coupling type (default = down, alternative = up)
+* `l1calo=[bool]`: keep L1 calo info (default = False)
 * `scout=[bool]`: keep scouting collections in miniAOD (default = False)
 * `l1nano=[bool]`: keep L1 info in nanoAOD (default = False)
 * `part=[num]`: part number when producing a sample in multiple jobs (default = 1)
