@@ -102,6 +102,41 @@ else
 	fi
 fi
 
+install_tools(){
+	BRANCH=$1
+	TOOLS=($2)
+
+	# patched pythia
+	cd $CMSSW_BASE
+	git clone ${ACCESS_GITHUB}cms-svj/build -b $BRANCH
+	cd build
+	CMSSW_BRANCH=$(echo $THIS_CMSSW | cut -d'_' -f1-3)"_X"
+	PDIR=${CMSSW_BRANCH}/${SCRAM_ARCH}/tools
+	if [ -d $PDIR ]; then
+		# only keep relevant artifacts
+		git config core.sparsecheckout true
+		echo $PDIR > .git/info/sparse-checkout
+		git read-tree -mu HEAD
+		# link the unchanged external files
+		for TOOL in ${TOOLS[@]}; do
+			LATESTDIR=$(ls -drt ${PDIR}/${TOOL}/* | tail -1)
+			ORIGDIR=$(dirname $(scram tool tag $TOOL LIBDIR) || echo "")
+			if [ -n "$ORIGDIR" ]; then
+				# existing (changed) files will be kept
+				lndir $ORIGDIR $LATESTDIR
+			fi
+			cp ${PDIR}/${TOOL,,}.xml ${CMSSW_BASE}/config/toolbox/${SCRAM_ARCH}/tools/selected/
+			scram setup $TOOL
+		done
+		cd $CMSSW_BASE/src
+		scram b checkdeps
+	else
+		$ECHO "WARNING: patched ${TOOLS[@]} not found for $PDIR"
+		cd $CMSSW_BASE
+		rm -rf $CMSSW_BASE/build
+	fi
+}
+
 install_CMSSW(){
 	THIS_CMSSW="$1"
 	if [ -z "$THIS_CMSSW" ]; then
@@ -157,32 +192,11 @@ install_CMSSW(){
 	} > .git/info/sparse-checkout
 	git read-tree -mu HEAD
 
-	# patched pythia
-	cd $CMSSW_BASE
-	git clone ${ACCESS_GITHUB}cms-svj/build
-	cd build
-	CMSSW_BRANCH=$(echo $THIS_CMSSW | cut -d'_' -f1-3)"_X"
-	PDIR=${CMSSW_BRANCH}/${SCRAM_ARCH}/tools
-	if [ -d $PDIR ]; then
-		# only keep relevant artifacts
-		git config core.sparsecheckout true
-		echo $PDIR > .git/info/sparse-checkout
-		git read-tree -mu HEAD
-		# link the unchanged external files
-		for TOOL in ${TOOLS[@]}; do
-			LATESTDIR=$(ls -drt ${PDIR}/${TOOL}/* | tail -1)
-			ORIGDIR=$(dirname $(scram tool tag $TOOL LIBDIR))
-			# existing (changed) files will be kept
-			lndir $ORIGDIR $LATESTDIR
-			cp ${PDIR}/${TOOL}.xml ${CMSSW_BASE}/config/toolbox/${SCRAM_ARCH}/tools/selected/
-			scram setup $TOOL
-		done
-		cd $CMSSW_BASE/src
-		scram b checkdeps
-	else
-		$ECHO "WARNING: patched Pythia not available for $CMSSW_BRANCH; some signal models may not work"
-		cd $CMSSW_BASE
-		rm -rf $CMSSW_BASE/build
+	if [[ $WHICH_CMSSW = CMSSW_12_4_* ]]; then
+		install_tools "main" "pythia8 evtgen tauolapp"
+	elif [[ $WHICH_CMSSW = CMSSW_13_0_* ]]; then
+		git cms-merge-topic -u cms-svj:CICADA_backport-13_0_13_from_14_0_0_pre2_Paper_Mods
+		install_tools "CICADA" "hls hls4mlEmulatorExtras CICADA"
 	fi
 
 	cd $CMSSW_BASE/src
