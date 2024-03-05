@@ -120,7 +120,7 @@ install_tools(){
 		# link the unchanged external files
 		for TOOL in ${TOOLS[@]}; do
 			LATESTDIR=$(ls -drt ${PDIR}/${TOOL}/* | tail -1)
-			ORIGDIR=$(dirname $(scram tool tag $TOOL LIBDIR) || echo "")
+			ORIGDIR=$(dirname $(cd $CMSSW_RELEASE_BASE && scram tool tag $TOOL LIBDIR) || echo "")
 			if [ -n "$ORIGDIR" ]; then
 				# existing (changed) files will be kept
 				lndir $ORIGDIR $LATESTDIR
@@ -195,8 +195,8 @@ install_CMSSW(){
 	if [[ $WHICH_CMSSW = CMSSW_12_4_* ]]; then
 		install_tools "main" "pythia8 evtgen tauolapp"
 	elif [[ $WHICH_CMSSW = CMSSW_13_0_* ]]; then
+		install_tools "CICADA" "hls4mlEmulatorExtras CICADA"
 		git cms-merge-topic -u cms-svj:CICADA_backport-13_0_13_from_14_0_0_pre2_Paper_Mods
-		install_tools "CICADA" "hls hls4mlEmulatorExtras CICADA"
 	fi
 
 	cd $CMSSW_BASE/src
