@@ -240,12 +240,24 @@ if options.l1calo and any(key in options.config for key in ["DIGI","RECO","MINIA
 
 # nanoAOD settings
 if hasattr(process,'NANOAODSIMoutput'):
-	# "to avoid segfault errors in the output module when producing flat ntuples"
+    # "to avoid segfault errors in the output module when producing flat ntuples"
     # "as it is done in the merge jobs in central production"
     process.add_(cms.Service('InitRootHandlers', EnableIMT = cms.untracked.bool(False)))
 if options.l1nano:
     from PhysicsTools.NanoAOD.nano_cff import nanoL1TrigObjCustomizeFull
     process = nanoL1TrigObjCustomizeFull(process)
+if options.l1calo and "NANOAOD" in options.config:
+    # is this the right version?
+    process.load('L1Trigger.L1TCaloLayer1.L1TCaloSummaryCICADAv1p1p2')
+    from PhysicsTools.NanoAOD.common_cff import ExtVar
+    from PhysicsTools.NanoAOD.globalVariablesTableProducer_cfi import globalVariablesTableProducer
+    process.cicadaTable = globalVariablesTableProducer.clone(
+        name = cms.string("CICADA"),
+        variables = cms.PSet(
+            score = ExtVar( cms.InputTag("L1TCaloSummaryCICADAv1p1p2", "CICADAScore"), float, doc = "CICADA score (v1.1.2)" ),
+        )
+    )
+    process.nanoTableTaskCommon.add(process.L1TCaloSummaryCICADAv1p1p2,process.cicadaTable)
 
 # multithreading options
 if options.threads>0:
