@@ -247,17 +247,24 @@ if options.l1nano:
     from PhysicsTools.NanoAOD.nano_cff import nanoL1TrigObjCustomizeFull
     process = nanoL1TrigObjCustomizeFull(process)
 if options.l1calo and "NANOAOD" in options.config:
-    # is this the right version?
-    process.load('L1Trigger.L1TCaloLayer1.L1TCaloSummaryCICADAv1p1p2')
     from PhysicsTools.NanoAOD.common_cff import ExtVar
+    # is this the right version?
+    cicada_versions = ["v1p1p1","v1p1p2","v2p1p1","v2p1p2"]
+    cicada_vars = {}
+    for cicada_version in cicada_versions:
+        process.load('L1Trigger.L1TCaloLayer1.L1TCaloSummaryCICADA{}'.format(cicada_version))
+        cicada_vars["score_{}".format(cicada_version)] = ExtVar(
+            cms.InputTag("L1TCaloSummaryCICADA{}".format(cicada_version), "CICADAScore"),
+            float,
+            doc = "CICADA score ({})".format(cicada_version.replace("p",".")),
+        )
+        process.nanoTableTaskCommon.add(getattr(process,"L1TCaloSummaryCICADA{}".format(cicada_version)))
     from PhysicsTools.NanoAOD.globalVariablesTableProducer_cfi import globalVariablesTableProducer
     process.cicadaTable = globalVariablesTableProducer.clone(
         name = cms.string("CICADA"),
-        variables = cms.PSet(
-            score = ExtVar( cms.InputTag("L1TCaloSummaryCICADAv1p1p2", "CICADAScore"), float, doc = "CICADA score (v1.1.2)" ),
-        )
+        variables = cms.PSet(**cicada_vars),
     )
-    process.nanoTableTaskCommon.add(process.L1TCaloSummaryCICADAv1p1p2,process.cicadaTable)
+    process.nanoTableTaskCommon.add(process.cicadaTable)
 
 # multithreading options
 if options.threads>0:
