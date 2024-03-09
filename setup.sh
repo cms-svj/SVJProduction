@@ -82,7 +82,7 @@ OS_PREFIX[7]=slc7
 OS_PREFIX[8]=el8
 POSSIBLE_VERSIONS=( 7 8 )
 if [[ -f "/etc/redhat-release" ]]; then
-	VERSION_TMP=$(grep -o "[0-9]\+\." /etc/redhat-release | cut -d'.' -f1)
+	VERSION_TMP=$(grep -o "[0-9]\.\?" /etc/redhat-release | head -n1 | cut -d'.' -f1)
 	if [[ "${POSSIBLE_VERSIONS[@]} " =~ "${VERSION_TMP}" ]]; then
 		SLC_VERSION="${OS_PREFIX[${VERSION_TMP}]}"
 	else
