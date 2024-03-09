@@ -103,12 +103,12 @@ else
 fi
 
 install_tools(){
-	BRANCH=$1
+	BUILD_BRANCH=$1
 	TOOLS=($2)
 
 	# patched pythia
 	cd $CMSSW_BASE
-	git clone ${ACCESS_GITHUB}cms-svj/build -b $BRANCH
+	git clone ${ACCESS_GITHUB}cms-svj/build -b $BUILD_BRANCH
 	cd build
 	CMSSW_BRANCH=$(echo $THIS_CMSSW | cut -d'_' -f1-3)"_X"
 	PDIR=${CMSSW_BRANCH}/${SCRAM_ARCH}/tools
@@ -171,8 +171,6 @@ install_CMSSW(){
 	# CMSSW compilation
 	# -------------------------------------------------------------------------------------
 
-	# reinitialize environment
-	eval `scramv1 runtime -sh`
 	cd src
 	git cms-init $ACCESS_CMSSW
 
@@ -192,9 +190,9 @@ install_CMSSW(){
 	} > .git/info/sparse-checkout
 	git read-tree -mu HEAD
 
-	if [[ $WHICH_CMSSW = CMSSW_12_4_* ]]; then
+	if [[ $THIS_CMSSW = CMSSW_12_4_* ]]; then
 		install_tools "main" "pythia8 evtgen tauolapp"
-	elif [[ $WHICH_CMSSW = CMSSW_13_0_* ]]; then
+	elif [[ $THIS_CMSSW = CMSSW_13_0_* ]]; then
 		install_tools "CICADA" "hls4mlEmulatorExtras CICADA"
 		git cms-merge-topic -u cms-svj:CICADA_backport-13_0_13_from_14_0_0_pre2_Paper_Mods
 	fi
