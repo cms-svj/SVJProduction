@@ -1,3 +1,4 @@
 [manage]
 dir = .
-
+[caches]
+$CMSSW_BASE/venv = 1
