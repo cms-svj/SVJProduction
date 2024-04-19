@@ -95,8 +95,7 @@ elif options.model=="suep":
     options.filterZ2 = False
 elif options.model=="emj":
     _helper = emjHelper()
-    _helper.setModel(options.mMediator,options.mDark,options.kappa,options.mode,options.type)
+    _helper.setModel(options.mMediator,options.mDark,options.kappa,options.mode,options.type,options.channel)
     options.filterZ2 = False
-    options.channel = ""
 else:
     raise ValueError("Unknown model {}".format(options.model))
