@@ -140,8 +140,29 @@ if options.signal:
         )
         process.ProductionFilterSequence.insert(0,process.nmedfilter)
 
-if hasattr(process,'generator') and hasattr(process.generator,'maxEventsToPrint'):
-    process.generator.maxEventsToPrint = options.printEvents
+def set_if_has(obj,attr,val):
+    if hasattr(obj,attr): setattr(obj,attr,val)
+
+if hasattr(process,'generator'):
+    if options.quiet:
+        set_if_has(process.generator,'maxEventsToPrint',0)
+        set_if_has(process.generator,'pythiaHepMCVerbosity',False)
+        set_if_has(process.generator,'pythiaPylistVerbosity',0)
+        if hasattr(process.generator,'PythiaParameters'):
+            pythia_quiet_settings = [
+                'Print:quiet = on',
+                'Init:showProcesses = off',
+                'Init:showMultipartonInteractions = off',
+                'Init:showChangedSettings = off',
+                'init:showChangedParticleData = off',
+            ]
+            set_if_has(
+                process.generator.PythiaParameters,
+                'pythia8CommonSettings',
+                getattr(process.generator.PythiaParameters,'pythia8CommonSettings',[])+pythia_quiet_settings
+            )
+    elif hasattr(process.generator,'maxEventsToPrint'):
+        process.generator.maxEventsToPrint = options.printEvents
 
 # genjet/met settings - treat DM stand-ins as invisible
 _particles = ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandidatesForMET","genParticlesForMETAllVisible"]

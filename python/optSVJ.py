@@ -38,6 +38,7 @@ options.register("config", "step_GEN", VarParsing.multiplicity.singleton, VarPar
 options.register("maxEventsIn", -1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("useFolders", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("printEvents", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
+options.register("quiet", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("threads", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("streams", 0, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("redir", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
