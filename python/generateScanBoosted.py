@@ -22,7 +22,7 @@ def varyAll(pos,paramlist,sig,sigs):
             varyAll(pos+1,paramlist,stmp,sigs)
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-parser.add_argument("-n","--num", dest="num", type=int, default=1000, help="number of events per job for model point w/ weight 1.0 (before filter)")
+parser.add_argument("-n","--num", dest="num", type=int, default=2000, help="number of events per job for model point w/ weight 1.0 (before filter)")
 parser.add_argument("-j","--jobs", dest="jobs", type=int, default=20, help="number of jobs")
 parser.add_argument("-a","--acc", dest="acc", type=float, default=0.0, help="increase number of events based on acceptance up to this maximum factor")
 args = parser.parse_args()
@@ -82,7 +82,9 @@ helper = svjHelper()
 points = []
 numevents_before = 0
 numevents_after = 0
-base_filter_eff = 0.5
+mg_filter_eff = 0.8
+p8_filter_eff = 0.5
+base_filter_eff = mg_filter_eff*p8_filter_eff
 alpha = "peak"
 boost = 300
 boostvar = "madpt"
@@ -94,10 +96,10 @@ for point in sorted(sigs):
 
     weight = 1.0
     filter_eff = base_filter_eff
-    # down-weight rinv=0 b/c all events pass filter
+    # down-weight rinv=0 b/c all events pass p8 filter
     if rinv==0.0:
-        weight = 0.5
-        filter_eff = 1.0
+        filter_eff = mg_filter_eff
+        weight = p8_filter_eff
     
     # account for relative acceptance
     if args.acc > 1:
