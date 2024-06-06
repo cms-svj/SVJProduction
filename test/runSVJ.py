@@ -175,7 +175,11 @@ if hasattr(process,'generator'):
 
 if options.quiet and hasattr(process,'MessageLogger'):
     for dest in process.MessageLogger.destinations:
-        setattr(getattr(process.MessageLogger,dest),'threshold',cms.untracked.string('ERROR'))
+        dest_attr = getattr(process.MessageLogger,dest)
+        for level in ['INFO','WARNING']:
+            existing_pset = getattr(dest_attr,level,cms.untracked.PSet())
+            existing_pset.limit = cms.untracked.int32(0)
+            setattr(dest_attr,level,existing_pset)
 
 # genjet/met settings - treat DM stand-ins as invisible
 _particles = ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandidatesForMET","genParticlesForMETAllVisible"]
