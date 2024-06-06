@@ -173,6 +173,10 @@ if hasattr(process,'generator'):
     elif hasattr(process.generator,'maxEventsToPrint'):
         process.generator.maxEventsToPrint = options.printEvents
 
+if options.quiet and hasattr(process,'MessageLogger'):
+    for dest in process.MessageLogger.destinations:
+        setattr(getattr(process.MessageLogger,dest),'threshold',cms.untracked.string('ERROR'))
+
 # genjet/met settings - treat DM stand-ins as invisible
 _particles = ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandidatesForMET","genParticlesForMETAllVisible"]
 for _prod in _particles:

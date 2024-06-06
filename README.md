@@ -119,7 +119,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `config=[str]`: config file to customize and run (default = step_GEN)
 * `useFolders=[bool]`: read input files written with `--use-folders` option (see [Condor submission](#condor-submission))
 * `printEvents=[num]`: number of Pythia events to print (default = 1)
-* `quiet=[bool]`: suppress all Pythia printouts (default = False)
+* `quiet=[bool]`: suppress all Pythia printouts and module warnings (default = False)
 * `threads=[num]`: number of threads to run (default = 1)
 * `streams=[num]`: number of streams to run (default = 0 -> streams = threads)
 * `redir=[dir]`: xrootd redirector for input file
