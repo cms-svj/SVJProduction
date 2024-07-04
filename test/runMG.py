@@ -49,6 +49,7 @@ ln -sf {1} .
 eval `scram unsetenv -sh`
 export GRIDPACK_NEVENTS={6}
 export NO_GRIDPACK={7}
+export pdfSysArgs={8}
 ./gridpack_generation.sh {2} {3}
 mv {2}_*.tar.xz {4}
 cd {4}
@@ -62,6 +63,7 @@ cd {4}
     "echo" if options.dump else "rm -rf", # use options.dump to keep gridpack dir
     options.maxEvents,
     "true" if options.nogridpack else "",
+    lhaid,
 )
 if options.dump: print cmd
 subprocess.check_call(cmd, shell=True)
