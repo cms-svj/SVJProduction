@@ -15,13 +15,13 @@ class emjHelper(object):
         self.kap2 = 0
         self.BuildMatrix()
 
-    def setModel(self, mMed, mDark, kappa, mode='aligned', type="down", channel="t"):
+    def setModel(self, channel, mMed, mDark, kappa, mode='aligned', type='down'):
         self.mMed = mMed
         self.mDark = mDark
         self.kappa0 = kappa 
         self.mode = mode
         self.type = type
-        self.xsec = self.xsecs(self.mMed)*3
+        self.xsec = self.xsecs(self.mMed)*3 # number of colors
         self.channel = channel
 
         # Checking the alignment mode
@@ -159,6 +159,21 @@ class emjHelper(object):
                 '4900101:m0 = {mass}'.format(mass=2 * self.mDark),
             ]
         )
+
+        if self.mode == "unflavored" and self.channel == "s":
+            lines.extend(
+                [
+                    '4900023:m0 = {mMed}'.format(mMed=self.mMed),
+                    '4900023:mWidth = 0.01',  # Width of the Z' boson
+                    '4900023:oneChannel = 1 0.982 102 4900101 -4900101',
+                    '4900023:addChannel = 1 0.003 102 1 -1', 
+                    '4900023:addChannel = 1 0.003 102 2 -2',
+                    '4900023:addChannel = 1 0.003 102 3 -3',
+                    '4900023:addChannel = 1 0.003 102 4 -4',
+                    '4900023:addChannel = 1 0.003 102 5 -5',
+                    '4900023:addChannel = 1 0.003 102 6 -6',
+                ]
+            )
     
         lines.extend(self.MakeRes())
         lines.extend(self.MakeDecay())
@@ -245,19 +260,6 @@ class emjHelper(object):
                     '4900213:addchannel =  1 0.001  91     {id}     -{id}'.format(id=smid),
                 ]
             )
-            if self.channel == "s":
-                zprime_decay = [
-                    '4900023:m0 = {mMed}'.format(mMed=self.mMed),
-                    '4900023:mWidth = 0.01',  # Width of the Z' boson
-                    '4900023:oneChannel = 1 0.982 102 4900101 -4900101',
-                    '4900023:addChannel = 1 0.003 102 1 -1', 
-                    '4900023:addChannel = 1 0.003 102 2 -2',
-                    '4900023:addChannel = 1 0.003 102 3 -3',
-                    '4900023:addChannel = 1 0.003 102 4 -4',
-                    '4900023:addChannel = 1 0.003 102 5 -5',
-                    '4900023:addChannel = 1 0.003 102 6 -6',
-                ]
-                decay_settings.extend(zprime_decay)
             return decay_settings
         elif self.mode == 'aligned':
             # PDG ID should match with hidden valley definition
@@ -295,17 +297,14 @@ if __name__ == "__main__":
     parser.add_argument('--mDark', default=10, type=float, help='Dark meson mass [GeV]')
     parser.add_argument('--type', default='down', type=str, choices=['down', 'up'], help='Alignment to SM up/down type SM quarks')
     parser.add_argument('--mode', default='aligned', type=str, choices=['aligned', 'unflavored'], help='Mixing scenarios to simulate')
-    # Z'
     parser.add_argument('--channel', default='t', type=str, choices=['t', 's'], help='Channels to simulate')
-    ##
     parser.add_argument('cmd', type=str, choices=['dumptime','dumpcard'], help='action to perform')
-    # New
 
     args = parser.parse_args()
 
     if args.cmd == 'dumptime':
         for mDark in np.linspace(1.6, 100, 1000, endpoint=True):
-            helper.setModel(args.mMed, mDark, args.kappa, args.mode, args.type)
+            helper.setModel(args.channel, args.mMed, mDark, args.kappa, args.mode, args.type)
             tau = [
                 x for x in helper.getPythiaSettings()
                 if re.match(r'^4900[12]1[13]:tau0', x)
@@ -320,7 +319,7 @@ if __name__ == "__main__":
 
             print('{:10g} {:16g} {:16g} {:16g} {:16g}'.format(mDark, get_time(4900111), get_time(4900113), get_time(4900211), get_time(4900213)))
     elif args.cmd == 'dumpcard':
-        helper.setModel(args.mMed, args.mDark, args.kappa, args.mode, args.type, args.channel)
+        helper.setModel(args.channel, args.mMed, args.mDark, args.kappa, args.mode, args.type)
         for line in helper.getPythiaSettings():
             print(line)
 

@@ -149,7 +149,7 @@ class jobSubmitterSVJ(jobSubmitter):
                 elif self.model=="suep":
                     self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["temperature"],pdict["decay"])
                 elif self.model=="emj":
-                    self.helper.setModel(pdict["mMediator"],pdict["mDark"],pdict["kappa"],pdict["mode"],pdict["type"],pdict["channel"])
+                    self.helper.setModel(pdict["channel"],pdict["mMediator"],pdict["mDark"],pdict["kappa"],pdict["mode"],pdict["type"])
                 outpre = self.outpre
                 inpre = self.inpre
                 signal = True
