@@ -15,13 +15,14 @@ class emjHelper(object):
         self.kap2 = 0
         self.BuildMatrix()
 
-    def setModel(self, mMed, mDark, kappa, mode='aligned', type="down"):
+    def setModel(self, channel, mMed, mDark, kappa, mode='aligned', type='down'):
         self.mMed = mMed
         self.mDark = mDark
-        self.kappa0 = kappa
+        self.kappa0 = kappa 
         self.mode = mode
         self.type = type
         self.xsec = self.xsecs(self.mMed)*3 # number of colors
+        self.channel = channel
 
         # Checking the alignment mode
         if self.mode == 'aligned':
@@ -74,7 +75,9 @@ class emjHelper(object):
 
     def getOutName(self, signal=True, events=0, outpre='outpre', part=None, sanitize=False, gridpack=False):
         _outname = outpre
+
         if signal:
+            _outname += '_{}-channel'.format(self.channel)
             _outname += '_mMed-{:g}'.format(self.mMed)
             _outname += '_mDark-{:g}'.format(self.mDark)
             _outname += '_{}-{:g}'.format(
@@ -126,22 +129,52 @@ class emjHelper(object):
             'ParticleDecays:xyMax = 30000',    # in mm/c
             'ParticleDecays:zMax = 30000',    # in mm/c
             'ParticleDecays:limitCylinder = on',    # yes
-            'HiddenValley:gg2DvDvbar = on',    # gg fusion
-            'HiddenValley:qqbar2DvDvbar = on',    # qqbar annihilation
-            'HiddenValley:alphaOrder = 1',    # Let it run
-            'HiddenValley:Ngauge = 3',    # Number of dark QCD colors
-            'HiddenValley:FSR = on',
-            'HiddenValley:fragment = on',
-            # flavors used for the running
-            'HiddenValley:nFlav = {nflv}'.format(nflv = 7 if self.mode == 'unflavored' else 3),
-            # implements arXiv:1803.08080
-            'HiddenValley:altHadronSpecies = {flag}'.format(flag = 'off' if self.mode == 'unflavored' else 'on'),
-            'HiddenValley:spinFv = 0',    # Spin of bi-fundamental res.
-            'HiddenValley:Lambda = {0}'.format(2 * self.mDark),
-            'HiddenValley:pTminFSR = {ptmin}'.format(ptmin=2.2 * self.mDark),
-            '4900101:m0 = {mass}'.format(mass=2 * self.mDark),
         ]
 
+        if self.channel == "t":
+            t_process = [
+                'HiddenValley:gg2DvDvbar = on',    # gg fusion
+                'HiddenValley:qqbar2DvDvbar = on',    # qqbar annihilation
+            ]
+            lines.extend(t_process)
+        elif self.channel == "s":
+            s_process = [
+                'HiddenValley:ffbar2Zv = on'
+            ]
+            lines.extend(s_process)
+
+        lines.extend(
+            [
+                'HiddenValley:alphaOrder = 1',    # Let it run
+                'HiddenValley:Ngauge = 3',    # Number of dark QCD colors
+                'HiddenValley:FSR = on',
+                'HiddenValley:fragment = on',
+                # flavors used for the running
+                'HiddenValley:nFlav = {nflv}'.format(nflv = 7 if self.mode == 'unflavored' else 3),
+                # implements arXiv:1803.08080
+                'HiddenValley:altHadronSpecies = {flag}'.format(flag = 'off' if self.mode == 'unflavored' else 'on'),
+                'HiddenValley:spinFv = 0',    # Spin of bi-fundamental res.
+                'HiddenValley:Lambda = {0}'.format(2 * self.mDark),
+                'HiddenValley:pTminFSR = {ptmin}'.format(ptmin=2.2 * self.mDark),
+                '4900101:m0 = {mass}'.format(mass=2 * self.mDark),
+            ]
+        )
+
+        if self.mode == "unflavored" and self.channel == "s":
+            lines.extend(
+                [
+                    '4900023:m0 = {mMed}'.format(mMed=self.mMed),
+                    '4900023:mWidth = 0.01',  # Width of the Z' boson
+                    '4900023:oneChannel = 1 0.982 102 4900101 -4900101',
+                    '4900023:addChannel = 1 0.003 102 1 -1', 
+                    '4900023:addChannel = 1 0.003 102 2 -2',
+                    '4900023:addChannel = 1 0.003 102 3 -3',
+                    '4900023:addChannel = 1 0.003 102 4 -4',
+                    '4900023:addChannel = 1 0.003 102 5 -5',
+                    '4900023:addChannel = 1 0.003 102 6 -6',
+                ]
+            )
+    
         lines.extend(self.MakeRes())
         lines.extend(self.MakeDecay())
         return lines
@@ -206,26 +239,34 @@ class emjHelper(object):
                     for j in range(i, 3)
                 ])
             return ans
+        
+        decay_settings = []
 
         if self.mode == 'unflavored':    # Special case for unflavored decay
             smid = 1 if self.type == 'down' else 2
-            return [
-                '4900111:m0 = {mass}'.format(mass=self.mDark),
-                '4900211:m0 = {mass}'.format(mass=self.mDark),
-                '4900111:tau0 = {lifetime}'.format(lifetime=self.kappa0),
-                '4900211:tau0 = {lifetime}'.format(lifetime=self.kappa0),
-                '4900113:m0 = {mass}'.format(mass=4 * self.mDark),
-                '4900213:m0 = {mass}'.format(mass=4 * self.mDark),
-                '4900111:0:all      =  1 1.000  91     {id}     -{id}'.format(id=smid),
-                '4900113:0:all      =  1 0.999  91  4900111   4900111',
-                '4900113:addchannel =  1 0.001  91     {id}     -{id}'.format(id=smid),
-                '4900211:oneChannel =  1 1.000  91     {id}     -{id}'.format(id=smid),
-                '4900213:oneChannel =  1 0.999  91  4900211   4900211',
-                '4900213:addchannel =  1 0.001  91     {id}     -{id}'.format(id=smid),
-            ]
+            decay_settings.extend(
+                [
+                    '4900111:m0 = {mass}'.format(mass=self.mDark),
+                    '4900211:m0 = {mass}'.format(mass=self.mDark),
+                    '4900111:tau0 = {lifetime}'.format(lifetime=self.kappa0),
+                    '4900211:tau0 = {lifetime}'.format(lifetime=self.kappa0),
+                    '4900113:m0 = {mass}'.format(mass=4 * self.mDark),
+                    '4900213:m0 = {mass}'.format(mass=4 * self.mDark),
+                    '4900111:0:all      =  1 1.000  91     {id}     -{id}'.format(id=smid),
+                    '4900113:0:all      =  1 0.999  91  4900111   4900111',
+                    '4900113:addchannel =  1 0.001  91     {id}     -{id}'.format(id=smid),
+                    '4900211:oneChannel =  1 1.000  91     {id}     -{id}'.format(id=smid),
+                    '4900213:oneChannel =  1 0.999  91  4900211   4900211',
+                    '4900213:addchannel =  1 0.001  91     {id}     -{id}'.format(id=smid),
+                ]
+            )
+            return decay_settings
         elif self.mode == 'aligned':
             # PDG ID should match with hidden valley definition
             # https://github.com/cms-svj/pythia8/tree/emj/306
+
+            if self.channel == "s":
+                raise ValueError("Option for mode {} not compatible with channel option {}".format(self.mode, self.channel))
 
             # Defining some missing antiparticles
             meson_decay = [
@@ -256,13 +297,14 @@ if __name__ == "__main__":
     parser.add_argument('--mDark', default=10, type=float, help='Dark meson mass [GeV]')
     parser.add_argument('--type', default='down', type=str, choices=['down', 'up'], help='Alignment to SM up/down type SM quarks')
     parser.add_argument('--mode', default='aligned', type=str, choices=['aligned', 'unflavored'], help='Mixing scenarios to simulate')
+    parser.add_argument('--channel', default='t', type=str, choices=['t', 's'], help='Channels to simulate')
     parser.add_argument('cmd', type=str, choices=['dumptime','dumpcard'], help='action to perform')
 
     args = parser.parse_args()
 
     if args.cmd == 'dumptime':
         for mDark in np.linspace(1.6, 100, 1000, endpoint=True):
-            helper.setModel(args.mMed, mDark, args.kappa, args.mode, args.type)
+            helper.setModel(args.channel, args.mMed, mDark, args.kappa, args.mode, args.type)
             tau = [
                 x for x in helper.getPythiaSettings()
                 if re.match(r'^4900[12]1[13]:tau0', x)
@@ -277,7 +319,7 @@ if __name__ == "__main__":
 
             print('{:10g} {:16g} {:16g} {:16g} {:16g}'.format(mDark, get_time(4900111), get_time(4900113), get_time(4900211), get_time(4900213)))
     elif args.cmd == 'dumpcard':
-        helper.setModel(args.mMed, args.mDark, args.kappa, args.mode, args.type)
+        helper.setModel(args.channel, args.mMed, args.mDark, args.kappa, args.mode, args.type)
         for line in helper.getPythiaSettings():
             print(line)
 
