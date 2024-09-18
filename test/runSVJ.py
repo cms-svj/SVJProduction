@@ -239,14 +239,23 @@ for _prod in _pruned:
         # keep HV & DM particles
         getattr(process,_prod).select.extend(_keeps)
 
-if options.scout and "MINIAOD" in options.config:
+def add_outputs(output_list):
+    if not isinstance(output_list,list): output_list = [output_list]
     for output in options.output:
         if len(output)==0: continue
         output_attr = getattr(oprocess,output)
         if hasattr(output_attr,"outputCommands"):
-            output_attr.outputCommands.extend([
-                'keep *_hltScouting*_*_*',
-            ])
+            output_attr.outputCommands.extend(output_list)
+
+if options.scout and "MINIAOD" in options.config:
+    add_outputs([
+        'keep *_hltScouting*_*_*',
+    ])
+
+if options.hepmc and any(cfg in options.config for cfg in ["LHE","GEN","SIM","DIGI","HLT","RECO","MINI"]):
+    add_outputs([
+        'keep *_generator_unsmeared_*',
+    ])
 
 # multithreading options
 if options.threads>0:
