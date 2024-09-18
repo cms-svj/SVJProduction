@@ -251,6 +251,7 @@ for _prod in _pruned:
         getattr(process,_prod).select.extend(_keeps)
 
 def add_outputs(output_list):
+    if not isinstance(output_list,list): output_list = [output_list]
     for output in options.output:
         if len(output)==0: continue
         output_attr = getattr(oprocess,output)
@@ -260,6 +261,11 @@ def add_outputs(output_list):
 if options.scout and "MINIAOD" in options.config:
     add_outputs([
         'keep *_hltScouting*_*_*',
+    ])
+
+if options.hepmc and any(cfg in options.config for cfg in ["LHE","GEN","SIM","DIGI","HLT","RECO","MINI"]):
+    add_outputs([
+        'keep *_generator_unsmeared_*',
     ])
 
 if options.l1calo and any(key in options.config for key in ["DIGI","RECO","MINIAOD"]):
