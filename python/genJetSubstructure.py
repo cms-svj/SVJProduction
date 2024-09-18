@@ -31,6 +31,7 @@ process.jetoutput = cms.OutputModule("PoolOutputModule",
     outputCommands = cms.untracked.vstring(
         'keep *_genParticles_*_*',
         'keep *_genParticlesForJetsNoNu_*_*',
+        'keep *_genMet*_*_*',
     ),
     splitLevel = cms.untracked.int32(0)
 )

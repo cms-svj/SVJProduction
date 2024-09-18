@@ -149,8 +149,37 @@ if options.signal:
         )
         process.ProductionFilterSequence.insert(0,process.nmedfilter)
 
-if hasattr(process,'generator') and hasattr(process.generator,'maxEventsToPrint'):
-    process.generator.maxEventsToPrint = options.printEvents
+def set_if_has(obj,attr,val):
+    if hasattr(obj,attr): setattr(obj,attr,val)
+
+if hasattr(process,'generator'):
+    if options.quiet:
+        set_if_has(process.generator,'maxEventsToPrint',0)
+        set_if_has(process.generator,'pythiaHepMCVerbosity',False)
+        set_if_has(process.generator,'pythiaPylistVerbosity',0)
+        if hasattr(process.generator,'PythiaParameters'):
+            pythia_quiet_settings = [
+                'Print:quiet = on',
+                'Init:showProcesses = off',
+                'Init:showMultipartonInteractions = off',
+                'Init:showChangedSettings = off',
+                'init:showChangedParticleData = off',
+            ]
+            set_if_has(
+                process.generator.PythiaParameters,
+                'pythia8CommonSettings',
+                getattr(process.generator.PythiaParameters,'pythia8CommonSettings',[])+pythia_quiet_settings
+            )
+    elif hasattr(process.generator,'maxEventsToPrint'):
+        process.generator.maxEventsToPrint = options.printEvents
+
+if options.quiet and hasattr(process,'MessageLogger'):
+    for dest in process.MessageLogger.destinations:
+        dest_attr = getattr(process.MessageLogger,dest)
+        for level in ['INFO','WARNING']:
+            existing_pset = getattr(dest_attr,level,cms.untracked.PSet())
+            existing_pset.limit = cms.untracked.int32(0)
+            setattr(dest_attr,level,existing_pset)
 
 # genjet/met settings - treat DM stand-ins as invisible
 _particles = ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandidatesForMET","genParticlesForMETAllVisible"]
@@ -222,6 +251,7 @@ for _prod in _pruned:
         getattr(process,_prod).select.extend(_keeps)
 
 def add_outputs(output_list):
+    if not isinstance(output_list,list): output_list = [output_list]
     for output in options.output:
         if len(output)==0: continue
         output_attr = getattr(oprocess,output)
@@ -231,6 +261,11 @@ def add_outputs(output_list):
 if options.scout and "MINIAOD" in options.config:
     add_outputs([
         'keep *_hltScouting*_*_*',
+    ])
+
+if options.hepmc and any(cfg in options.config for cfg in ["LHE","GEN","SIM","DIGI","HLT","RECO","MINI"]):
+    add_outputs([
+        'keep *_generator_unsmeared_*',
     ])
 
 if options.l1calo and any(key in options.config for key in ["DIGI","RECO","MINIAOD"]):

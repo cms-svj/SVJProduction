@@ -53,6 +53,7 @@ ln -sf {1} .
 eval `scram unsetenv -sh`
 export GRIDPACK_NEVENTS={6}
 export NO_GRIDPACK={7}
+export pdfSysArgs={11}
 ./gridpack_generation.sh {2} {3}
 mv {2}_*.tar.xz {4}
 cd {4}
@@ -70,6 +71,7 @@ cd {4}
     gen_base_dir,
     gen_copy_dir,
     mg_dir,
+    lhaid,
 )
 if options.dump: print(cmd)
 try:
