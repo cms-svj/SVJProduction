@@ -26,6 +26,7 @@ parser.add_argument("-n","--num", dest="num", type=int, default=2000, help="numb
 parser.add_argument("-j","--jobs", dest="jobs", type=int, default=20, help="number of jobs")
 parser.add_argument("-a","--acc", dest="acc", type=float, default=0.0, help="increase number of events based on acceptance up to this maximum factor")
 parser.add_argument("-p","--parts", dest="parts", type=int, default=1, help="split output job dictionary into multiple parts for submission")
+parser.add_argument("-d","--dryRun", dest="dryRun", default=False, action="store_true", help="dry run, i.e. do not create scan dictionaries, but just print info")
 args = parser.parse_args()
 
 # specification of tunes
@@ -119,7 +120,10 @@ base_filter_eff = mg_filter_eff*p8_filter_eff
 alpha = "peak"
 flist = []
 # single-model quantities
-numsel_default = args.num*args.jobs*base_filter_eff*(base_acc/100.)
+numprod_default = args.num*args.jobs*base_filter_eff
+numsel_default = numprod_default*(base_acc/100.)
+numprod_min = 1e10
+numprod_max = 0
 numsel_min = 1e10
 numsel_max = 0
 for point in sorted(sigs):
@@ -150,6 +154,8 @@ for point in sorted(sigs):
     numevents_filter = numevents_this*filter_eff
     numevents_before += numevents_this
     numevents_after += numevents_filter
+    numprod_min = min(numprod_min, numevents_filter)
+    numprod_max = max(numprod_max, numevents_filter)
     sel_acc = this_acc*base_acc/100.
     numsel_min = min(numsel_min, numevents_filter*sel_acc)
     numsel_max = max(numsel_max, numevents_filter*sel_acc)
@@ -165,24 +171,26 @@ for point in sorted(sigs_gridpack):
 
 # some info on the scan
 print("This scan will contain "+str(len(sigs))+" model points, "+str(int(numevents_before))+" events before filter, "+str(int(numevents_after))+" events after filter")
+print("Number of events per model (after filter): {:0.0f} ({:0.0f}, {:0.0f})".format(numprod_default, numprod_min, numprod_max))
 print("Number of events per model (after filter & preselection): {:0.0f} ({:0.0f}, {:0.0f})".format(numsel_default, numsel_min, numsel_max))
 
-oname = "$CMSSW_BASE/src/SVJ/Production/batch/signals_tchan_scan.py"
+if not args.dryRun:
+    oname = "$CMSSW_BASE/src/SVJ/Production/batch/signals_tchan_scan.py"
 
-def split(coll, n):
-    d, r = divmod(len(coll), n)
-    return (coll[i*d+min(i,r) : (i+1)*d+min(i+1,r)] for i in range(n))
+    def split(coll, n):
+        d, r = divmod(len(coll), n)
+        return (coll[i*d+min(i,r) : (i+1)*d+min(i+1,r)] for i in range(n))
 
-flist = list(split(flist, args.parts))
-oname1 = oname
-if args.parts>1:
-	oname1 = oname.replace(".py","_part{}.py")
-for part in range(args.parts):
-    with open(os.path.expandvars(oname1.format(part+1)),'w') as ofile:
-        lines = ["flist = ["] + ['    '+json.dumps(d)+',' for d in flist[part]] + ["]"]
+    flist = list(split(flist, args.parts))
+    oname1 = oname
+    if args.parts>1:
+        oname1 = oname.replace(".py","_part{}.py")
+    for part in range(args.parts):
+        with open(os.path.expandvars(oname1.format(part+1)),'w') as ofile:
+            lines = ["flist = ["] + ['    '+json.dumps(d)+',' for d in flist[part]] + ["]"]
+            ofile.write('\n'.join(lines))
+
+    oname2 = oname.replace(".py","_gridpack.py")
+    with open(os.path.expandvars(oname2),'w') as ofile:
+        lines = ["flist = ["] + ['    '+json.dumps(d)+',' for d in flist_gridpack] + ["]"]
         ofile.write('\n'.join(lines))
-
-oname2 = oname.replace(".py","_gridpack.py")
-with open(os.path.expandvars(oname2),'w') as ofile:
-    lines = ["flist = ["] + ['    '+json.dumps(d)+',' for d in flist_gridpack] + ["]"]
-    ofile.write('\n'.join(lines))
