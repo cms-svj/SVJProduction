@@ -23,9 +23,13 @@ def varyAll(pos,paramlist,sig,sigs):
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument("-n","--num", dest="num", type=int, default=2000, help="number of events per job for model point w/ weight 1.0 (before filter)")
-parser.add_argument("-j","--jobs", dest="jobs", type=int, default=20, help="number of jobs")
+parser.add_argument("-j","--jobs", dest="jobs", type=int, default=20, help="number of jobs for model point w/ weight 1.0 (before filter)")
+parser.add_argument("-f","--first", dest="first", type=int, default=1, help="firstPart value")
+parser.add_argument("-s","--scale", dest="scale", type=str, required=True, choices=["num","jobs"], help="scale up selected quantity based on acceptance weights")
 parser.add_argument("-a","--acc", dest="acc", type=float, default=0.0, help="increase number of events based on acceptance up to this maximum factor")
 parser.add_argument("-p","--parts", dest="parts", type=int, default=1, help="split output job dictionary into multiple parts for submission")
+parser.add_argument("-e","--extend", dest="extend", type=str, default="", help=".py file with flist of samples to extend")
+parser.add_argument("-x","--suff", dest="suff", type=str, default="", help="suffix for scan dictionary filename")
 parser.add_argument("-d","--dryRun", dest="dryRun", default=False, action="store_true", help="dry run, i.e. do not create scan dictionaries, but just print info")
 args = parser.parse_args()
 
@@ -71,6 +75,11 @@ def get_acc(point):
         pval = alpha_vals[pval] if param=="alpha" else pval
         this_acc *= find_nearest(pval,acc[param])/base_acc
     return this_acc
+
+# extension values
+flist_ext = []
+if args.extend:
+    flist_ext = __import__(args.extend.replace(".py","")).flist
 
 # set to accumulate all scan points
 sigs = set()
@@ -147,10 +156,28 @@ for point in sorted(sigs):
         max_weight = weight*args.acc
         weight = np.clip(weight/this_acc,min_weight,max_weight)
 
-    maxEvents = int(args.num*weight)
-    flist.append(OrderedDict([("channel", "t"), ("mMediator", mMed), ("mDark", mDark), ("rinv", rinv), ("alpha", alpha), ("yukawa", yukawa), ("maxEvents", maxEvents)]))
+    flist.append(OrderedDict([("channel", "t"), ("mMediator", mMed), ("mDark", mDark), ("rinv", rinv), ("alpha", alpha), ("yukawa", yukawa)]))
 
-    numevents_this = maxEvents*args.jobs
+    # check for extensions
+    if flist_ext:
+        try:
+            match = next([d for d in flist_ext if all([d.get(key) == value for key, value in flist[-1].iteritems()])])
+        except:
+            continue
+
+        # todo: separate max for this?
+        weight *= match["extend"]
+
+    maxEvents = args.num
+    nParts = args.jobs
+    if args.scale=="num":
+        maxEvents = int(maxEvents*weight)
+    elif args.scale=="jobs":
+        nParts = int(nParts*weight)
+
+    flist[-1].update([("maxEvents", maxEvents), ("nParts", nParts), ("firstPart", args.first)])
+
+    numevents_this = maxEvents*nParts
     numevents_filter = numevents_this*filter_eff
     numevents_before += numevents_this
     numevents_after += numevents_filter
@@ -175,7 +202,7 @@ print("Number of events per model (after filter): {:0.0f} ({:0.0f}, {:0.0f})".fo
 print("Number of events per model (after filter & preselection): {:0.0f} ({:0.0f}, {:0.0f})".format(numsel_default, numsel_min, numsel_max))
 
 if not args.dryRun:
-    oname = "$CMSSW_BASE/src/SVJ/Production/batch/signals_tchan_scan.py"
+    oname = "$CMSSW_BASE/src/SVJ/Production/batch/signals_tchan_scan{}.py".format('_'+args.suff if len(args.suff)>0 else '')
 
     def split(coll, n):
         d, r = divmod(len(coll), n)
