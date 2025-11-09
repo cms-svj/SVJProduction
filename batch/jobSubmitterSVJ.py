@@ -118,12 +118,13 @@ class jobSubmitterSVJ(jobSubmitter):
         flist = __import__(self.dicts.replace(".py","")).flist
         # loop over dicts
         svj_extras = ["boost","boostvar","yukawa","nMediator","sepproc"]
+        job_attrs = ["maxEvents", "nParts", "firstPart"]
         for pdict in flist:
             # create protojob
             job = protoJob()
-            # extra attribute to store max events (in case of pseudo-scan)
-            job.maxEvents = self.maxEvents
-            if "maxEvents" in pdict: job.maxEvents = pdict["maxEvents"]
+            # extra attributes to store job numerical parameters (in case of pseudo-scan)
+            for attr in job_attrs:
+                setattr(job, attr, pdict.get(attr, getattr(self, attr)))
             # extra attribute to store actual events
             if self.actualEvents: job.actualEvents = 0
             # make name from params or scan/fragment
@@ -203,8 +204,8 @@ class jobSubmitterSVJ(jobSubmitter):
                             if extra in pdict: arglist.append("{}={}".format(extra,str(pdict[extra])))
                     if "scout" in pdict:
                         arglist.append("scout="+str(pdict["scout"]))
+                    argslist.extend([attr+"="+str(getattr(job,attr)) for attr in job_attrs])
                     arglist.extend([
-                        "maxEvents="+str(job.maxEvents),
                         "outpre="+self.outpre,
                         "year="+str(self.year),
                     ])
@@ -227,9 +228,9 @@ class jobSubmitterSVJ(jobSubmitter):
                     argfile.write(" ".join(arglist))
 
             # start loop over N jobs
-            for iJob in xrange(int(self.nParts)):
+            for iJob in xrange(int(job.nParts)):
                 # get real part number
-                iActualJob = iJob+int(self.firstPart)
+                iActualJob = iJob+int(job.firstPart)
 
                 if (self.skipParts=="auto" and injob.makeName(iActualJob) not in infiles) or (type(self.skipParts)==set and iActualJob in self.skipParts):
                     if self.verbose: print "  skipping part "+str(iActualJob)+" ("+injob.makeName(iActualJob)+")"
