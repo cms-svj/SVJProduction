@@ -85,9 +85,11 @@ def print_flist(flist):
     lines.extend(["]"])
     return '\n'.join(lines)
 
-def dump_flist(oname, flist):
-    if not batch_dir in oname:
-        oname = os.path.join(batch_dir, oname)
+def dump_flist(oname, flist, odir=None):
+    if odir is None:
+        odir = batch_dir
+    if not odir in oname:
+        oname = os.path.join(odir, oname)
     with open(oname,'w') as ofile:
         ofile.write(print_flist(flist))
     print("Wrote: {}".format(os.path.basename(oname)))
