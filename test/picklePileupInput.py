@@ -11,13 +11,18 @@ class NullIO(StringIO):
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument("-d", "--dir", type=str, default="", help="name of EOS output directory")
 parser.add_argument("-v", "--verbose", default=False, action="store_true", help="print commands")
-parser.add_argument("premix", type=str, help="name of premix dataset")
+input_group = parser.add_mutually_exclusive_group(required=True)
+input_group.add_argument("--dataset", type=str, help="premix dataset name")
+input_group.add_argument("--filelist", type=str, help="name of file containing pre-populated filelist")
 args = parser.parse_args()
 
-flat_name = args.premix[1:].replace("/","_")+'.txt'
-cmd = 'dasgoclient -query="file dataset={}" | sort > {}'.format(args.premix, flat_name)
-if args.verbose: print(cmd)
-os.system(cmd)
+if args.dataset:
+    flat_name = args.dataset[1:].replace("/","_")+'.txt'
+    cmd = 'dasgoclient -query="file dataset={}" | sort > {}'.format(args.premix, flat_name)
+    if args.verbose: print(cmd)
+    os.system(cmd)
+else:
+    flat_name = args.filelist
 
 # suppress pointless printouts
 sys.stdout = NullIO()

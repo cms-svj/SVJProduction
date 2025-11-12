@@ -358,6 +358,8 @@ cmsDriver.py step1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --condit
 
 The script `picklePileupInput.py` can download the premixed pileup input file list, convert it to a Python list and pickle it, and upload it to EOS.
 
+It can also take a premade file list, e.g. from [`get_files_on_disk.py`](https://github.com/FNALLPC/lpc-scripts#get_files_on_diskpy) in the case where samples are only partially available on disk.
+
 The premixed pileup input file lists in use are:
 ```
 /Neutrino_E-10_gun/RunIISummer20ULPrePremix-UL16_106X_mcRun2_asymptotic_v13-v1/PREMIX
