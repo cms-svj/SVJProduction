@@ -43,6 +43,7 @@ options.register("quiet", False, VarParsing.multiplicity.singleton, VarParsing.v
 options.register("threads", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("streams", 0, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("redir", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
+options.register("pudir", "root://cmseos.fnal.gov//store/user/pedrok/SVJ2017/pileup", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("tmi", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("dump", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("dryrun", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
