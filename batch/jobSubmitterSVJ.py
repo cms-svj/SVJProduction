@@ -118,12 +118,13 @@ class jobSubmitterSVJ(jobSubmitter):
         flist = __import__(self.dicts.replace(".py","")).flist
         # loop over dicts
         svj_extras = ["boost","boostvar","yukawa","nMediator","sepproc"]
-        job_attrs = ["maxEvents", "nParts", "firstPart"]
+        job_attrs = ["nParts", "firstPart"]
+        per_job_attrs = ["maxEvents"]
         for pdict in flist:
             # create protojob
             job = protoJob()
             # extra attributes to store job numerical parameters (in case of pseudo-scan)
-            for attr in job_attrs:
+            for attr in job_attrs+per_job_attrs:
                 setattr(job, attr, pdict.get(attr, getattr(self, attr)))
             # extra attribute to store actual events
             if self.actualEvents: job.actualEvents = 0
@@ -204,7 +205,7 @@ class jobSubmitterSVJ(jobSubmitter):
                             if extra in pdict: arglist.append("{}={}".format(extra,str(pdict[extra])))
                     if "scout" in pdict:
                         arglist.append("scout="+str(pdict["scout"]))
-                    arglist.extend([attr+"="+str(getattr(job,attr)) for attr in job_attrs])
+                    arglist.extend([attr+"="+str(getattr(job,attr)) for attr in per_job_attrs])
                     arglist.extend([
                         "outpre="+self.outpre,
                         "year="+str(self.year),
