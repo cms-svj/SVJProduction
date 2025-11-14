@@ -204,7 +204,7 @@ class jobSubmitterSVJ(jobSubmitter):
                             if extra in pdict: arglist.append("{}={}".format(extra,str(pdict[extra])))
                     if "scout" in pdict:
                         arglist.append("scout="+str(pdict["scout"]))
-                    argslist.extend([attr+"="+str(getattr(job,attr)) for attr in job_attrs])
+                    arglist.extend([attr+"="+str(getattr(job,attr)) for attr in job_attrs])
                     arglist.extend([
                         "outpre="+self.outpre,
                         "year="+str(self.year),
