@@ -152,7 +152,7 @@ The class [jobSubmitterSVJ.py](./batch/jobSubmitterSVJ.py) extends the class `jo
 Python:
 * `-y, --getpy`: make python file list for ntuple production (new operation mode)
 * `-d, --dicts [file]`: file with list of input dicts; each dict contains signal parameters (required)
-    * dictionaries can also contain a `maxEvents` parameter, which will override the global value given in `-E, --maxEvents` below
+    * dictionaries can also contain parameters `maxEvents`, `nParts`, `firstPart`, which will override the global values from the corresponding arguments below
 * `-o, --output [dir]`: path to output directory in which root files will be stored (required)
 * `-E, --maxEvents [num]`: number of events to process per job (default = 1)
 * `-I, --maxEventsIn [num]`: number of events from input file (if different from `-E`) (default = 1)
@@ -357,6 +357,8 @@ cmsDriver.py step1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --condit
 ### Pileup input files
 
 The script `picklePileupInput.py` can download the premixed pileup input file list, convert it to a Python list and pickle it, and upload it to EOS.
+
+It can also take a premade file list, e.g. from [`get_files_on_disk.py`](https://github.com/FNALLPC/lpc-scripts#get_files_on_diskpy) in the case where samples are only partially available on disk.
 
 The premixed pileup input file lists in use are:
 ```
