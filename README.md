@@ -170,6 +170,7 @@ Python:
 * `--madgraph`: sample generated w/ madgraph (rather than pythia)
 * `--suep`: run SUEP simulation
 * `--actualEvents`: count actual number of events from each input file (for python file list, requires `-K auto`)
+* `--actualFiles`: find all files in input directory (for python file list)
 * `-A, --args [list]`: additional common args to use for all jobs (passed to [runSVJ.py](./test/runSVJ.py))
 * `-v, --verbose`: enable verbose output (default = False)
 * `--chain-name [str]`: value for job.chainName (default = )
