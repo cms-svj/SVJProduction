@@ -262,16 +262,18 @@ class jobSubmitterSVJ(jobSubmitter):
     def doPy(self,job):
         job_outname = job.name[:]
         # swap outpre with inpre - list of input files
-        job.name = job.name.replace(self.outpre,self.inpre)
+        job_inname = job.name.replace(self.outpre,self.inpre)
 
         job_files = []
         if self.actualFiles:
             # allow for extensions with different number of events per job
-            generic_name = job.name.replace("n-{:g}".format(job.maxEvents), "")
+            generic_name = lambda name: name.replace("_n-{:g}".format(job.maxEvents), "")
+            job_outname = generic_name(job_outname)
+            job_inname = generic_name(job_inname)+'_'
             redir = self.redir if self.indir.startswith("/store/") else ""
             pfn_dir = redir+self.indir
             indir_files = generalized_ls(pfn_dir, "")
-            job_files = [f for f in indir_files if generic_name in f]
+            job_files = [f for f in indir_files if job_inname in f]
             if self.useFolders:
                 job_files = [f for job_dir in job_files for f in generalized_ls(redir, job_dir)]
             # compute actualEvents here
@@ -300,7 +302,7 @@ class jobSubmitterSVJ(jobSubmitter):
 
         with open(self.getpy_weights,'a') as wfile:
             nEvents = job.actualEvents if self.actualEvents else int(job.maxEvents)*len(job.nums)
-            line = '    MCSample("'+job.name+'", "'+self.production+'", "", "Constant", '+str(nEvents)+'),';
+            line = '    MCSample("'+job_inname+'", "'+self.production+'", "", "Constant", '+str(nEvents)+'),';
             wfile.write(line+"\n")
 
     def findFinishedJob(self,job):
