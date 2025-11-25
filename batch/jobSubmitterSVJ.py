@@ -260,6 +260,7 @@ class jobSubmitterSVJ(jobSubmitter):
             self.protoJobs.append(job)
 
     def doPy(self,job):
+        job_outname = job.name[:]
         # swap outpre with inpre - list of input files
         job.name = job.name.replace(self.outpre,self.inpre)
 
@@ -280,7 +281,7 @@ class jobSubmitterSVJ(jobSubmitter):
         else:
             job_files = [self.indir+'/'+job.makeName(ijob,self.useFolders) for ijob in job.nums]
 
-        with open(job.name.replace('.','p')+"_cff.py",'w') as outfile:
+        with open(job_outname.replace('.','p')+"_cff.py",'w') as outfile:
             outfile.write("import FWCore.ParameterSet.Config as cms\n\n")
             outfile.write("maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )\n")
             outfile.write("readFiles = cms.untracked.vstring()\n")
