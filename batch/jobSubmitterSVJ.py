@@ -5,6 +5,12 @@ from SVJ.Production.suepHelper import suepHelper
 def makeNameSVJ(self,num,useFolders=False):
     return self.name+("/" if useFolders else "_")+"part-"+str(num)
 
+def getActualEvents(file):
+    from ROOT import TFile,TTree
+    iFile = TFile.Open(file)
+    iTree = iFile.Get("Events")
+    return iTree.GetEntries()
+
 protoJob.makeName = makeNameSVJ
 
 class jobSubmitterSVJ(jobSubmitter):
@@ -20,6 +26,7 @@ class jobSubmitterSVJ(jobSubmitter):
         super(jobSubmitterSVJ,self).addDefaultOptions(parser)
         parser.add_option("-y", "--getpy", dest="getpy", default=False, action="store_true", help="make python file list for ntuple production (default = %default)")
         parser.add_option("--actualEvents", dest="actualEvents", default=False, action="store_true", help="count actual number of events from each input file (for python file list) (default = %default)")
+        parser.add_option("--actualFiles", dest="actualFiles", default=False, action="store_true", help="find all files in input directory (for python file list) (default = %default)")
         self.modes.update({
             "getpy": 1,
         })
@@ -237,11 +244,8 @@ class jobSubmitterSVJ(jobSubmitter):
                     if self.verbose: print "  skipping part "+str(iActualJob)+" ("+injob.makeName(iActualJob)+")"
                     continue
 
-                if self.actualEvents:
-                    from ROOT import TFile,TTree
-                    iFile = TFile.Open(self.redir+self.indir+"/"+injob.makeName(iActualJob,self.useFolders)+".root")
-                    iTree = iFile.Get("Events")
-                    job.actualEvents += iTree.GetEntries()
+                if self.actualEvents and not self.actualFiles:
+                    job.actualEvents += getActualEvents(self.redir+self.indir+"/"+injob.makeName(iActualJob,self.useFolders)+".root")
 
                 job.njobs += 1
                 if self.count and not self.prepare:
@@ -256,21 +260,41 @@ class jobSubmitterSVJ(jobSubmitter):
             self.protoJobs.append(job)
 
     def doPy(self,job):
-        with open(job.name.replace('.','p')+"_cff.py",'w') as outfile:
+        job_outname = job.name[:]
+        # swap outpre with inpre - list of input files
+        job_inname = job.name.replace(self.outpre,self.inpre)
+
+        job_files = []
+        if self.actualFiles:
+            # allow for extensions with different number of events per job
+            generic_name = lambda name: name.replace("_n-{:g}".format(job.maxEvents), "")
+            job_outname = generic_name(job_outname)
+            job_inname = generic_name(job_inname)+'_'
+            redir = self.redir if self.indir.startswith("/store/") else ""
+            pfn_dir = redir+self.indir
+            indir_files = generalized_ls(pfn_dir, "")
+            job_files = [f for f in indir_files if job_inname in f]
+            if self.useFolders:
+                job_files = [f for job_dir in job_files for f in generalized_ls(redir, job_dir)]
+            # compute actualEvents here
+            if self.actualEvents:
+                for file in job_files:
+                    job.actualEvents += getActualEvents(redir+file)
+        else:
+            job_files = [self.indir+'/'+job.makeName(ijob,self.useFolders) for ijob in job.nums]
+
+        with open(job_outname.replace('.','p')+"_cff.py",'w') as outfile:
             outfile.write("import FWCore.ParameterSet.Config as cms\n\n")
             outfile.write("maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )\n")
             outfile.write("readFiles = cms.untracked.vstring()\n")
             outfile.write("secFiles = cms.untracked.vstring()\n")
             outfile.write("source = cms.Source (\"PoolSource\",fileNames = readFiles, secondaryFileNames = secFiles)\n")
             counter = 0
-            # swap outpre with inpre - list of input files
-            job.name = job.name.replace(self.outpre,self.inpre)
             # split into chunks of 255
-            for ijob in job.nums:
-                iname = job.makeName(ijob,self.useFolders)
+            for ifile,file in enumerate(job_files):
                 if counter==0: outfile.write("readFiles.extend( [\n")
-                outfile.write("       '"+("file:" if not self.indir.startswith("/store/") else "")+self.indir+"/"+iname+".root',\n")
-                if counter==254 or ijob==job.nums[-1]:
+                outfile.write("       '"+("file:" if not self.indir.startswith("/store/") else "")+file+"',\n")
+                if counter==254 or ifile==len(job_files)-1:
                     outfile.write("] )\n")
                     counter = 0
                 else:
@@ -278,7 +302,7 @@ class jobSubmitterSVJ(jobSubmitter):
 
         with open(self.getpy_weights,'a') as wfile:
             nEvents = job.actualEvents if self.actualEvents else int(job.maxEvents)*len(job.nums)
-            line = '    MCSample("'+job.name+'", "'+self.production+'", "", "Constant", '+str(nEvents)+'),';
+            line = '    MCSample("'+job_inname+'", "'+self.production+'", "", "Constant", '+str(nEvents)+'),';
             wfile.write(line+"\n")
 
     def findFinishedJob(self,job):
