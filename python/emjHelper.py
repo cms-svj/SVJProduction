@@ -166,7 +166,7 @@ class emjHelper(object):
                     '4900023:m0 = {mMed}'.format(mMed=self.mMed),
                     '4900023:mWidth = 0.01',  # Width of the Z' boson
                     '4900023:oneChannel = 1 0.982 102 4900101 -4900101',
-                    '4900023:addChannel = 1 0.003 102 1 -1', 
+                    '4900023:addChannel = 1 0.003 102 1 -1',
                     '4900023:addChannel = 1 0.003 102 2 -2',
                     '4900023:addChannel = 1 0.003 102 3 -3',
                     '4900023:addChannel = 1 0.003 102 4 -4',
@@ -174,24 +174,37 @@ class emjHelper(object):
                     '4900023:addChannel = 1 0.003 102 6 -6',
                 ]
             )
-    
+
         lines.extend(self.MakeRes())
         lines.extend(self.MakeDecay())
         return lines
 
     def MakeRes(self):
-        lines = [
-            # Mass of bi-fundamental resonance
-            '4900001:m0 = {mass}'.format(mass=self.mMed),
-            # Width of bi-fundamental resonance
-            '4900001:mWidth = 10',
+        lines = []
+
+        if self.channel == "t":
+            lines.extend([
+                # Mass of bi-fundamental resonance
+                '4900001:m0 = {mass}'.format(mass=self.mMed),
+                # Width of bi-fundamental resonance
+                '4900001:mWidth = 10',
+            ])
+        else:
+            lines.extend([
+                '4900001:m0 = 50000',
+            ])
+
+        lines.extend([
             # Other resonance masses are set to unreachable limits
             '4900002:m0 = 50000',
             '4900003:m0 = 50000',
             '4900004:m0 = 50000',
             '4900005:m0 = 50000',
             '4900006:m0 = 50000',
-        ]
+        ])
+
+        if self.channel == "s":
+            return lines
 
         if self.mode == 'unflavored':
             pass
@@ -252,8 +265,8 @@ class emjHelper(object):
                     '4900211:tau0 = {lifetime}'.format(lifetime=self.kappa0),
                     '4900113:m0 = {mass}'.format(mass=4 * self.mDark),
                     '4900213:m0 = {mass}'.format(mass=4 * self.mDark),
-                    '4900111:0:all      =  1 1.000  91     {id}     -{id}'.format(id=smid),
-                    '4900113:0:all      =  1 0.999  91  4900111   4900111',
+                    '4900111:oneChannel =  1 1.000  91     {id}     -{id}'.format(id=smid),
+                    '4900113:oneChannel =  1 0.999  91  4900111   4900111',
                     '4900113:addchannel =  1 0.001  91     {id}     -{id}'.format(id=smid),
                     '4900211:oneChannel =  1 1.000  91     {id}     -{id}'.format(id=smid),
                     '4900213:oneChannel =  1 0.999  91  4900211   4900211',
