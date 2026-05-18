@@ -1,9 +1,11 @@
-import os
 import numpy as np
+from string import Template
+import os, math, sys, shutil
+from glob import glob
 
 class emjHelper(object):
     def __init__(self):
-        cols = np.loadtxt(os.path.join(os.path.expandvars('$CMSSW_BASE'),'src/SVJ/Production/test/dict_xsec_pair.txt'))
+        cols = np.loadtxt(os.path.join(os.path.expandvars('$CMSSW_BASE'),'src/SVJ/Production/test/dict_xsec_Zprime.txt'))
         from scipy.interpolate import CubicSpline
         self.xsecs = CubicSpline(cols[:,0], cols[:,1])
         # Aligned mixing elements
@@ -15,14 +17,24 @@ class emjHelper(object):
         self.kap2 = 0
         self.BuildMatrix()
 
-    def setModel(self, channel, mMed, mDark, kappa, mode='aligned', type='down'):
+    def setModel(self, channel, mMed, mDark, kappa, mode='aligned', type='down', generate=True):
         self.mMed = mMed
         self.mDark = mDark
         self.kappa0 = kappa 
+        self.yukawa = None            
         self.mode = mode
         self.type = type
+        self.boost = 0.0              
+        self.boostvar = ""           
+        self.sepproc = False    # can I keep it if it's used in t-channel?
+        self.nMediator = None  # s-channel EMJ only has 1 mediator - this is also for t-channel
         self.xsec = self.xsecs(self.mMed)*3 # number of colors
         self.channel = channel
+
+        # Define MadGraph template folder for s-channel EMJ
+
+        if channel!="s" and channel!="t": raise ValueError("Unknown channel: "+channel)
+        self.mg_name = "DMsimp_SVJ_s_spin1" if channel=="s" else "DMsimp_SVJ_t" if channel=="t" else ""
 
         # Checking the alignment mode
         if self.mode == 'aligned':
@@ -300,6 +312,80 @@ class emjHelper(object):
             # Dummy return statement
             return []
 
+    def getJetMatchSettings(self):
+        lines = [
+            'JetMatching:setMad = off', # if 'on', merging parameters are set according to LHE file
+            'JetMatching:scheme = 1', # 1 = scheme inspired by Madgraph matching code
+            'JetMatching:merge = on', # master switch to activate parton-jet matching. when off, all external events accepted
+            'JetMatching:jetAlgorithm = 2', # 2 = SlowJet clustering
+            'JetMatching:etaJetMax = 5.', # max eta of any jet
+            'JetMatching:coneRadius = 1.0', # gives the jet R parameter
+            'JetMatching:slowJetPower = 1', # -1 = anti-kT algo, 1 = kT algo. Only kT w/ SlowJet is supported for MadGraph-style matching
+            'JetMatching:qCut = 125.', # this is the actual merging scale. should be roughly equal to xqcut in MadGraph
+            'JetMatching:nJetMax = 2', # number of partons in born matrix element for highest multiplicity
+            'JetMatching:doShowerKt = off', # off for MLM matching, turn on for shower-kT matching
+        ]
+
+        return lines
+
+    def getMadGraphCards(self,base_dir,lhaid,events=1,cores=1):
+        if base_dir[-1]!='/': base_dir = base_dir+'/'
+
+        # helper for templates
+        def fill_template(inname, outname=None, **kwargs):
+            if outname is None: outname = inname
+            with open(inname,'r') as temp:
+                old_lines = Template(temp.read())
+                new_lines = old_lines.substitute(**kwargs)
+            with open(inname,'w') as temp:
+                temp.write(new_lines)
+            if inname!=outname:
+                shutil.move(inname,outname)
+
+        mg_model_dir = os.path.expandvars(base_dir+"mg_model_templates")
+
+        # replace parameters in relevant file
+        param_args = dict(
+            mediator_mass = "{:g}".format(self.mMed),
+            dark_quark_mass = "{:g}".format(2.0 * self.mDark),
+        )
+        if self.yukawa is not None: param_args["dark_yukawa"] = "{:g}".format(self.yukawa)
+        fill_template(
+            os.path.join(mg_model_dir,"parameters.py"),
+            **param_args
+        )
+
+        # use parameters to generate card
+        sys.path.append(mg_model_dir)
+        from write_param_card import ParamCardWriter
+        param_card_file = os.path.join(mg_model_dir,"param_card.dat")
+        ParamCardWriter(param_card_file, generic=True)
+
+        mg_input_dir = os.path.expandvars(base_dir+"mg_input_templates")
+        modname = self.getOutName(events=events,outpre="SVJ",sanitize=True,gridpack=True)
+        template_paths = [p for ftype in ["dat","patch"] for p in glob(os.path.join(mg_input_dir, "*."+ftype))]
+        for template in template_paths:
+            fname_orig = os.path.join(mg_input_dir,template)
+            fname_new = os.path.join(mg_input_dir,template.replace("modelname",modname))
+            fill_template(
+                fname_orig,
+                fname_new,
+                modelName = modname,
+                totalEvents = "{:g}".format(events),
+                cores = "{:g}".format(cores),
+                lhaid = "{:g}".format(lhaid),
+                # for boosted
+                madpt = "{:g}".format(self.boost if self.boostvar=="madpt" else 0.),
+                # for t-channel
+                procInclusive = "" if not self.sepproc or self.nMediator is None else "#",
+                procPair = "" if self.sepproc and self.nMediator==2 else "#",
+                procSingle = "" if self.sepproc and self.nMediator==1 else "#",
+                procNonresonant = "" if self.sepproc and self.nMediator==0 else "#",
+            )
+
+        return mg_model_dir, mg_input_dir
+
+
 if __name__ == "__main__":
     import argparse, re
     helper = emjHelper()
@@ -335,4 +421,5 @@ if __name__ == "__main__":
         helper.setModel(args.channel, args.mMed, args.mDark, args.kappa, args.mode, args.type)
         for line in helper.getPythiaSettings():
             print(line)
+
 
