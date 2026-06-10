@@ -1,9 +1,8 @@
 import numpy as np
-from string import Template
-import os, math, sys, shutil
-from glob import glob
+import os
+from SVJ.Production.mgHelper import mgHelper
 
-class emjHelper(object):
+class emjHelper(mgHelper):
     def __init__(self):
         cols = np.loadtxt(os.path.join(os.path.expandvars('$CMSSW_BASE'),'src/SVJ/Production/test/dict_xsec_Zprime.txt'))
         from scipy.interpolate import CubicSpline
@@ -17,8 +16,8 @@ class emjHelper(object):
         self.kap2 = 0
         self.BuildMatrix()
 
-    def setModel(self, channel, mMed, mDark, kappa, mode='aligned', type='down', generate=True):
-        self.mMed = mMed
+    def setModel(self, channel, mMediator, mDark, kappa, mode='aligned', type='down', generate=True):
+        self.mMediator = mMediator
         self.mDark = mDark
         self.kappa0 = kappa 
         self.yukawa = None            
@@ -26,9 +25,10 @@ class emjHelper(object):
         self.type = type
         self.boost = 0.0              
         self.boostvar = ""           
-        self.sepproc = False    # can I keep it if it's used in t-channel?
-        self.nMediator = None  # s-channel EMJ only has 1 mediator - this is also for t-channel
-        self.xsec = self.xsecs(self.mMed)*3 # number of colors
+        self.sepproc = False    
+        self.nMediator = None  
+        self.mSqua = 2.0 * self.mDark
+        self.xsec = self.xsecs(self.mMediator)*3 # number of colors
         self.channel = channel
 
         # Define MadGraph template folder for s-channel EMJ
@@ -90,7 +90,7 @@ class emjHelper(object):
 
         if signal:
             _outname += '_{}-channel'.format(self.channel)
-            _outname += '_mMed-{:g}'.format(self.mMed)
+            _outname += '_mMed-{:g}'.format(self.mMediator)
             _outname += '_mDark-{:g}'.format(self.mDark)
             _outname += '_{}-{:g}'.format(
                 'kappa' if self.mode != 'unflavored' else 'ctau', self.kappa0)
@@ -104,7 +104,7 @@ class emjHelper(object):
 
     def gamma_pre(self):
         form = self.mDark
-        return (3 * self.mDark * form**2) / (32 * np.pi * self.mMed**4)
+        return (3 * self.mDark * form**2) / (32 * np.pi * self.mMediator**4)
 
     def mass_factor(self, m1, m2):
         if (m1 + m2) * 1.05 > self.mDark:
@@ -175,7 +175,7 @@ class emjHelper(object):
         if self.mode == "unflavored" and self.channel == "s":
             lines.extend(
                 [
-                    '4900023:m0 = {mMed}'.format(mMed=self.mMed),
+                    '4900023:m0 = {mMediator}'.format(mMediator=self.mMediator),
                     '4900023:mWidth = 0.01',  # Width of the Z' boson
                     '4900023:oneChannel = 1 0.982 102 4900101 -4900101',
                     '4900023:addChannel = 1 0.003 102 1 -1',
@@ -197,7 +197,7 @@ class emjHelper(object):
         if self.channel == "t":
             lines.extend([
                 # Mass of bi-fundamental resonance
-                '4900001:m0 = {mass}'.format(mass=self.mMed),
+                '4900001:m0 = {mass}'.format(mass=self.mMediator),
                 # Width of bi-fundamental resonance
                 '4900001:mWidth = 10',
             ])
@@ -312,78 +312,6 @@ class emjHelper(object):
             # Dummy return statement
             return []
 
-    def getJetMatchSettings(self):
-        lines = [
-            'JetMatching:setMad = off', # if 'on', merging parameters are set according to LHE file
-            'JetMatching:scheme = 1', # 1 = scheme inspired by Madgraph matching code
-            'JetMatching:merge = on', # master switch to activate parton-jet matching. when off, all external events accepted
-            'JetMatching:jetAlgorithm = 2', # 2 = SlowJet clustering
-            'JetMatching:etaJetMax = 5.', # max eta of any jet
-            'JetMatching:coneRadius = 1.0', # gives the jet R parameter
-            'JetMatching:slowJetPower = 1', # -1 = anti-kT algo, 1 = kT algo. Only kT w/ SlowJet is supported for MadGraph-style matching
-            'JetMatching:qCut = 125.', # this is the actual merging scale. should be roughly equal to xqcut in MadGraph
-            'JetMatching:nJetMax = 2', # number of partons in born matrix element for highest multiplicity
-            'JetMatching:doShowerKt = off', # off for MLM matching, turn on for shower-kT matching
-        ]
-
-        return lines
-
-    def getMadGraphCards(self,base_dir,lhaid,events=1,cores=1):
-        if base_dir[-1]!='/': base_dir = base_dir+'/'
-
-        # helper for templates
-        def fill_template(inname, outname=None, **kwargs):
-            if outname is None: outname = inname
-            with open(inname,'r') as temp:
-                old_lines = Template(temp.read())
-                new_lines = old_lines.substitute(**kwargs)
-            with open(inname,'w') as temp:
-                temp.write(new_lines)
-            if inname!=outname:
-                shutil.move(inname,outname)
-
-        mg_model_dir = os.path.expandvars(base_dir+"mg_model_templates")
-
-        # replace parameters in relevant file
-        param_args = dict(
-            mediator_mass = "{:g}".format(self.mMed),
-            dark_quark_mass = "{:g}".format(2.0 * self.mDark),
-        )
-        if self.yukawa is not None: param_args["dark_yukawa"] = "{:g}".format(self.yukawa)
-        fill_template(
-            os.path.join(mg_model_dir,"parameters.py"),
-            **param_args
-        )
-
-        # use parameters to generate card
-        sys.path.append(mg_model_dir)
-        from write_param_card import ParamCardWriter
-        param_card_file = os.path.join(mg_model_dir,"param_card.dat")
-        ParamCardWriter(param_card_file, generic=True)
-
-        mg_input_dir = os.path.expandvars(base_dir+"mg_input_templates")
-        modname = self.getOutName(events=events,outpre="SVJ",sanitize=True,gridpack=True)
-        template_paths = [p for ftype in ["dat","patch"] for p in glob(os.path.join(mg_input_dir, "*."+ftype))]
-        for template in template_paths:
-            fname_orig = os.path.join(mg_input_dir,template)
-            fname_new = os.path.join(mg_input_dir,template.replace("modelname",modname))
-            fill_template(
-                fname_orig,
-                fname_new,
-                modelName = modname,
-                totalEvents = "{:g}".format(events),
-                cores = "{:g}".format(cores),
-                lhaid = "{:g}".format(lhaid),
-                # for boosted
-                madpt = "{:g}".format(self.boost if self.boostvar=="madpt" else 0.),
-                # for t-channel
-                procInclusive = "" if not self.sepproc or self.nMediator is None else "#",
-                procPair = "" if self.sepproc and self.nMediator==2 else "#",
-                procSingle = "" if self.sepproc and self.nMediator==1 else "#",
-                procNonresonant = "" if self.sepproc and self.nMediator==0 else "#",
-            )
-
-        return mg_model_dir, mg_input_dir
 
 
 if __name__ == "__main__":
@@ -391,7 +319,7 @@ if __name__ == "__main__":
     helper = emjHelper()
 
     parser = argparse.ArgumentParser('Calculation debugging for Emerging jets pythia settings')
-    parser.add_argument('--mMed', default=1000, type=float, help='Dark mediator mass [GeV]')
+    parser.add_argument('--mMediator', default=1000, type=float, help='Dark mediator mass [GeV]')
     parser.add_argument('--kappa', default=1, type=float, help='Kappa0 squared (factor to scale decay lifetime)')
     parser.add_argument('--mDark', default=10, type=float, help='Dark meson mass [GeV]')
     parser.add_argument('--type', default='down', type=str, choices=['down', 'up'], help='Alignment to SM up/down type SM quarks')
@@ -403,7 +331,7 @@ if __name__ == "__main__":
 
     if args.cmd == 'dumptime':
         for mDark in np.linspace(1.6, 100, 1000, endpoint=True):
-            helper.setModel(args.channel, args.mMed, mDark, args.kappa, args.mode, args.type)
+            helper.setModel(args.channel, args.mMediator, mDark, args.kappa, args.mode, args.type)
             tau = [
                 x for x in helper.getPythiaSettings()
                 if re.match(r'^4900[12]1[13]:tau0', x)
@@ -418,7 +346,7 @@ if __name__ == "__main__":
 
             print('{:10g} {:16g} {:16g} {:16g} {:16g}'.format(mDark, get_time(4900111), get_time(4900113), get_time(4900211), get_time(4900213)))
     elif args.cmd == 'dumpcard':
-        helper.setModel(args.channel, args.mMed, args.mDark, args.kappa, args.mode, args.type)
+        helper.setModel(args.channel, args.mMediator, args.mDark, args.kappa, args.mode, args.type)
         for line in helper.getPythiaSettings():
             print(line)
 
