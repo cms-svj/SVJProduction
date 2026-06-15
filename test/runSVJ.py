@@ -262,7 +262,7 @@ if options.scout and "MINIAOD" in options.config:
     add_outputs([
         'keep *_hltScouting*_*_*',
     ])
-if options.model=="emj" and 'MINIAOD' in options.config:
+if options.recopf and 'MINIAOD' in options.config:
     add_outputs([ # Keeping the RECO level information for the custom NanoAOD
         'keep *_reducedHcalRecHits_*_*', # For HCAL timing information
         'keep *_particleFlow_*_*', # For more detailed PF Candidate

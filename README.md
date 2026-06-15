@@ -108,6 +108,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
         * `mode=[string]`: mixing scenario to use (default = aligned, alternative = unflavored)
         * `type=[string]`: SM quark coupling type (default = down, alternative = up)
 * `l1calo=[bool]`: keep L1 calo info through miniAOD, and run CICADA in nanoAOD (default = False)
+* `recopf=[bool]`: keep the reco-level PF candidate information through miniAOD (default = False)
 * `scout=[bool]`: keep scouting collections in miniAOD (default = False)
 * `hepmc=[bool]`: keep HepMC generator particle collection through miniAOD (default = False)
 * `l1nano=[bool]`: keep L1 info in nanoAOD (default = False)
