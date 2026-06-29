@@ -4,6 +4,26 @@ from glob import glob
 
 class mgHelper(object):
 
+    def __init__(
+        self,
+        model,
+        mMediator,
+        mSqua,
+        boost=0.0,
+        boostvar = None,
+        sepproc = False,
+        nMediator = None,
+        yukawa = None,
+    ):
+        self.model = model
+        self.mMediator = mMediator
+        self.mSqua = mSqua
+        self.boost = boost
+        self.boostvar = boostvar
+        self.sepproc = sepproc
+        self.nMediator = nMediator
+        self.yukawa = yukawa
+
     def getJetMatchSettings(self):
         lines = [
             'JetMatching:setMad = off', # if 'on', merging parameters are set according to LHE file
@@ -54,7 +74,7 @@ class mgHelper(object):
         ParamCardWriter(param_card_file, generic=True)
 
         mg_input_dir = os.path.expandvars(base_dir+"mg_input_templates")
-        modname = self.getOutName(events=events,outpre="SVJ",sanitize=True,gridpack=True)
+        modname = self.getOutName(events=events,outpre=self.model.upper(),sanitize=True,gridpack=True)
         template_paths = [p for ftype in ["dat","patch"] for p in glob(os.path.join(mg_input_dir, "*."+ftype))]
         for template in template_paths:
             fname_orig = os.path.join(mg_input_dir,template)

@@ -165,11 +165,21 @@ class svjHelper(mgHelper):
             self.boost = 0
             self.boostvar = ""
 
+        super().__init__(
+                model = "svj",
+                mMediator = mMediator,
+                mSqua = self.mDark/2., # dark scalar quark mass (also used for pTminFSR)
+                boost = self.boost,
+                boostvar = self.boostvar,
+                sepproc = self.sepproc,
+                nMediator = self.nMediator,
+                yukawa = self.yukawa,
+        )
+
         # get more parameters
         self.xsec = self.getPythiaXsec(self.mMediator)
         self.mMin = self.mMediator-1
         self.mMax = self.mMediator+1
-        self.mSqua = self.mDark/2. # dark scalar quark mass (also used for pTminFSR)
 
         # get limited set of quarks for decays (check mDark against quark masses, compute running)
         self.quarks.set(mDark)

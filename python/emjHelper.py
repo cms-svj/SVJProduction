@@ -17,19 +17,26 @@ class emjHelper(mgHelper):
         self.BuildMatrix()
 
     def setModel(self, channel, mMediator, mDark, kappa, mode='aligned', type='down', generate=True):
-        self.mMediator = mMediator
         self.mDark = mDark
-        self.kappa0 = kappa 
-        self.yukawa = None            
+        #mSqua = 2.0 * self.mDark
+
+        super().__init__(
+            model="emj",
+            mMediator = mMediator,
+            mSqua = 2.0 * self.mDark,
+            boost = 0.0,
+            boostvar = "",
+            sepproc = False,
+            nMediator = None,
+            yukawa = None,
+        )
+
+        self.kappa0 = kappa
         self.mode = mode
         self.type = type
-        self.boost = 0.0              
-        self.boostvar = ""           
-        self.sepproc = False    
-        self.nMediator = None  
-        self.mSqua = 2.0 * self.mDark
-        self.xsec = self.xsecs(self.mMediator)*3 # number of colors
+        self.xsec = self.xsecs(self.mMediator) * 3  # number of colors
         self.channel = channel
+        self.model = "emj"
 
         # Define MadGraph template folder for s-channel EMJ
 
@@ -166,9 +173,9 @@ class emjHelper(mgHelper):
                 # implements arXiv:1803.08080
                 'HiddenValley:altHadronSpecies = {flag}'.format(flag = 'off' if self.mode == 'unflavored' else 'on'),
                 'HiddenValley:spinFv = 0',    # Spin of bi-fundamental res.
-                'HiddenValley:Lambda = {0}'.format(2 * self.mDark),
-                'HiddenValley:pTminFSR = {ptmin}'.format(ptmin=2.2 * self.mDark),
-                '4900101:m0 = {mass}'.format(mass=2 * self.mDark),
+                'HiddenValley:Lambda = {0}'.format(self.mSqua),
+                'HiddenValley:pTminFSR = {ptmin}'.format(ptmin=1.1 * self.mSqua),
+                '4900101:m0 = {mass}'.format(mass=self.mSqua),
             ]
         )
 
