@@ -19,7 +19,8 @@ class emjHelper(mgHelper):
         super().__init__(
             model="emj",
             mMediator = mMediator,
-            mSqua = 2.0 * self.mDark,
+            # for tpair the dark quark mass (fed to the MadGraph param card) equals mDark
+            mSqua = self.mDark if channel=="tpair" else 2.0 * self.mDark,
             boost = 0.0,
             boostvar = "",
             sepproc = False,
@@ -33,10 +34,11 @@ class emjHelper(mgHelper):
         self.channel = channel
       
         
-        if channel!="s" and channel!="t": raise ValueError("Unknown channel: "+channel)
+        if channel not in ("s","t","tpair"): raise ValueError("Unknown channel: "+channel)
         
-        # Define MadGraph template folder for s-channel EMJ. t-channel MadGraph support not implemented yet, but keep the channel dependent support for future 
-        self.mg_name = "DMsimp_SVJ_s_spin1" if channel=="s" else "DMsimp_SVJ_t" if channel=="t" else ""
+        # Define MadGraph template folder for s-channel EMJ and tpair (QCD pair prod. of top-philic scalar mediator X).
+        # t-channel MadGraph support not implemented yet, but keep the channel dependent support for future 
+        self.mg_name = "DMsimp_SVJ_s_spin1" if channel=="s" else "darkQCD_fv_up" if channel=="tpair" else "DMsimp_SVJ_t" if channel=="t" else ""
 
         # Checking the alignment mode
         if self.mode == 'aligned':
@@ -69,7 +71,7 @@ class emjHelper(mgHelper):
 
         from scipy.interpolate import CubicSpline
         self.xsecs = CubicSpline(cols[:,0], cols[:,1])
-        num_colors = 3 if channel == "t" else 1
+        num_colors = 3 if channel in ("t","tpair") else 1
         self.xsec = self.xsecs(self.mMediator) * num_colors 
 
         return
@@ -107,7 +109,7 @@ class emjHelper(mgHelper):
             _outname += '_mMed-{:g}'.format(self.mMediator)
             _outname += '_mDark-{:g}'.format(self.mDark)
             _outname += '_{}-{:g}'.format(
-                'kappa' if self.mode != 'unflavored' else 'ctau', self.kappa0)
+                'ctau' if (self.mode == 'unflavored' or self.channel == 'tpair') else 'kappa', self.kappa0)
             _outname += '_{}-{}'.format(self.mode, self.type)
         if events > 0: _outname += '_n-{:g}'.format(events)
         if part is not None:
@@ -151,6 +153,9 @@ class emjHelper(mgHelper):
             return ans
 
     def getPythiaSettings(self):
+        if self.channel == "tpair":
+            return self._tpairSettings()
+
         lines = [
             'ParticleDecays:xyMax = 30000',    # in mm/c
             'ParticleDecays:zMax = 30000',    # in mm/c
@@ -326,6 +331,62 @@ class emjHelper(mgHelper):
             # Dummy return statement
             return []
 
+    def _tpairSettings(self):
+        """Pythia settings for the top-philic up-type t-channel mediator (X-pair, QCD).
+        Reproduces pythia8_fragment_2t2EMJ.py: X(4900002) -> top + dark quark, dark
+        pions decay to up-type quark pairs (charm+up) and are long-lived (emerging).
+        The global lifetime cap is lifted in runSVJ.py (ParticleDecays:limitTau0 = off)."""
+        mDark = self.mDark
+        q1 = self.sm_id[0]   # 1st-gen up-type (u) for 'up', (d) for 'down'
+        q2 = self.sm_id[1]   # 2nd-gen (c) for 'up', (s) for 'down'
+        return [
+            'SLHA:allowUserOverride = on',
+            'ParticleDecays:limitCylinder = on',
+            'ParticleDecays:xyMax = 30000',
+            'ParticleDecays:zMax = 30000',
+            'HiddenValley:alphaOrder = 1',
+            'HiddenValley:FSR = on',
+            'HiddenValley:alphaFSR = 0.7',
+            'HiddenValley:fragment = on',
+            'HiddenValley:Ngauge = 3',
+            'HiddenValley:nFlav = 4',
+            'HiddenValley:spinFv = 0',
+            'HiddenValley:Lambda = {:g}'.format(2.0 * mDark),
+            'HiddenValley:pTminFSR = {:g}'.format(2.2 * mDark),
+            # top-philic scalar mediator X (pair-produced via QCD in the LHE)
+            '4900002:isResonance = on',
+            '4900002:mayDecay = on',
+            '4900002:isVisible = off',
+            '4900002:oneChannel = 1 1.0 103 6 4900101',
+            # decouple the other bifundamental mediators
+            '4900001:m0 = 50000',
+            '4900003:m0 = 50000',
+            '4900004:m0 = 50000',
+            '4900005:m0 = 50000',
+            '4900006:m0 = 50000',
+            # dark quark and dark mesons
+            '4900101:m0 = {:g}'.format(mDark),
+            '4900111:m0 = {:g}'.format(mDark),
+            '4900211:m0 = {:g}'.format(mDark),
+            '4900113:m0 = {:g}'.format(4.0 * mDark),
+            '4900213:m0 = {:g}'.format(4.0 * mDark),
+            # dark pion -> up-type quark pairs (2nd + 1st gen, equal BR) => emerging
+            '4900111:oneChannel = 1 0.5 91 {0} -{0}'.format(q2),
+            '4900111:addChannel = 1 0.5 91 {0} -{0}'.format(q1),
+            '4900211:oneChannel = 1 0.5 91 {0} -{0}'.format(q2),
+            '4900211:addChannel = 1 0.5 91 {0} -{0}'.format(q1),
+            # dark rho -> dark pion pair (+ tiny SM leak)
+            '4900113:oneChannel = 1 0.999 0 4900111 4900111',
+            '4900113:addChannel = 1 0.001 91 {0} -{0}'.format(q2),
+            '4900213:oneChannel = 1 0.999 0 4900211 4900211',
+            '4900213:addChannel = 1 0.001 91 {0} -{0}'.format(q2),
+            # lifetime (ctau in mm; scan via 'kappa') + enable pseudoscalar decay
+            '4900111:tau0 = {:g}'.format(self.kappa0),
+            '4900211:tau0 = {:g}'.format(self.kappa0),
+            '4900111:mayDecay = on',
+            '4900211:mayDecay = on',
+        ]
+
 
 
 if __name__ == "__main__":
@@ -338,7 +399,7 @@ if __name__ == "__main__":
     parser.add_argument('--mDark', default=10, type=float, help='Dark meson mass [GeV]')
     parser.add_argument('--type', default='down', type=str, choices=['down', 'up'], help='Alignment to SM up/down type SM quarks')
     parser.add_argument('--mode', default='aligned', type=str, choices=['aligned', 'unflavored'], help='Mixing scenarios to simulate')
-    parser.add_argument('--channel', default='t', type=str, choices=['t', 's'], help='Channels to simulate')
+    parser.add_argument('--channel', default='t', type=str, choices=['t', 's', 'tpair'], help='Channels to simulate')
     parser.add_argument('cmd', type=str, choices=['dumptime','dumpcard'], help='action to perform')
 
     args = parser.parse_args()
