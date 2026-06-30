@@ -85,11 +85,11 @@
 # Customization (custom cuts/scale/bias/...)                         *
 # list of files containing fortran function that overwrite default   *
 #*********************************************************************
-  = custom_fcts ! List of files containing user hook function
+ # = custom_fcts ! List of files containing user hook function
 #*******************************                                                 
 # Parton level cuts definition *
 #*******************************
-  0.0  = dsqrt_shat ! minimal shat for full process
+ # 0.0  = dsqrt_shat ! minimal shat for full process
 #                                                                    
 #
 #*********************************************************************
