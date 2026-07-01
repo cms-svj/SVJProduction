@@ -80,7 +80,7 @@ if options.signal:
             process.generator.crossSection = cms.untracked.double(_helper.xsec)
             process.generator.PythiaParameters.processParameters = cms.vstring(_helper.getPythiaSettings())
             if hasattr(process.generator.PythiaParameters,"JetMatchingParameters"):
-                jet_match_settings = []
+                jet_match_settings = ['JetMatching:merge = off']
                 if options.jetmatch:
                     jet_match_settings = _helper.getJetMatchSettings()
                     if options.jetmatchQCut > 0:
