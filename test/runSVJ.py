@@ -80,7 +80,22 @@ if options.signal:
             process.generator.crossSection = cms.untracked.double(_helper.xsec)
             process.generator.PythiaParameters.processParameters = cms.vstring(_helper.getPythiaSettings())
             if hasattr(process.generator.PythiaParameters,"JetMatchingParameters"):
-                process.generator.PythiaParameters.JetMatchingParameters = cms.vstring(_helper.getJetMatchSettings())
+                jet_match_settings = []
+                if options.jetmatch:
+                    jet_match_settings = _helper.getJetMatchSettings()
+                    if options.jetmatchQCut > 0:
+                        jet_match_settings = [
+                            'JetMatching:qCut = {:g}'.format(options.jetmatchQCut)
+                            if x.startswith('JetMatching:qCut') else x
+                            for x in jet_match_settings
+                        ]
+                    if options.jetmatchNJetMax >= 0:
+                        jet_match_settings = [
+                            'JetMatching:nJetMax = {:d}'.format(options.jetmatchNJetMax)
+                            if x.startswith('JetMatching:nJetMax') else x
+                            for x in jet_match_settings
+                        ]
+                process.generator.PythiaParameters.JetMatchingParameters = cms.vstring(jet_match_settings)
             if options.model=="suep":
                 process.generator.UserCustomization = cms.VPSet(
                     _helper.getHookSettings()
