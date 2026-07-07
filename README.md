@@ -165,7 +165,7 @@ cmsRun runSVJ.py model=suep year=2022 config=step_GEN outpre=step_GEN mMediator=
 To run the sample production interactively for EMJ with example parameters:
 ```
 cd SVJ/Production/test
-cmsRun runSVJ.py model=emj year=2022 config=step_GEN outpre=step_GEN mMediator=1000.0 mDark=20.0 kappa=1 mode=aligned type=down part=1 maxEvents=10
+cmsRun runSVJ.py model=emj year=2022 config=step_GEN outpre=step_GEN channel=s mMediator=1000.0 mDark=20.0 kappa=1 mode=unflavored type=down part=1 maxEvents=10
 ```
 
 ## Condor submission
