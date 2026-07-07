@@ -9,7 +9,7 @@ options.maxEvents = max(1,options.maxEvents)
 # model name
 _outname = _helper.getOutName(events=options.maxEvents,gridpack=True)
 _outname = _outname.replace("outpre",options._outpre[0])
-_modname = _helper.getOutName(events=options.maxEvents,outpre="SVJ",sanitize=True,gridpack=True)
+_modname = _helper.getOutName(events=options.maxEvents,outpre=options.model.upper(),sanitize=True,gridpack=True)
 
 # copy template files
 data_path = os.path.expandvars("$CMSSW_BASE/src/SVJ/Production/data/"+_helper.mg_name)

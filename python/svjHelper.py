@@ -1,6 +1,5 @@
-import os, math, sys, shutil
-from string import Template
-from glob import glob
+import os, math
+from SVJ.Production.mgHelper import mgHelper
 
 class quark(object):
     def __init__(self,id,mass):
@@ -87,7 +86,7 @@ class quarklist(object):
     def get(self,active=False):
         return [q for q in self.qlist if (q.active if active else q.on)]
 
-class svjHelper(object):
+class svjHelper(mgHelper):
     def __init__(self):
         with open(os.path.join(os.path.expandvars('$CMSSW_BASE'),'src/SVJ/Production/test/dict_xsec_Zprime.txt'),'r') as xfile:
             self.xsecs = {int(xline.split('\t')[0]): float(xline.split('\t')[1]) for xline in xfile}
@@ -166,11 +165,21 @@ class svjHelper(object):
             self.boost = 0
             self.boostvar = ""
 
+        super().__init__(
+                model = "svj",
+                mMediator = mMediator,
+                mSqua = self.mDark/2., # dark scalar quark mass (also used for pTminFSR)
+                boost = self.boost,
+                boostvar = self.boostvar,
+                sepproc = self.sepproc,
+                nMediator = self.nMediator,
+                yukawa = self.yukawa,
+        )
+
         # get more parameters
         self.xsec = self.getPythiaXsec(self.mMediator)
         self.mMin = self.mMediator-1
         self.mMax = self.mMediator+1
-        self.mSqua = self.mDark/2. # dark scalar quark mass (also used for pTminFSR)
 
         # get limited set of quarks for decays (check mDark against quark masses, compute running)
         self.quarks.set(mDark)
@@ -379,60 +388,3 @@ class svjHelper(object):
         ]
 
         return lines
-
-    def getMadGraphCards(self,base_dir,lhaid,events=1,cores=1):
-        if base_dir[-1]!='/': base_dir = base_dir+'/'
-
-        # helper for templates
-        def fill_template(inname, outname=None, **kwargs):
-            if outname is None: outname = inname
-            with open(inname,'r') as temp:
-                old_lines = Template(temp.read())
-                new_lines = old_lines.substitute(**kwargs)
-            with open(inname,'w') as temp:
-                temp.write(new_lines)
-            if inname!=outname:
-                shutil.move(inname,outname)
-
-        mg_model_dir = os.path.expandvars(base_dir+"mg_model_templates")
-
-        # replace parameters in relevant file
-        param_args = dict(
-            mediator_mass = "{:g}".format(self.mMediator),
-            dark_quark_mass = "{:g}".format(self.mSqua),
-        )
-        if self.yukawa is not None: param_args["dark_yukawa"] = "{:g}".format(self.yukawa)
-        fill_template(
-            os.path.join(mg_model_dir,"parameters.py"),
-            **param_args
-        )
-
-        # use parameters to generate card
-        sys.path.append(mg_model_dir)
-        from write_param_card import ParamCardWriter
-        param_card_file = os.path.join(mg_model_dir,"param_card.dat")
-        ParamCardWriter(param_card_file, generic=True)
-
-        mg_input_dir = os.path.expandvars(base_dir+"mg_input_templates")
-        modname = self.getOutName(events=events,outpre="SVJ",sanitize=True,gridpack=True)
-        template_paths = [p for ftype in ["dat","patch"] for p in glob(os.path.join(mg_input_dir, "*."+ftype))]
-        for template in template_paths:
-            fname_orig = os.path.join(mg_input_dir,template)
-            fname_new = os.path.join(mg_input_dir,template.replace("modelname",modname))
-            fill_template(
-                fname_orig,
-                fname_new,
-                modelName = modname,
-                totalEvents = "{:g}".format(events),
-                cores = "{:g}".format(cores),
-                lhaid = "{:g}".format(lhaid),
-                # for boosted
-                madpt = "{:g}".format(self.boost if self.boostvar=="madpt" else 0.),
-                # for t-channel
-                procInclusive = "" if not self.sepproc or self.nMediator is None else "#",
-                procPair = "" if self.sepproc and self.nMediator==2 else "#",
-                procSingle = "" if self.sepproc and self.nMediator==1 else "#",
-                procNonresonant = "" if self.sepproc and self.nMediator==0 else "#",
-            )
-
-        return mg_model_dir, mg_input_dir
