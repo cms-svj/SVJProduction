@@ -69,7 +69,8 @@ class emjHelper(mgHelper):
 
         from scipy.interpolate import CubicSpline
         self.xsecs = CubicSpline(cols[:,0], cols[:,1])
-        self.xsec = self.xsecs(self.mMediator) * 3  # number of colors
+        num_colors = 3 if channel == "t" else 1
+        self.xsec = self.xsecs(self.mMediator) * num_colors 
 
         return
 
