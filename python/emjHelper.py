@@ -4,9 +4,6 @@ from SVJ.Production.mgHelper import mgHelper
 
 class emjHelper(mgHelper):
     def __init__(self):
-        cols = np.loadtxt(os.path.join(os.path.expandvars('$CMSSW_BASE'),'src/SVJ/Production/test/dict_xsec_Zprime.txt'))
-        from scipy.interpolate import CubicSpline
-        self.xsecs = CubicSpline(cols[:,0], cols[:,1])
         # Aligned mixing elements
         self.s12 = 0
         self.s13 = 0
@@ -18,7 +15,6 @@ class emjHelper(mgHelper):
 
     def setModel(self, channel, mMediator, mDark, kappa, mode='aligned', type='down', generate=True):
         self.mDark = mDark
-        #mSqua = 2.0 * self.mDark
 
         super().__init__(
             model="emj",
@@ -34,13 +30,12 @@ class emjHelper(mgHelper):
         self.kappa0 = kappa
         self.mode = mode
         self.type = type
-        self.xsec = self.xsecs(self.mMediator) * 3  # number of colors
         self.channel = channel
-        self.model = "emj"
-
-        # Define MadGraph template folder for s-channel EMJ
-
+      
+        
         if channel!="s" and channel!="t": raise ValueError("Unknown channel: "+channel)
+        
+        # Define MadGraph template folder for s-channel EMJ. t-channel MadGraph support not implemented yet, but keep the channel dependent support for future 
         self.mg_name = "DMsimp_SVJ_s_spin1" if channel=="s" else "DMsimp_SVJ_t" if channel=="t" else ""
 
         # Checking the alignment mode
@@ -65,6 +60,17 @@ class emjHelper(mgHelper):
             self.sm_mass = [0.0023, 1.275, 173.21]
         else:
             raise ValueError('Type {} not recognized'.format(self.type))
+
+
+        # xsec table file
+        xsec_file = "dict_xsec_Zprime.txt" if channel == "s" else "dict_xsec_pair.txt"
+        cols = np.loadtxt(os.path.join(os.path.expandvars('$CMSSW_BASE'),'src/SVJ/Production/test/',xsec_file))
+        print('channel:',channel,', xsec file:', xsec_file)
+
+        from scipy.interpolate import CubicSpline
+        self.xsecs = CubicSpline(cols[:,0], cols[:,1])
+        self.xsec = self.xsecs(self.mMediator) * 3  # number of colors
+
         return
 
     def BuildMatrix(self):
