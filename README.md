@@ -108,6 +108,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
         * `mode=[string]`: mixing scenario to use (default = aligned, alternative = unflavored)
         * `type=[string]`: SM quark coupling type (default = down, alternative = up)
 * `l1calo=[bool]`: keep L1 calo info through miniAOD, and run CICADA in nanoAOD (default = False)
+* `recopf=[bool]`: keep the reco-level PF candidate information through miniAOD (default = False)
 * `scout=[bool]`: keep scouting collections in miniAOD (default = False)
 * `hepmc=[bool]`: keep HepMC generator particle collection through miniAOD (default = False)
 * `l1nano=[bool]`: keep L1 info in nanoAOD (default = False)
@@ -164,7 +165,7 @@ cmsRun runSVJ.py model=suep year=2022 config=step_GEN outpre=step_GEN mMediator=
 To run the sample production interactively for EMJ with example parameters:
 ```
 cd SVJ/Production/test
-cmsRun runSVJ.py model=emj year=2022 config=step_GEN outpre=step_GEN mMediator=1000.0 mDark=20.0 kappa=1 mode=aligned type=down part=1 maxEvents=10
+cmsRun runSVJ.py model=emj year=2022 config=step_GEN outpre=step_GEN channel=s mMediator=1000.0 mDark=20.0 kappa=1 mode=unflavored type=down part=1 maxEvents=10
 ```
 
 ## Condor submission
