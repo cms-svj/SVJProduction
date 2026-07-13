@@ -24,7 +24,9 @@ class mgHelper(object):
         self.nMediator = nMediator
         self.yukawa = yukawa
 
-    def getJetMatchSettings(self):
+    def getJetMatchSettings(self, qCut=None, nJetMax=None):
+        if qCut is None: qCut = 125. # default merging scale
+        if nJetMax is None: nJetMax = 2 # default max parton multiplicity
         lines = [
             'JetMatching:setMad = off', # if 'on', merging parameters are set according to LHE file
             'JetMatching:scheme = 1', # 1 = scheme inspired by Madgraph matching code
@@ -33,8 +35,8 @@ class mgHelper(object):
             'JetMatching:etaJetMax = 5.', # max eta of any jet
             'JetMatching:coneRadius = 1.0', # gives the jet R parameter
             'JetMatching:slowJetPower = 1', # -1 = anti-kT algo, 1 = kT algo. Only kT w/ SlowJet is supported for MadGraph-style matching
-            'JetMatching:qCut = 125.', # this is the actual merging scale. should be roughly equal to xqcut in MadGraph
-            'JetMatching:nJetMax = 2', # number of partons in born matrix element for highest multiplicity
+            'JetMatching:qCut = {:g}'.format(qCut), # this is the actual merging scale. should be roughly equal to xqcut in MadGraph
+            'JetMatching:nJetMax = {:d}'.format(nJetMax), # number of partons in born matrix element for highest multiplicity
             'JetMatching:doShowerKt = off', # off for MLM matching, turn on for shower-kT matching
         ]
 

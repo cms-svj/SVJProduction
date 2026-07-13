@@ -19,8 +19,7 @@ class emjHelper(mgHelper):
         super().__init__(
             model="emj",
             mMediator = mMediator,
-            # for tpair the dark quark mass (fed to the MadGraph param card) equals mDark
-            mSqua = self.mDark if channel=="tpair" else 2.0 * self.mDark,
+            mSqua = 2.0 * self.mDark,
             boost = 0.0,
             boostvar = "",
             sepproc = False,
@@ -34,11 +33,16 @@ class emjHelper(mgHelper):
         self.channel = channel
       
         
-        if channel not in ("s","t","tpair"): raise ValueError("Unknown channel: "+channel)
-        
-        # Define MadGraph template folder for s-channel EMJ and tpair (QCD pair prod. of top-philic scalar mediator X).
-        # t-channel MadGraph support not implemented yet, but keep the channel dependent support for future 
-        self.mg_name = "DMsimp_SVJ_s_spin1" if channel=="s" else "darkQCD_fv_up" if channel=="tpair" else "DMsimp_SVJ_t" if channel=="t" else ""
+        # MadGraph template folder for each channel
+        mg_names = {
+            "s": "DMsimp_SVJ_s_spin1",
+            "t": "DMsimp_SVJ_t",
+            "tpair": "darkQCD_fv_up", # QCD pair prod. of top-philic scalar mediator X
+        }
+        if channel not in mg_names: raise ValueError("Unknown channel: "+channel)
+        # the tpair MadGraph model (darkQCD_fv_up) and mediator decay X -> t + dark quark are up-type only
+        if channel=="tpair" and type!="up": raise ValueError("channel=tpair only supports type=up, got: "+type)
+        self.mg_name = mg_names[channel]
 
         # Checking the alignment mode
         if self.mode == 'aligned':
@@ -153,9 +157,6 @@ class emjHelper(mgHelper):
             return ans
 
     def getPythiaSettings(self):
-        if self.channel == "tpair":
-            return self._tpairSettings()
-
         lines = [
             'ParticleDecays:xyMax = 30000',    # in mm/c
             'ParticleDecays:zMax = 30000',    # in mm/c
@@ -173,6 +174,10 @@ class emjHelper(mgHelper):
                 'HiddenValley:ffbar2Zv = on'
             ]
             lines.extend(s_process)
+        elif self.channel == "tpair":
+            # mediator pairs come from the MadGraph LHE: no Pythia production process,
+            # but let the SLHA block from the LHE override particle data (mediator mass)
+            lines.extend(['SLHA:allowUserOverride = on'])
 
         lines.extend(
             [
@@ -180,16 +185,20 @@ class emjHelper(mgHelper):
                 'HiddenValley:Ngauge = 3',    # Number of dark QCD colors
                 'HiddenValley:FSR = on',
                 'HiddenValley:fragment = on',
-                # flavors used for the running
-                'HiddenValley:nFlav = {nflv}'.format(nflv = 7 if self.mode == 'unflavored' else 3),
-                # implements arXiv:1803.08080
-                'HiddenValley:altHadronSpecies = {flag}'.format(flag = 'off' if self.mode == 'unflavored' else 'on'),
+                # flavors used for the running, tpair value adapted from https://github.com/chscherb/t-channel_dark_QCD
+                'HiddenValley:nFlav = {nflv}'.format(nflv = 7 if self.mode == 'unflavored' else 4 if self.channel == 'tpair' else 3),
+                # implements arXiv:1803.08080 (requires cms-svj pythia fork; only used for aligned mode, needs nFlav = 3)
+                'HiddenValley:altHadronSpecies = {flag}'.format(flag = 'off' if (self.mode == 'unflavored' or self.channel == 'tpair') else 'on'),
                 'HiddenValley:spinFv = 0',    # Spin of bi-fundamental res.
                 'HiddenValley:Lambda = {0}'.format(self.mSqua),
                 'HiddenValley:pTminFSR = {ptmin}'.format(ptmin=1.1 * self.mSqua),
                 '4900101:m0 = {mass}'.format(mass=self.mSqua),
             ]
         )
+
+        if self.channel == "tpair":
+            # dark FSR coupling from the model authors' example (chscherb/t-channel_dark_QCD)
+            lines.append('HiddenValley:alphaFSR = 0.7')
 
         if self.mode == "unflavored" and self.channel == "s":
             lines.extend(
@@ -220,21 +229,26 @@ class emjHelper(mgHelper):
                 # Width of bi-fundamental resonance
                 '4900001:mWidth = 10',
             ])
+        elif self.channel == "tpair":
+            lines.extend([
+                # top-philic scalar mediator X (pair-produced via QCD in the LHE)
+                '4900002:isResonance = on',
+                '4900002:mayDecay = on',
+                '4900002:isVisible = off',
+                '4900002:oneChannel = 1 1.0 103 6 4900101',
+            ])
         else:
             lines.extend([
                 '4900001:m0 = 50000',
             ])
 
-        lines.extend([
-            # Other resonance masses are set to unreachable limits
-            '4900002:m0 = 50000',
-            '4900003:m0 = 50000',
-            '4900004:m0 = 50000',
-            '4900005:m0 = 50000',
-            '4900006:m0 = 50000',
-        ])
+        # Other resonance masses are set to unreachable limits
+        # (for tpair, 4900002 is the mediator, so 4900001 is decoupled instead)
+        other_res = [4900001] if self.channel == "tpair" else [4900002]
+        other_res += [4900003, 4900004, 4900005, 4900006]
+        lines.extend(['{}:m0 = 50000'.format(res) for res in other_res])
 
-        if self.channel == "s":
+        if self.channel in ("s", "tpair"):
             return lines
 
         if self.mode == 'unflavored':
@@ -286,6 +300,35 @@ class emjHelper(mgHelper):
         
         decay_settings = []
 
+        if self.channel == 'tpair':
+            # Fixed decay table: dark pions decay to up-type quark pairs (2nd + 1st gen,
+            # equal BR) and are long-lived (emerging); ctau [mm] is set directly by 'kappa'.
+            # The global lifetime cap is lifted in runSVJ.py (ParticleDecays:limitTau0 = off).
+            q1 = self.sm_id[0]   # 1st-gen (u) for 'up'
+            q2 = self.sm_id[1]   # 2nd-gen (c) for 'up'
+            return [
+                # dark mesons
+                '4900111:m0 = {:g}'.format(self.mDark),
+                '4900211:m0 = {:g}'.format(self.mDark),
+                '4900113:m0 = {:g}'.format(4.0 * self.mDark),
+                '4900213:m0 = {:g}'.format(4.0 * self.mDark),
+                # dark pion -> up-type quark pairs => emerging
+                '4900111:oneChannel = 1 0.5 91 {0} -{0}'.format(q2),
+                '4900111:addChannel = 1 0.5 91 {0} -{0}'.format(q1),
+                '4900211:oneChannel = 1 0.5 91 {0} -{0}'.format(q2),
+                '4900211:addChannel = 1 0.5 91 {0} -{0}'.format(q1),
+                # dark rho -> dark pion pair (+ tiny SM leak)
+                '4900113:oneChannel = 1 0.999 0 4900111 4900111',
+                '4900113:addChannel = 1 0.001 91 {0} -{0}'.format(q2),
+                '4900213:oneChannel = 1 0.999 0 4900211 4900211',
+                '4900213:addChannel = 1 0.001 91 {0} -{0}'.format(q2),
+                # lifetime (ctau in mm; scan via 'kappa') + enable pseudoscalar decay
+                '4900111:tau0 = {:g}'.format(self.kappa0),
+                '4900211:tau0 = {:g}'.format(self.kappa0),
+                '4900111:mayDecay = on',
+                '4900211:mayDecay = on',
+            ]
+
         if self.mode == 'unflavored':    # Special case for unflavored decay
             smid = 1 if self.type == 'down' else 2
             decay_settings.extend(
@@ -330,63 +373,6 @@ class emjHelper(mgHelper):
         else:
             # Dummy return statement
             return []
-
-    def _tpairSettings(self):
-        """Pythia settings for the top-philic up-type t-channel mediator (X-pair, QCD).
-        Reproduces pythia8_fragment_2t2EMJ.py: X(4900002) -> top + dark quark, dark
-        pions decay to up-type quark pairs (charm+up) and are long-lived (emerging).
-        The global lifetime cap is lifted in runSVJ.py (ParticleDecays:limitTau0 = off)."""
-        mDark = self.mDark
-        q1 = self.sm_id[0]   # 1st-gen up-type (u) for 'up', (d) for 'down'
-        q2 = self.sm_id[1]   # 2nd-gen (c) for 'up', (s) for 'down'
-        return [
-            'SLHA:allowUserOverride = on',
-            'ParticleDecays:limitCylinder = on',
-            'ParticleDecays:xyMax = 30000',
-            'ParticleDecays:zMax = 30000',
-            'HiddenValley:alphaOrder = 1',
-            'HiddenValley:FSR = on',
-            'HiddenValley:alphaFSR = 0.7',
-            'HiddenValley:fragment = on',
-            'HiddenValley:Ngauge = 3',
-            'HiddenValley:nFlav = 4',
-            'HiddenValley:spinFv = 0',
-            'HiddenValley:Lambda = {:g}'.format(2.0 * mDark),
-            'HiddenValley:pTminFSR = {:g}'.format(2.2 * mDark),
-            # top-philic scalar mediator X (pair-produced via QCD in the LHE)
-            '4900002:isResonance = on',
-            '4900002:mayDecay = on',
-            '4900002:isVisible = off',
-            '4900002:oneChannel = 1 1.0 103 6 4900101',
-            # decouple the other bifundamental mediators
-            '4900001:m0 = 50000',
-            '4900003:m0 = 50000',
-            '4900004:m0 = 50000',
-            '4900005:m0 = 50000',
-            '4900006:m0 = 50000',
-            # dark quark and dark mesons
-            '4900101:m0 = {:g}'.format(mDark),
-            '4900111:m0 = {:g}'.format(mDark),
-            '4900211:m0 = {:g}'.format(mDark),
-            '4900113:m0 = {:g}'.format(4.0 * mDark),
-            '4900213:m0 = {:g}'.format(4.0 * mDark),
-            # dark pion -> up-type quark pairs (2nd + 1st gen, equal BR) => emerging
-            '4900111:oneChannel = 1 0.5 91 {0} -{0}'.format(q2),
-            '4900111:addChannel = 1 0.5 91 {0} -{0}'.format(q1),
-            '4900211:oneChannel = 1 0.5 91 {0} -{0}'.format(q2),
-            '4900211:addChannel = 1 0.5 91 {0} -{0}'.format(q1),
-            # dark rho -> dark pion pair (+ tiny SM leak)
-            '4900113:oneChannel = 1 0.999 0 4900111 4900111',
-            '4900113:addChannel = 1 0.001 91 {0} -{0}'.format(q2),
-            '4900213:oneChannel = 1 0.999 0 4900211 4900211',
-            '4900213:addChannel = 1 0.001 91 {0} -{0}'.format(q2),
-            # lifetime (ctau in mm; scan via 'kappa') + enable pseudoscalar decay
-            '4900111:tau0 = {:g}'.format(self.kappa0),
-            '4900211:tau0 = {:g}'.format(self.kappa0),
-            '4900111:mayDecay = on',
-            '4900211:mayDecay = on',
-        ]
-
 
 
 if __name__ == "__main__":

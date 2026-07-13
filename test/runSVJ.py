@@ -82,19 +82,11 @@ if options.signal:
             if hasattr(process.generator.PythiaParameters,"JetMatchingParameters"):
                 jet_match_settings = ['JetMatching:merge = off']
                 if options.jetmatch:
-                    jet_match_settings = _helper.getJetMatchSettings()
-                    if options.jetmatchQCut > 0:
-                        jet_match_settings = [
-                            'JetMatching:qCut = {:g}'.format(options.jetmatchQCut)
-                            if x.startswith('JetMatching:qCut') else x
-                            for x in jet_match_settings
-                        ]
-                    if options.jetmatchNJetMax >= 0:
-                        jet_match_settings = [
-                            'JetMatching:nJetMax = {:d}'.format(options.jetmatchNJetMax)
-                            if x.startswith('JetMatching:nJetMax') else x
-                            for x in jet_match_settings
-                        ]
+                    # only pass overrides when set: svjHelper overrides getJetMatchSettings() without these parameters
+                    jet_match_kwargs = {}
+                    if options.jetmatchQCut > 0: jet_match_kwargs["qCut"] = options.jetmatchQCut
+                    if options.jetmatchNJetMax >= 0: jet_match_kwargs["nJetMax"] = options.jetmatchNJetMax
+                    jet_match_settings = _helper.getJetMatchSettings(**jet_match_kwargs)
                 process.generator.PythiaParameters.JetMatchingParameters = cms.vstring(jet_match_settings)
             if options.model=="suep":
                 process.generator.UserCustomization = cms.VPSet(
