@@ -187,8 +187,6 @@ class emjHelper(mgHelper):
                 'HiddenValley:fragment = on',
                 # flavors used for the running, tpair value adapted from https://github.com/chscherb/t-channel_dark_QCD
                 'HiddenValley:nFlav = {nflv}'.format(nflv = 7 if self.mode == 'unflavored' else 4 if self.channel == 'tpair' else 3),
-                # implements arXiv:1803.08080 (requires cms-svj pythia fork; only used for aligned mode, needs nFlav = 3)
-                'HiddenValley:altHadronSpecies = {flag}'.format(flag = 'off' if (self.mode == 'unflavored' or self.channel == 'tpair') else 'on'),
                 'HiddenValley:spinFv = 0',    # Spin of bi-fundamental res.
                 'HiddenValley:Lambda = {0}'.format(self.mSqua),
                 'HiddenValley:pTminFSR = {ptmin}'.format(ptmin=1.1 * self.mSqua),
@@ -199,6 +197,9 @@ class emjHelper(mgHelper):
         if self.channel == "tpair":
             # dark FSR coupling from the model authors' example (chscherb/t-channel_dark_QCD)
             lines.append('HiddenValley:alphaFSR = 0.7')
+        else:
+            # implements arXiv:1803.08080 (requires cms-svj pythia fork; not used for tpair)
+            lines.append('HiddenValley:altHadronSpecies = {flag}'.format(flag = 'off' if self.mode == 'unflavored' else 'on'))
 
         if self.mode == "unflavored" and self.channel == "s":
             lines.extend(
