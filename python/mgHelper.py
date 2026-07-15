@@ -24,9 +24,7 @@ class mgHelper(object):
         self.nMediator = nMediator
         self.yukawa = yukawa
 
-    def getJetMatchSettings(self, qCut=None, nJetMax=None):
-        if qCut is None: qCut = 125. # default merging scale
-        if nJetMax is None: nJetMax = 2 # default max parton multiplicity
+    def getJetMatchSettings(self, qCut=125., nJetMax=2):
         lines = [
             'JetMatching:setMad = off', # if 'on', merging parameters are set according to LHE file
             'JetMatching:scheme = 1', # 1 = scheme inspired by Madgraph matching code

@@ -185,8 +185,9 @@ class emjHelper(mgHelper):
                 'HiddenValley:Ngauge = 3',    # Number of dark QCD colors
                 'HiddenValley:FSR = on',
                 'HiddenValley:fragment = on',
-                # flavors used for the running, tpair value adapted from https://github.com/chscherb/t-channel_dark_QCD
-                'HiddenValley:nFlav = {nflv}'.format(nflv = 7 if self.mode == 'unflavored' else 4 if self.channel == 'tpair' else 3),
+                # flavors used for the running: unflavored mode overrides the per-channel values
+                # (tpair value adapted from https://github.com/chscherb/t-channel_dark_QCD)
+                'HiddenValley:nFlav = {nflv}'.format(nflv = 7 if self.mode == 'unflavored' else {"s": 3, "t": 3, "tpair": 4}[self.channel]),
                 'HiddenValley:spinFv = 0',    # Spin of bi-fundamental res.
                 'HiddenValley:Lambda = {0}'.format(self.mSqua),
                 'HiddenValley:pTminFSR = {ptmin}'.format(ptmin=1.1 * self.mSqua),
