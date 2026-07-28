@@ -34,6 +34,7 @@ options.register("l1calo", False, VarParsing.multiplicity.singleton, VarParsing.
 options.register("scout", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("hepmc", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("l1nano", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
+options.register("recopf", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("part", 1, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.register("indir", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("inpre", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)

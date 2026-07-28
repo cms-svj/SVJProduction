@@ -40,7 +40,7 @@ echo "USEFOLDERS: $USEFOLDERS"
 echo ""
 
 if [[ "$MODE" == "madgraph" ]]; then
-	EXE=python
+	EXE=python3
 	SCRIPT=runMG.py
 	FTYPE=.tar.xz
 else

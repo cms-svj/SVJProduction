@@ -1,11 +1,9 @@
-import os
 import numpy as np
+import os
+from SVJ.Production.mgHelper import mgHelper
 
-class emjHelper(object):
+class emjHelper(mgHelper):
     def __init__(self):
-        cols = np.loadtxt(os.path.join(os.path.expandvars('$CMSSW_BASE'),'src/SVJ/Production/test/dict_xsec_pair.txt'))
-        from scipy.interpolate import CubicSpline
-        self.xsecs = CubicSpline(cols[:,0], cols[:,1])
         # Aligned mixing elements
         self.s12 = 0
         self.s13 = 0
@@ -15,14 +13,30 @@ class emjHelper(object):
         self.kap2 = 0
         self.BuildMatrix()
 
-    def setModel(self, channel, mMed, mDark, kappa, mode='aligned', type='down'):
-        self.mMed = mMed
+    def setModel(self, channel, mMediator, mDark, kappa, mode='aligned', type='down', generate=True):
         self.mDark = mDark
-        self.kappa0 = kappa 
+
+        super().__init__(
+            model="emj",
+            mMediator = mMediator,
+            mSqua = 2.0 * self.mDark,
+            boost = 0.0,
+            boostvar = "",
+            sepproc = False,
+            nMediator = None,
+            yukawa = None,
+        )
+
+        self.kappa0 = kappa
         self.mode = mode
         self.type = type
-        self.xsec = self.xsecs(self.mMed)*3 # number of colors
         self.channel = channel
+      
+        
+        if channel!="s" and channel!="t": raise ValueError("Unknown channel: "+channel)
+        
+        # Define MadGraph template folder for s-channel EMJ. t-channel MadGraph support not implemented yet, but keep the channel dependent support for future 
+        self.mg_name = "DMsimp_SVJ_s_spin1" if channel=="s" else "DMsimp_SVJ_t" if channel=="t" else ""
 
         # Checking the alignment mode
         if self.mode == 'aligned':
@@ -46,6 +60,18 @@ class emjHelper(object):
             self.sm_mass = [0.0023, 1.275, 173.21]
         else:
             raise ValueError('Type {} not recognized'.format(self.type))
+
+
+        # xsec table file
+        xsec_file = "dict_xsec_Zprime.txt" if channel == "s" else "dict_xsec_pair.txt"
+        cols = np.loadtxt(os.path.join(os.path.expandvars('$CMSSW_BASE'),'src/SVJ/Production/test/',xsec_file))
+        print('channel:',channel,', xsec file:', xsec_file)
+
+        from scipy.interpolate import CubicSpline
+        self.xsecs = CubicSpline(cols[:,0], cols[:,1])
+        num_colors = 3 if channel == "t" else 1
+        self.xsec = self.xsecs(self.mMediator) * num_colors 
+
         return
 
     def BuildMatrix(self):
@@ -78,7 +104,7 @@ class emjHelper(object):
 
         if signal:
             _outname += '_{}-channel'.format(self.channel)
-            _outname += '_mMed-{:g}'.format(self.mMed)
+            _outname += '_mMed-{:g}'.format(self.mMediator)
             _outname += '_mDark-{:g}'.format(self.mDark)
             _outname += '_{}-{:g}'.format(
                 'kappa' if self.mode != 'unflavored' else 'ctau', self.kappa0)
@@ -92,7 +118,7 @@ class emjHelper(object):
 
     def gamma_pre(self):
         form = self.mDark
-        return (3 * self.mDark * form**2) / (32 * np.pi * self.mMed**4)
+        return (3 * self.mDark * form**2) / (32 * np.pi * self.mMediator**4)
 
     def mass_factor(self, m1, m2):
         if (m1 + m2) * 1.05 > self.mDark:
@@ -154,16 +180,16 @@ class emjHelper(object):
                 # implements arXiv:1803.08080
                 'HiddenValley:altHadronSpecies = {flag}'.format(flag = 'off' if self.mode == 'unflavored' else 'on'),
                 'HiddenValley:spinFv = 0',    # Spin of bi-fundamental res.
-                'HiddenValley:Lambda = {0}'.format(2 * self.mDark),
-                'HiddenValley:pTminFSR = {ptmin}'.format(ptmin=2.2 * self.mDark),
-                '4900101:m0 = {mass}'.format(mass=2 * self.mDark),
+                'HiddenValley:Lambda = {0}'.format(self.mSqua),
+                'HiddenValley:pTminFSR = {ptmin}'.format(ptmin=1.1 * self.mSqua),
+                '4900101:m0 = {mass}'.format(mass=self.mSqua),
             ]
         )
 
         if self.mode == "unflavored" and self.channel == "s":
             lines.extend(
                 [
-                    '4900023:m0 = {mMed}'.format(mMed=self.mMed),
+                    '4900023:m0 = {mMediator}'.format(mMediator=self.mMediator),
                     '4900023:mWidth = 0.01',  # Width of the Z' boson
                     '4900023:oneChannel = 1 0.982 102 4900101 -4900101',
                     '4900023:addChannel = 1 0.003 102 1 -1',
@@ -185,7 +211,7 @@ class emjHelper(object):
         if self.channel == "t":
             lines.extend([
                 # Mass of bi-fundamental resonance
-                '4900001:m0 = {mass}'.format(mass=self.mMed),
+                '4900001:m0 = {mass}'.format(mass=self.mMediator),
                 # Width of bi-fundamental resonance
                 '4900001:mWidth = 10',
             ])
@@ -300,12 +326,14 @@ class emjHelper(object):
             # Dummy return statement
             return []
 
+
+
 if __name__ == "__main__":
     import argparse, re
     helper = emjHelper()
 
     parser = argparse.ArgumentParser('Calculation debugging for Emerging jets pythia settings')
-    parser.add_argument('--mMed', default=1000, type=float, help='Dark mediator mass [GeV]')
+    parser.add_argument('--mMediator', default=1000, type=float, help='Dark mediator mass [GeV]')
     parser.add_argument('--kappa', default=1, type=float, help='Kappa0 squared (factor to scale decay lifetime)')
     parser.add_argument('--mDark', default=10, type=float, help='Dark meson mass [GeV]')
     parser.add_argument('--type', default='down', type=str, choices=['down', 'up'], help='Alignment to SM up/down type SM quarks')
@@ -317,7 +345,7 @@ if __name__ == "__main__":
 
     if args.cmd == 'dumptime':
         for mDark in np.linspace(1.6, 100, 1000, endpoint=True):
-            helper.setModel(args.channel, args.mMed, mDark, args.kappa, args.mode, args.type)
+            helper.setModel(args.channel, args.mMediator, mDark, args.kappa, args.mode, args.type)
             tau = [
                 x for x in helper.getPythiaSettings()
                 if re.match(r'^4900[12]1[13]:tau0', x)
@@ -332,7 +360,8 @@ if __name__ == "__main__":
 
             print('{:10g} {:16g} {:16g} {:16g} {:16g}'.format(mDark, get_time(4900111), get_time(4900113), get_time(4900211), get_time(4900213)))
     elif args.cmd == 'dumpcard':
-        helper.setModel(args.channel, args.mMed, args.mDark, args.kappa, args.mode, args.type)
+        helper.setModel(args.channel, args.mMediator, args.mDark, args.kappa, args.mode, args.type)
         for line in helper.getPythiaSettings():
             print(line)
+
 
