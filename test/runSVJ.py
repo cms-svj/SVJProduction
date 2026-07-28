@@ -262,12 +262,21 @@ if options.scout and "MINIAOD" in options.config:
     add_outputs([
         'keep *_hltScouting*_*_*',
     ])
-if options.recopf and 'MINIAOD' in options.config:
-    add_outputs([ # Keeping the RECO level information for the custom NanoAOD
-        'keep *_reducedHcalRecHits_*_*', # For HCAL timing information
-        'keep *_particleFlow_*_*', # For more detailed PF Candidate
-        'keep *_offlinePrimaryVertices_*_*', # Required for tracking information of PF Candidates
-    ])
+if options.recopf:
+    common_retain = [
+        'keep *PFBlock*_*_*_*',
+        'keep *PFCluster*_*_*_*',
+        'keep *PFRecHit*_*_*_*',
+    ]
+    if 'RECO' in options.config:
+        add_outputs(common_retain)
+    if 'MINIAOD' in options.config:
+        add_outputs(common_retain + [
+             # Keeping the RECO level information for the custom NanoAOD
+            'keep *_reducedHcalRecHits_*_*', # For HCAL timing information
+            'keep *_particleFlow_*_*', # For more detailed PF Candidate
+            'keep *_offlinePrimaryVertices_*_*', # Required for tracking information of PF Candidates
+        ])
 
 if options.hepmc and any(cfg in options.config for cfg in ["LHE","GEN","SIM","DIGI","HLT","RECO","MINI"]):
     add_outputs([
