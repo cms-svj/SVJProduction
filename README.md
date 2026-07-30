@@ -81,6 +81,9 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `madgraph=[bool]`: generation with MadGraph (instead of default Pythia8)
 * `nogridpack=[bool]`: disable gridpack mode and just generate events (only for `runMG`) (default = False)
 * `syst=[bool]`: enable systematics for generation with MadGraph (used in LHE step) (default = False)
+* `jetmatch=[bool]`: enable Pythia MLM jet matching for MadGraph samples; disable for inclusive samples w/o extra-jet processes, e.g. `tpair` (default = True)
+* `jetmatchQCut=[val]`: override `JetMatching:qCut` merging scale [GeV] (default = -1.0 -> use model default)
+* `jetmatchNJetMax=[num]`: override `JetMatching:nJetMax` max parton multiplicity (default = -1 -> use model default)
 * `model=[string]`: which dark QCD model to simulate (default = svj, alternative = suep, emj)
     * SVJ parameters:
         * `channel=[string]`: process to generate (default = s, alternative = t)
@@ -102,9 +105,10 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
         * `decay=[string]`: decay mode for SUEP model (default = generic, alternative = darkPho, darkPhoHad)
         * `filterHT=[val]`: value of the gen-level HT cut on the SUEP analysis (default = -1.0, no cut)
     * EMJ parameters:
+        * `channel=[string]`: process to generate (default = s, alternative = t, tpair = QCD pair prod. of top-philic scalar mediator X)
         * `mMediator=[val]`: mediator mass value (default = 3000.0)
         * `mDark=[val]`: dark hadron mass value (default = 20.0)
-        * `kappa=[val]`: kappa0 coupling (for aligned mode) or ctau lifetime [mm] (for unflavored mode) (default = 1.0)
+        * `kappa=[val]`: kappa0 coupling (for aligned mode) or ctau lifetime [mm] (for unflavored mode or tpair channel) (default = 1.0)
         * `mode=[string]`: mixing scenario to use (default = aligned, alternative = unflavored)
         * `type=[string]`: SM quark coupling type (default = down, alternative = up)
 * `l1calo=[bool]`: keep L1 calo info through miniAOD, and run CICADA in nanoAOD (default = False)

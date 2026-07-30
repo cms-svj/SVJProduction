@@ -1,0 +1,11 @@
+#************************************************************
+# MadGraph5_aMC@NLO process card  (templated for SVJProduction)
+# top-philic up-type t-channel mediator X (PDG 4900002, colour-triplet scalar)
+# QCD pair production via s-channel gluon: p p > g > x x~  (kappa-independent)
+# X -> top + dark quark is done in Pythia (HiddenValley); 2t + 2 emerging jets.
+#************************************************************
+import model $modelName
+define p = g u c d s b u~ c~ d~ s~ b~
+define j = g u c d s b u~ c~ d~ s~ b~
+generate p p > g > x x~ QCD=2 QED=0 NP=0
+output $modelName
