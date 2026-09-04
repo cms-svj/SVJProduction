@@ -97,6 +97,7 @@ if __name__=="__main__":
         ("MGv11",["LHE-GEN-SIM","DIGI","RECO","MINIAODv3","NANOAODv11"]),
         ("P8v12",["GEN-SIM","DIGI","RECO","MINIAODv4","NANOAODv12"]),
         ("MGv12",["LHE-GEN-SIM","DIGI","RECO","MINIAODv4","NANOAODv12"]),
+        ("MGv15",["LHE-GEN-SIM","DIGI","RECO","MINIAODv6","NANOAODv15"]),
     ])
     desc = ["runProd.py prepares and executes batch submission for a chain of steps to produce specified signal samples.","Several predefined chains are provided (and can be modified with command-line options):"]
     desc += ["{}: {}".format(key, ", ".join("{}. {}".format(istep, step) for istep, step in enumerate(val))) for key,val in predefined_chains.items()]
@@ -159,10 +160,13 @@ if __name__=="__main__":
     this_env = {key:os.getenv(key) for key in env_keys}
     step_versions = {
         "2022": defaultdict(lambda: {"CMSSW_VERSION": "CMSSW_12_4_17"})
+        "2024": defaultdict(lambda: {"CMSSW_VERSION": "CMSSW_14_0_21"})
     }
     step_versions["2022"]["NANOAODv11"] = {"CMSSW_VERSION": "CMSSW_12_6_5"}
     step_versions["2022"]["MINIAODv4"] = {"CMSSW_VERSION": "CMSSW_13_0_13"}
     step_versions["2022"]["NANOAODv12"] = {"CMSSW_VERSION": "CMSSW_13_0_13"}
+    step_versions["2024"]["MINIAODv6"] = {"CMSSW_VERSION": "CMSSW_15_0_4"}
+    step_versions["2024"]["NANOAODv15"] = {"CMSSW_VERSION": "CMSSW_15_0_5"}
     step_versions["2022EE"] = deepcopy(step_versions["2022"])
 
     # create and copy tarball for other CMSSW versions
