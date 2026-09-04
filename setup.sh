@@ -202,7 +202,7 @@ install_CMSSW(){
 	elif [[ $THIS_CMSSW = CMSSW_13_0_* ]]; then
 		install_tools "CICADA" "hls4mlEmulatorExtras CICADA"
 		git cms-merge-topic -u cms-svj:CICADA_backport-13_0_13_from_14_0_0_pre2_Paper_Mods
-  elif [[ $THIS_CMSSW = "CMSSW_14_0_*" ]]; then
+	elif [[ $THIS_CMSSW = CMSSW_14_0_* ]]; then
 		install_tools "main" "pythia8 evtgen tauolapp"
 	fi
 

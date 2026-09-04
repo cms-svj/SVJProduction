@@ -97,6 +97,7 @@ if __name__=="__main__":
         ("MGv11",["LHE-GEN-SIM","DIGI","RECO","MINIAODv3","NANOAODv11"]),
         ("P8v12",["GEN-SIM","DIGI","RECO","MINIAODv4","NANOAODv12"]),
         ("MGv12",["LHE-GEN-SIM","DIGI","RECO","MINIAODv4","NANOAODv12"]),
+        ("P8v15",["GEN-SIM","DIGI","RECO","MINIAODv6","NANOAODv15"]),
         ("MGv15",["LHE-GEN-SIM","DIGI","RECO","MINIAODv6","NANOAODv15"]),
     ])
     desc = ["runProd.py prepares and executes batch submission for a chain of steps to produce specified signal samples.","Several predefined chains are provided (and can be modified with command-line options):"]
