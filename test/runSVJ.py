@@ -231,6 +231,7 @@ if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNo
 # DIGI settings
 if hasattr(process,"mixData"):
     if options.year.startswith("2022"): puname = "Neutrino_E-10_gun_Run3Summer21PrePremix-Summer22_124X_mcRun3_2022_realistic_v11-v2_PREMIX.pkl"
+    if options.year.startswith("2024"): puname = "Neutrino_E-10_gun_RunIIISummer24PrePremix-Premixlib2024_140X_mcRun3_2024_realistic_v26-v1_PREMIX.pkl"
     else: raise ValueError("Unknown premix dataset for year {}".format(options.year))
     if not os.path.isfile(puname):
         print("retrieving "+puname)
