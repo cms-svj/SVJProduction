@@ -159,7 +159,7 @@ if __name__=="__main__":
     env_keys = ["CMSSW_VERSION", "SCRAM_ARCH"]
     this_env = {key:os.getenv(key) for key in env_keys}
     step_versions = {
-        "2022": defaultdict(lambda: {"CMSSW_VERSION": "CMSSW_12_4_17"})
+        "2022": defaultdict(lambda: {"CMSSW_VERSION": "CMSSW_12_4_17"}),
         "2024": defaultdict(lambda: {"CMSSW_VERSION": "CMSSW_14_0_21"})
     }
     step_versions["2022"]["NANOAODv11"] = {"CMSSW_VERSION": "CMSSW_12_6_5"}
