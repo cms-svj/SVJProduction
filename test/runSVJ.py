@@ -267,6 +267,8 @@ if options.recopf:
         'keep *PFBlock*_*_*_*',
         'keep *PFCluster*_*_*_*',
         'keep *PFRecHit*_*_*_*',
+        'keep *_*_hbhereco_*',
+        'keep *_hbhereco_*_*',
     ]
     if 'RECO' in options.config:
         add_outputs(common_retain)
