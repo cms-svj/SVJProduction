@@ -352,6 +352,7 @@ class svjHelper(mgHelper):
             'HiddenValley:FSR = on',
             'HiddenValley:fragment = on',
             'HiddenValley:alphaOrder = 1',
+            'HiddenValley:setLambda = on',
             'HiddenValley:Lambda = {:g}'.format(self.lambdaHV),
             'HiddenValley:nFlav = {:d}'.format(self.n_f),
             'HiddenValley:probVector = 0.75',
