@@ -198,9 +198,9 @@ class emjHelper(mgHelper):
         if self.channel == "tpair":
             # dark FSR coupling from the model authors' example (chscherb/t-channel_dark_QCD)
             lines.append('HiddenValley:alphaFSR = 0.7')
+            lines.append('HiddenValley:separateFlav = on')
         else:
-            # implements arXiv:1803.08080 (requires cms-svj pythia fork; not used for tpair)
-            lines.append('HiddenValley:altHadronSpecies = {flag}'.format(flag = 'off' if self.mode == 'unflavored' else 'on'))
+            lines.append('HiddenValley:separateFlav = {flag}'.format(flag = 'off' if self.mode == 'unflavored' else 'on'))
 
         if self.mode == "unflavored" and self.channel == "s":
             lines.extend(
