@@ -1,4 +1,4 @@
-import os,subprocess,shlex,glob
+                import os,subprocess,shlex,glob
 from copy import deepcopy
 from collections import OrderedDict, defaultdict
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, RawTextHelpFormatter, RawDescriptionHelpFormatter, _AppendAction
@@ -154,6 +154,7 @@ if __name__=="__main__":
     else: keep_output = [pos_name if isinstance(pos_name,str) else chain[pos_name] for pos_name in args.store]
     local_opts = defaultdict(str)
     for key,val in args.local:
+        print(key,val)
         local_opts[key if isinstance(key,str) else chain[key]] = val
 
     # list of CMSSW versions for different steps
