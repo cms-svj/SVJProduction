@@ -11,6 +11,7 @@ YEAR=2022
 declare -A CMSSW_YEARS
 CMSSW_YEARS[2022]="CMSSW_12_4_17,CMSSW_12_6_5,CMSSW_13_0_13"
 CMSSW_YEARS[2023]="CMSSW_13_0_13"
+CMSSW_YEARS[2024]="CMSSW_14_0_21,CMSSW_15_0_4,CMSSW_15_0_5"
 WHICH_CMSSW=
 FORK=cms-svj
 BRANCH=Run3
@@ -156,6 +157,12 @@ install_CMSSW(){
 	;;
 	CMSSW_13_0_*)
 		export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc11
+	;;
+	CMSSW_14_0_*)
+		export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc12
+	;;
+	CMSSW_15_0_*)
+		export SCRAM_ARCH=${SLC_VERSION}_amd64_gcc12
 	;;
 	*)
 		$ECHO "Unknown architecture for release $THIS_CMSSW"
