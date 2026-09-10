@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import subprocess
 from SVJ.Production.mgHelper import mgHelper
 
 class emjHelper(mgHelper):
@@ -206,7 +207,8 @@ class emjHelper(mgHelper):
                 'HiddenValley:Lambda = {0}'.format(self.mSqua),
                 # implements arXiv:1803.08080 (requires cms-svj pythia fork; not used for tpair)
             ])
-        flagname = 'altHadronSpecies' if True else 'separateFlav'
+        pythia8_version = int(next(l for l in subprocess.check_output(['scram', 'tool', 'info', 'pythia8']).decode('utf-8').split('\n') if l.startswith("Ver")).split(" : ")[1].split("-")[0])
+        flagname = 'altHadronSpecies' if pythia8_version < 309 else 'separateFlav'
         lines.append('HiddenValley:{flagname} = {flag}'.format(flagname=flagname, flag = 'off' if self.mode == 'unflavored' else 'on'))
 
         if self.mode == "unflavored" and self.channel == "s":
