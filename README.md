@@ -268,6 +268,7 @@ Several predefined chains are provided:
 | MGv11 | 0. LHE-GEN-SIM | 1. DIGI | 2. RECO | 3. MINIAODv3 | 4. NANOAODv11 |
 | P8v12 | 0. GEN-SIM     | 1. DIGI | 2. RECO | 3. MINIAODv4 | 4. NANOAODv12 |
 | MGv12 | 0. LHE-GEN-SIM | 1. DIGI | 2. RECO | 3. MINIAODv4 | 4. NANOAODv12 |
+| M8v15 | 0. LHE-GEN     | 1. DIGI | 2. RECO | 3. MINIAODv6 | 4. NANOAODv15 |
 | MGv15 | 0. LHE-GEN-SIM | 1. DIGI | 2. RECO | 3. MINIAODv6 | 4. NANOAODv15 |
 
 These predefined chains can be modified with the script's command-line options, or (as an exclusive option) a custom chain of steps can be used.
