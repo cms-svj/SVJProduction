@@ -367,7 +367,7 @@ cmsDriver.py  --eventcontent NANOAODSIM  --datatier NANOAODSIM --fileout file:st
 ```
 </details>
 
-These commands are based on the `RunIII2024Summer24` campaign, particularly the `QCD-Bin-PT*` samples on [McM](https://cms-pdmv-prod.web.cern.ch/mcm/requests?page=0&dataset_name=QCD_Bin-PT-1000to1500_TuneCP5_13p6TeV_pythia8):
+These commands are based on the `RunIII2024Summer24` campaign, particularly the `QCD-Bin-PT*` samples on [McM](https://cms-pdmv-prod.web.cern.ch/mcm/chained_requests?prepid=GEN-chain_RunIII2024Summer24GS_flowRunIII2024Summer24DRPremix_flowRunIII2024Summer24MiniAODv6_flowRunIII2024Summer24NanoAODv15-00076&page=0&shown=15):
 The steps are: LHE-GEN, LHE-GEN-SIM, GEN, GEN-SIM, SIM, DIGI, DIGI-HLT, HLT, RECO, MINIAOD (v6), NANOAOD (v15).
 
 <details>
