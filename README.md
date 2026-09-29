@@ -81,7 +81,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `fragment=[string]`: name of file w/ `processParameters` fragment
 * `madgraph=[bool]`: generation with MadGraph (instead of default Pythia8)
 * `nogridpack=[bool]`: disable gridpack mode and just generate events (only for `runMG`) (default = False)
-* `syst=[bool]`: enable systematics for generation with MadGraph (used in LHE step) (default = False)
+* `syst=[bool]`: enable systematics for generation with MadGraph (used in LHE step) (default = True)
 * `jetmatch=[bool]`: enable Pythia MLM jet matching for MadGraph samples; disable for inclusive samples w/o extra-jet processes, e.g. `tpair` (default = True)
 * `jetmatchQCut=[val]`: override `JetMatching:qCut` merging scale [GeV] (default = -1.0 -> use model default)
 * `jetmatchNJetMax=[num]`: override `JetMatching:nJetMax` max parton multiplicity (default = -1 -> use model default)
