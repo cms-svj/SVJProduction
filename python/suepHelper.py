@@ -38,7 +38,7 @@ class suepHelper(object):
             _outname += "_temp-{:g}".format(self.temperature)
             _outname += "_decay-{}".format(self.decay)
         # todo: include tune in name? depends on year
-        _outname += "_13TeV-pythia8"
+        _outname += "_13p6TeV-pythia8"
         if events>0: _outname += "_n-{:g}".format(events)
         if part is not None:
             _outname += "_part-{:g}".format(part)
