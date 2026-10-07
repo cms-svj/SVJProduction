@@ -1,5 +1,6 @@
 import os, math
 from SVJ.Production.mgHelper import mgHelper
+from SVJ.Production.pythiaInfo import pythiaInfo
 
 class quark(object):
     def __init__(self,id,mass):
@@ -352,11 +353,15 @@ class svjHelper(mgHelper):
             'HiddenValley:FSR = on',
             'HiddenValley:fragment = on',
             'HiddenValley:alphaOrder = 1',
-            'HiddenValley:setLambda = on',
             'HiddenValley:Lambda = {:g}'.format(self.lambdaHV),
             'HiddenValley:nFlav = {:d}'.format(self.n_f),
             'HiddenValley:probVector = 0.75',
         ]
+        if pythiaInfo.useSetLambda():
+            lines_decay += [
+                'HiddenValley:setLambda = on'
+            ]
+
         # branching - effective rinv (applies to all meson species b/c n_f >= 2)
         # pseudoscalars have mass insertion decay, vectors have democratic decay
         lines_decay += self.invisibleDecay(4900111,51)

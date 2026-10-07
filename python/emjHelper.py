@@ -1,6 +1,7 @@
 import numpy as np
 import os
 from SVJ.Production.mgHelper import mgHelper
+from SVJ.Production.pythiaInfo import pythiaInfo
 
 class emjHelper(mgHelper):
     def __init__(self):
@@ -196,13 +197,19 @@ class emjHelper(mgHelper):
 
         if self.channel == "tpair":
             # dark FSR coupling from the model authors' example (chscherb/t-channel_dark_QCD)
+            if pythiaInfo.useSetLambda():
+                lines.extend([
+                    'HiddenValley:setLambda = off',
+                ])
             lines.extend([
-                'HiddenValley:setLambda = off',
                 'HiddenValley:alphaFSR = 0.7',
             ])
         else:
+            if pythiaInfo.useSetLambda():
+                lines.extend([
+                    'HiddenValley:setLambda = on',
+                ])
             lines.extend([
-                'HiddenValley:setLambda = on',
                 'HiddenValley:Lambda = {0}'.format(self.mSqua),
                 # implements arXiv:1803.08080 (requires cms-svj pythia fork; not used for tpair)
                 'HiddenValley:altHadronSpecies = {flag}'.format(flag = 'off' if self.mode == 'unflavored' else 'on'),
