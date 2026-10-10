@@ -4,7 +4,20 @@ import subprocess
 from SVJ.Production.mgHelper import mgHelper
 from SVJ.Production.pythiaInfo import pythiaInfo
 
+from scipy.interpolate import CubicSpline
+
 class emjHelper(mgHelper):
+    # MadGraph template folder for each channel
+    MG_DICT = {
+        "s": "DMsimp_SVJ_s_spin1",
+        "t": "DMsimp_SVJ_t",
+        "tpair": "darkQCD_fv_up", # QCD pair prod. of top-philic scalar mediator X
+    }
+    SM_COUPLING = {
+        'down': ([1,3,5], [0.0048, 0.093, 4.18]),
+        'up': ([2, 4, 6], [0.0023, 1.275, 173.21])
+    }
+
     def __init__(self):
         # Aligned mixing elements
         self.s12 = 0
@@ -28,62 +41,61 @@ class emjHelper(mgHelper):
             nMediator = None,
             yukawa = None,
         )
-
         self.kappa0 = kappa
         self.mode = mode
         self.type = type
         self.channel = channel
-      
-        
-        # MadGraph template folder for each channel
-        mg_names = {
-            "s": "DMsimp_SVJ_s_spin1",
-            "t": "DMsimp_SVJ_t",
-            "tpair": "darkQCD_fv_up", # QCD pair prod. of top-philic scalar mediator X
-        }
-        if channel not in mg_names: raise ValueError("Unknown channel: "+channel)
+
+        # Validity check of configurations
+        assert self.channel in emjHelper.MG_DICT.keys(), "Unknown channel"
+        assert self.mode in ['aligned', 'unflavored'], "Unrecognized mode"
+        assert self.type in emjHelper.SM_COUPLING.keys(), "Unknown coupling type"
+
         # the tpair MadGraph model (darkQCD_fv_up) and mediator decay X -> t + dark quark are up-type only
-        if channel=="tpair" and type!="up": raise ValueError("channel=tpair only supports type=up, got: "+type)
-        self.mg_name = mg_names[channel]
-
-        # Checking the alignment mode
-        if self.mode == 'aligned':
-            self.s12 = 0
-            self.s13 = 0
-            self.s23 = 0
-            self.kap1 = 0
-            self.kap2 = 0
-        elif self.mode == 'unflavored':
-            pass
-        else:
-            raise ValueError('Mode {} not recognized'.format(self.mode))
-        self.BuildMatrix()
-
-        # Checking the coupling type
-        if self.type == 'down':
-            self.sm_id = [1, 3, 5]
-            self.sm_mass = [0.0048, 0.093, 4.18]
-        elif self.type == 'up':
-            self.sm_id = [2, 4, 6]
-            self.sm_mass = [0.0023, 1.275, 173.21]
-        else:
-            raise ValueError('Type {} not recognized'.format(self.type))
+        if self.channel=="tpair" and type!="up": raise ValueError("channel=tpair only supports type=up, got: "+type)
 
 
-        # xsec table file
-        xsec_file = "dict_xsec_Zprime.txt" if channel == "s" else "dict_xsec_pair.txt"
+    """Extended properties"""
+    @property
+    def mg_name(self)->str:
+        return emjHelper.MG_DICT[self.channel]
+
+    @property
+    def sm_id(self)->list[int]: # PGDID list of coupled SM quarks
+        return emjHelper.SM_COUPLING[self.type][0]
+
+    @property
+    def sm_mass(self)->list[float]: #PDG mass of coupled SM quarks
+        return emjHelper.SM_COUPLING[self.type][0]
+
+    @property
+    def xsec(self)->float:
+        xsec_file = "dict_xsec_Zprime.txt" if self.channel == "s" else "dict_xsec_pair.txt"
         cols = np.loadtxt(os.path.join(os.path.expandvars('$CMSSW_BASE'),'src/SVJ/Production/test/',xsec_file))
-        print('channel:',channel,', xsec file:', xsec_file)
+        xsec_spline = CubicSpline(cols[:,0], cols[:,1])
+        num_med_colors = 3 if self.channel in ("t","tpair") else 1
+        return xsec_spline(self.mMediator) * num_med_colors
 
-        from scipy.interpolate import CubicSpline
-        self.xsecs = CubicSpline(cols[:,0], cols[:,1])
-        num_colors = 3 if channel in ("t","tpair") else 1
-        self.xsec = self.xsecs(self.mMediator) * num_colors 
+    """Output filename settings"""
+    def getOutName(self, signal=True, events=0, outpre='outpre', part=None, sanitize=False, gridpack=False):
+        _outname = outpre
+        if signal:
+            _outname += '_{}-channel'.format(self.channel)
+            _outname += '_mMed-{:g}'.format(self.mMediator)
+            _outname += '_mDark-{:g}'.format(self.mDark)
+            _outname += '_{}-{:g}'.format(
+                'ctau' if (self.mode == 'unflavored' or self.channel == 'tpair') else 'kappa', self.kappa0)
+            _outname += '_{}-{}'.format(self.mode, self.type)
+        if events > 0: _outname += '_n-{:g}'.format(events)
+        if part is not None:
+            _outname += '_part-{:g}'.format(part)
+        if sanitize:
+            _outname = _outname.replace("-","_").replace(".","p")
+        return _outname
 
-        return
-
+    """Flavored coupling mixing matrix relatied items"""
     def BuildMatrix(self):
-        # Generatin the mixing matrix
+        # Generating the mixing matrix
         self.U12 = np.matrix([
             [np.sqrt(1 - self.s12**2), self.s12, 0],
             [-self.s12, np.sqrt(1 - self.s12**2), 0],
@@ -106,23 +118,6 @@ class emjHelper(mgHelper):
         ])
         self.kappa = self.U12 * self.U13 * self.U23 * self.D
         self.kNorm = float(np.square(self.kappa).sum())
-
-    def getOutName(self, signal=True, events=0, outpre='outpre', part=None, sanitize=False, gridpack=False):
-        _outname = outpre
-
-        if signal:
-            _outname += '_{}-channel'.format(self.channel)
-            _outname += '_mMed-{:g}'.format(self.mMediator)
-            _outname += '_mDark-{:g}'.format(self.mDark)
-            _outname += '_{}-{:g}'.format(
-                'ctau' if (self.mode == 'unflavored' or self.channel == 'tpair') else 'kappa', self.kappa0)
-            _outname += '_{}-{}'.format(self.mode, self.type)
-        if events > 0: _outname += '_n-{:g}'.format(events)
-        if part is not None:
-            _outname += '_part-{:g}'.format(part)
-        if sanitize:
-            _outname = _outname.replace("-","_").replace(".","p")
-        return _outname
 
     def gamma_pre(self):
         form = self.mDark
@@ -158,167 +153,116 @@ class emjHelper(mgHelper):
             ans = ans * self.mass_factor(m1, m2)
             return ans
 
+    """Pythia settings"""
     def getPythiaSettings(self):
-        lines = [
-            'ParticleDecays:xyMax = 30000',    # in mm/c
-            'ParticleDecays:zMax = 30000',    # in mm/c
-            'ParticleDecays:limitCylinder = on',    # yes
+        return [
+            *self._pythia_decay_range(),
+            # Common dark sector configurations
+            'HiddenValley:alphaOrder = 1',    # Let it run
+            'HiddenValley:Ngauge = 3',    # Number of dark QCD colors
+            'HiddenValley:FSR = on',
+            'HiddenValley:fragment = on',
+            'HiddenValley:nFlav = {nflv}'.format(nflv = self._pythia_hv_nFlav()),
+            'HiddenValley:spinFv = 0',    # Spin of bi-fundamental res.
+            'HiddenValley:pTminFSR = {ptmin}'.format(ptmin=1.1 * self.mSqua),
+            '4900101:m0 = {mass}'.format(mass=self.mSqua),
+            self._pythia_flavorflag(),
+            *self._pythia_hv_lambda(), # Lambda settings depend on channel of interest
+            # Main resonance production productions
+            *self.MakeRes(),
+            # Dark sector decay configurations
+            *self.MakeDecay(),
         ]
 
-        if self.channel == "t":
-            t_process = [
-                'HiddenValley:gg2DvDvbar = on',    # gg fusion
-                'HiddenValley:qqbar2DvDvbar = on',    # qqbar annihilation
-            ]
-            lines.extend(t_process)
-        elif self.channel == "s":
-            s_process = [
-                'HiddenValley:ffbar2Zv = on'
-            ]
-            lines.extend(s_process)
-        elif self.channel == "tpair":
-            # mediator pairs come from the MadGraph LHE: no Pythia production process,
-            # but let the SLHA block from the LHE override particle data (mediator mass)
-            lines.extend(['SLHA:allowUserOverride = on'])
+    def _pythia_decay_range(self)->list[str]:
+        return [
+            'ParticleDecays:xyMax = 30000',   # in mm/c
+            'ParticleDecays:zMax = 30000',    # in mm/c
+            'ParticleDecays:limitCylinder = on',
+        ]
 
-        lines.extend(
-            [
-                'HiddenValley:alphaOrder = 1',    # Let it run
-                'HiddenValley:Ngauge = 3',    # Number of dark QCD colors
-                'HiddenValley:FSR = on',
-                'HiddenValley:fragment = on',
-                # flavors used for the running: unflavored mode overrides the per-channel values
-                # (tpair value adapted from https://github.com/chscherb/t-channel_dark_QCD)
-                'HiddenValley:nFlav = {nflv}'.format(nflv = 7 if self.mode == 'unflavored' else {"s": 3, "t": 3, "tpair": 4}[self.channel]),
-                'HiddenValley:spinFv = 0',    # Spin of bi-fundamental res.
-                'HiddenValley:pTminFSR = {ptmin}'.format(ptmin=1.1 * self.mSqua),
-                '4900101:m0 = {mass}'.format(mass=self.mSqua),
-            ]
+    def _pythia_hv_nFlav(self)->int:
+        # flavors used for the running: unflavored mode overrides the per-channel values
+        # (tpair value adapted from https://github.com/chscherb/t-channel_dark_QCD)
+        if self.mode == 'unflavored':
+            return 7
+        return {"s": 3, "t": 3, "tpair": 4}[self.channel]
+
+    def _pythia_hv_lambda(self)->list[str]:
+        lambda_lines = [
+            'HiddenValley:Lambda = {0}'.format(self.mSqua),
+        ] if self.channel != "tpair" else [
+            'HiddenValley:alphaFSR = 0.7',
+        ]
+        if pythiaInfo.useSetLambda():
+            lambda_lines.extend([
+                'HiddenValley:setLambda = {x}'.format(x='off' if self.channel == 'tpair' else 'on'),
+            ])
+        return lambda_lines
+
+    def _pythia_flavorflag(self)->str:
+        return 'HiddenValley:{flagname} = {flag}'.format(
+            flagname=pythiaInfo.emjFlavoredFlagname(),
+            flag = 'off' if self.mode == 'unflavored' else 'on'
         )
 
-        if self.channel == "tpair":
-            # dark FSR coupling from the model authors' example (chscherb/t-channel_dark_QCD)
-            if pythiaInfo.useSetLambda():
-                lines.extend([
-                    'HiddenValley:setLambda = off',
-                ])
-            lines.extend([
-                'HiddenValley:alphaFSR = 0.7',
-            ])
-        else:
-            if pythiaInfo.useSetLambda():
-                lines.extend([
-                    'HiddenValley:setLambda = on',
-                ])
-            lines.extend([
-                'HiddenValley:Lambda = {0}'.format(self.mSqua),
-                # implements arXiv:1803.08080 (requires cms-svj pythia fork; not used for tpair)
-                'HiddenValley:altHadronSpecies = {flag}'.format(flag = 'off' if self.mode == 'unflavored' else 'on'),
-            ])
-        pythia8_version = int(next(l for l in subprocess.check_output(['scram', 'tool', 'info', 'pythia8'], cwd=os.getenv('CMSSW_BASE')).decode('utf-8').split('\n') if l.startswith("Ver")).split(" : ")[1].split("-")[0])
-        flagname = 'altHadronSpecies' if pythia8_version < 309 else 'separateFlav'
-        lines.append('HiddenValley:{flagname} = {flag}'.format(flagname=flagname, flag = 'off' if self.mode == 'unflavored' else 'on'))
-
-        if self.mode == "unflavored" and self.channel == "s":
-            lines.extend(
-                [
-                    '4900023:m0 = {mMediator}'.format(mMediator=self.mMediator),
-                    '4900023:mWidth = 0.01',  # Width of the Z' boson
-                    '4900023:oneChannel = 1 0.982 102 4900101 -4900101',
-                    '4900023:addChannel = 1 0.003 102 1 -1',
-                    '4900023:addChannel = 1 0.003 102 2 -2',
-                    '4900023:addChannel = 1 0.003 102 3 -3',
-                    '4900023:addChannel = 1 0.003 102 4 -4',
-                    '4900023:addChannel = 1 0.003 102 5 -5',
-                    '4900023:addChannel = 1 0.003 102 6 -6',
-                ]
-            )
-
-        lines.extend(self.MakeRes())
-        lines.extend(self.MakeDecay())
-        return lines
-
     def MakeRes(self):
-        lines = []
-
-        if self.channel == "t":
-            lines.extend([
-                # Mass of bi-fundamental resonance
+        """Pythia configuration for main heavy mediator production process"""
+        res_production_lines = {
+            "t": [ # Narrow width bi-fundemental pair production (Run 2 analyses)
+                'HiddenValley:gg2DvDvbar = on',    # gg fusion
+                'HiddenValley:qqbar2DvDvbar = on',    # qqbar annihilation
                 '4900001:m0 = {mass}'.format(mass=self.mMediator),
-                # Width of bi-fundamental resonance
                 '4900001:mWidth = 10',
-            ])
-        elif self.channel == "tpair":
-            lines.extend([
-                # top-philic scalar mediator X (pair-produced via QCD in the LHE)
+                *[ # Disabling all other mediators
+                    '490000{other_med}:m0 = 50000'.format(other_med=other_med)
+                    for other_med in [2, 3, 4, 5, 6]
+                ]
+            ],
+            "s": [  # Z prime production
+                'HiddenValley:ffbar2Zv = on',
+                '4900023:m0 = {mMediator}'.format(mMediator=self.mMediator),
+                '4900023:mWidth = 0.01',
+                '4900023:oneChannel = 1 0.982 102 4900101 -4900101',
+                *[ # Small fraction decay to SM quarks
+                    '4900023:addChannel = 1 0.003 102 {qid} -{qid}'.format(qid=qid)
+                    for qid in [1, 2, 3, 4, 5, 6]
+                ],
+                *[ # Disabling all other mediators
+                    '490000{other_med}:m0 = 50000'.format(other_med=other_med)
+                    for other_med in [1, 2, 3, 4, 5, 6]
+                ]
+            ],
+            "tpair": [ # top-philic scalar mediator X (pair-produced via QCD in the LHE)
+                'SLHA:allowUserOverride = on'
                 '4900002:isResonance = on',
                 '4900002:mayDecay = on',
                 '4900002:isVisible = off',
                 '4900002:oneChannel = 1 1.0 103 6 4900101',
-            ])
-        else:
-            lines.extend([
-                '4900001:m0 = 50000',
-            ])
+                *[ # Disabling all other mediators
+                    '490000{other_med}:m0 = 50000'.format(other_med=other_med)
+                    for other_med in [1, 3, 4, 5, 6]
+                ]
+            ]
+        }[self.channel]
 
-        # Other resonance masses are set to unreachable limits
-        # (for tpair, 4900002 is the mediator, so 4900001 is decoupled instead)
-        other_res = [4900001] if self.channel == "tpair" else [4900002]
-        other_res += [4900003, 4900004, 4900005, 4900006]
-        lines.extend(['{}:m0 = 50000'.format(res) for res in other_res])
+        if self.channel in ("s", "tpair") or self.mode == 'unflavored':
+            return res_production_lines
 
-        if self.channel in ("s", "tpair"):
-            return lines
-
-        if self.mode == 'unflavored':
-            pass
-        else:
-            dark_list = [4900101, 4900102, 4900103]
-            for sm_idx, sm_quark in enumerate(self.sm_id):
-                for d_idx, dark_quark in enumerate(dark_list):
-                    lines.append(
-                        '4900001:{mode}Channel = 1 {rate} 103 {smq} {dq}'.format(
-                            mode='one' if sm_idx == d_idx and sm_idx == 0 else 'add',
-                            smq=sm_quark,
-                            dq=dark_quark,
-                            rate=self.kappa.item((d_idx, sm_idx))**2 / self.kNorm,
-                        )
+        # For flavored t-channel, add additional the mediator decay with appropriate branching fractions
+        for sm_idx, sm_quark in enumerate(self.sm_id):
+            for d_idx, dark_quark in enumerate([1, 2, 3]):
+                res_production_lines.append(
+                    '4900001:{mode}Channel = 1 {rate} 103 {smq} 490010{dq}'.format(
+                        mode='one' if sm_idx == d_idx and sm_idx == 0 else 'add',
+                        smq=sm_quark,
+                        dq=dark_quark,
+                        rate=self.kappa.item((d_idx, sm_idx))**2 / self.kNorm,
                     )
-        return lines
+                )
+        return res_production_lines
 
     def MakeDecay(self):
-        def gamma(dark_comp1, dark_comp2):
-            return sum([
-                self.calc_gamma(dark_comp1, dark_comp2, i, j)
-                for i in range(0, 3)
-                for j in range(i, 3)
-            ])
-
-        def extend_decay(dark_meson, dark_comp1, dark_comp2):
-            # Physical constants
-            hbarc = 1.97e-13    # in GeV mm
-
-            ans = [
-                '{dark_meson}:m0 = {mass}'.format(dark_meson=dark_meson, mass=self.mDark)
-            ]
-            gamma_sum = gamma(dark_comp1, dark_comp2)
-            if gamma_sum > 0:
-                ans.append('{dark_meson}:tau0 = {lifetime}'.format(
-                    dark_meson=dark_meson, lifetime=hbarc / gamma_sum))
-                ans.extend([
-                    '{dark_meson}:{set}Channel = 1 {rate} 91 {sm1} -{sm2}'.format(
-                        dark_meson=dark_meson,
-                        set='one' if i == 0 and j == 0 else 'add',
-                        sm1=self.sm_id[i],
-                        sm2=self.sm_id[j],
-                        rate=self.calc_gamma(dark_comp1, dark_comp2, i, j) / gamma_sum)
-                    for i in range(3)
-                    for j in range(i, 3)
-                ])
-            return ans
-        
-        decay_settings = []
-
         if self.channel == 'tpair':
             # Fixed decay table: dark pions decay to up-type quark pairs (2nd + 1st gen,
             # equal BR) and are long-lived (emerging); ctau [mm] is set directly by 'kappa'.
@@ -347,51 +291,68 @@ class emjHelper(mgHelper):
                 '4900111:mayDecay = on',
                 '4900211:mayDecay = on',
             ]
-
         if self.mode == 'unflavored':    # Special case for unflavored decay
             smid = 1 if self.type == 'down' else 2
-            decay_settings.extend(
-                [
-                    '4900111:m0 = {mass}'.format(mass=self.mDark),
-                    '4900211:m0 = {mass}'.format(mass=self.mDark),
-                    '4900111:tau0 = {lifetime}'.format(lifetime=self.kappa0),
-                    '4900211:tau0 = {lifetime}'.format(lifetime=self.kappa0),
-                    '4900113:m0 = {mass}'.format(mass=4 * self.mDark),
-                    '4900213:m0 = {mass}'.format(mass=4 * self.mDark),
-                    '4900111:oneChannel =  1 1.000  91     {id}     -{id}'.format(id=smid),
-                    '4900113:oneChannel =  1 0.999  91  4900111   4900111',
-                    '4900113:addchannel =  1 0.001  91     {id}     -{id}'.format(id=smid),
-                    '4900211:oneChannel =  1 1.000  91     {id}     -{id}'.format(id=smid),
-                    '4900213:oneChannel =  1 0.999  91  4900211   4900211',
-                    '4900213:addchannel =  1 0.001  91     {id}     -{id}'.format(id=smid),
-                ]
-            )
-            return decay_settings
-        elif self.mode == 'aligned':
-            # PDG ID should match with hidden valley definition
-            # https://github.com/cms-svj/pythia8/tree/emj/306
-
-            if self.channel == "s":
-                raise ValueError("Option for mode {} not compatible with channel option {}".format(self.mode, self.channel))
-
-            # Defining some missing antiparticles
-            meson_decay = [
-                '4900111:antiName = pivDiagbar',
-                '4900113:antiName = rhovDiagbar',
+            return [
+                '4900111:m0 = {mass}'.format(mass=self.mDark),
+                '4900211:m0 = {mass}'.format(mass=self.mDark),
+                '4900111:tau0 = {lifetime}'.format(lifetime=self.kappa0),
+                '4900211:tau0 = {lifetime}'.format(lifetime=self.kappa0),
+                '4900113:m0 = {mass}'.format(mass=4 * self.mDark),
+                '4900213:m0 = {mass}'.format(mass=4 * self.mDark),
+                '4900111:oneChannel =  1 1.000  91     {id}     -{id}'.format(id=smid),
+                '4900113:oneChannel =  1 0.999  91  4900111   4900111',
+                '4900113:addchannel =  1 0.001  91     {id}     -{id}'.format(id=smid),
+                '4900211:oneChannel =  1 1.000  91     {id}     -{id}'.format(id=smid),
+                '4900213:oneChannel =  1 0.999  91  4900211   4900211',
+                '4900213:addchannel =  1 0.001  91     {id}     -{id}'.format(id=smid),
             ]
-            meson_decay.extend(extend_decay(4900113, 0, 1))
-            meson_decay.extend(extend_decay(4900211, 0, 2))
-            meson_decay.extend(extend_decay(4900213, 1, 2))
 
-            # Neutral PI is the same-flavor one
-            neutral_pi_gamma = [gamma(i, i) for i in range(3)]
-            pi_comp = neutral_pi_gamma.index(max(neutral_pi_gamma))
-            meson_decay.extend(extend_decay(4900111, pi_comp, pi_comp))
+        ## Remaining configurations can only be t-channel flavor-aligned
+        assert self.channel == "t" and self.mode == 'aligned', "Option for 'aligned' mode can only be used with t-channel"
+        def extend_decay(dark_meson, dark_comp1, dark_comp2):
+            hbarc = 1.97e-13    # in GeV mm
+            decay_lines = ['{dark_meson}:m0 = {mass}'.format(dark_meson=dark_meson, mass=self.mDark)]
+            gamma_sum = sum([
+                self.calc_gamma(dark_comp1, dark_comp2, i, j)
+                for i in range(0, 3)
+                for j in range(i, 3)
+            ])
+            if gamma_sum > 0:
+                decay_lines.append('{dark_meson}:tau0 = {lifetime}'.format(
+                    dark_meson=dark_meson, lifetime=hbarc / gamma_sum))
+                decay_lines.extend([
+                    '{dark_meson}:{set}Channel = 1 {rate} 91 {sm1} -{sm2}'.format(
+                        dark_meson=dark_meson,
+                        set='one' if i == 0 and j == 0 else 'add',
+                        sm1=self.sm_id[i],
+                        sm2=self.sm_id[j],
+                        rate=self.calc_gamma(dark_comp1, dark_comp2, i, j) / gamma_sum)
+                    for i in range(3)
+                    for j in range(i, 3)
+                ])
+            return decay_lines
 
-            return meson_decay
-        else:
-            # Dummy return statement
-            return []
+        # Defining some missing antiparticles
+        flavored_decay = [
+            '4900111:antiName = pivDiagbar',
+            '4900113:antiName = rhovDiagbar',
+        ]
+        flavored_decay.extend(extend_decay(4900113, 0, 1))
+        flavored_decay.extend(extend_decay(4900211, 0, 2))
+        flavored_decay.extend(extend_decay(4900213, 1, 2))
+        # Neutral PI is the same-flavor one
+        neutral_pi_gamma_sum = [
+            sum([
+                self.calc_gamma(idx, idx, i, j)
+                for i in range(0, 3)
+                for j in range(i, 3)
+            ])
+            for idx in range(3)
+        ]
+        pi_comp = np.argmax(neutral_pi_gamma_sum)
+        flavored_decay.extend(extend_decay(4900111, pi_comp, pi_comp))
+        return flavored_decay
 
 
 if __name__ == "__main__":
@@ -429,5 +390,3 @@ if __name__ == "__main__":
         helper.setModel(args.channel, args.mMediator, args.mDark, args.kappa, args.mode, args.type)
         for line in helper.getPythiaSettings():
             print(line)
-
-
