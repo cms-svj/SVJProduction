@@ -8,5 +8,13 @@ class PythiaInfoObject:
     def useSetLambda(self):
         return self.version >= 309
 
+    # EMJ flavored related settings
+    def _emjFlavorExternalPatch(self):
+        return self.version < 309
+
+    def emjFlavoredFlagname(self)->str:
+        return 'altHadronSpecies' if self._emjFlavorExternalPatch() else 'separateFlav'
+
+
 # provide an instance of info object with version already found (to avoid repeated scram calls)
 pythiaInfo = PythiaInfoObject()
