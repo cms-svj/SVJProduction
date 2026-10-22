@@ -175,7 +175,10 @@ def gen_base(args):
         mdark_ceil10 = max(mdark_floor, min(mdark_ceil10, 100))
         return mdark_ceil10
     for mMed in params["mMed"]:
-        mdark = mdark_max(mMed)
+        # mdark_max range is limited for mMed range
+        # so we just always use 20
+        # mdark = mdark_max(mMed)
+        mdark = 20
 
         # 2D scans vs. rinv
         params_rinv = deepcopy(params)
