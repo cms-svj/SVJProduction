@@ -193,6 +193,8 @@ _particles = ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandid
 for _prod in _particles:
     if hasattr(process,_prod):
         getattr(process,_prod).ignoreParticleIDs.extend([51,52,53])
+        if options.model == "emj":
+            getattr(process,_prod).ignoreParticleIDs.extend([4900111, 4900113, 4900211, 4900213])
 if hasattr(process,'recoGenJets') and hasattr(process,'recoAllGenJetsNoNu'):
     process.recoGenJets += process.recoAllGenJetsNoNu
     # to get hadronFlavour at gen level
