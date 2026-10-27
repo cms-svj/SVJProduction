@@ -37,7 +37,7 @@ cd SVJ/Production
 ```
 
 The setup script has several options:
-* `-y [year]`: year to simulate, determines default CMSSW release (choices: 2022 2023) (default = 2022)
+* `-y [year]`: year to simulate, determines default CMSSW release (choices: 2022 2023 2024) (default = 2022)
 * `-c [release]`: CMSSW release(s) to install, comma-separated (default = CMSSW_12_4_17,CMSSW_12_6_5,CMSSW_13_0_13)
 * `-f [fork]`: clone from specified fork (default = cms-svj)
 * `-b [branch]`: clone specified branch (default = Run3)
@@ -52,6 +52,7 @@ Run 3 MC production includes the following scenarios that use the corresponding 
 * 2022EE: see 2022
 * 2023: coming soon
 * 2023BPix: see 2023
+* 2024: `CMSSW_14_0_21`, `CMSSW_15_0_4` (MiniAODv6), `CMSSW_15_0_5` (NanoAODv15)
 
 [Chain submission](#chain-submission) is the recommended way to produce samples.
 Standalone Condor commands are also provided for reference or unusual cases.
@@ -80,7 +81,7 @@ The [runSVJ](./test/runSVJ.py) script is a wrapper that can customize and run an
 * `fragment=[string]`: name of file w/ `processParameters` fragment
 * `madgraph=[bool]`: generation with MadGraph (instead of default Pythia8)
 * `nogridpack=[bool]`: disable gridpack mode and just generate events (only for `runMG`) (default = False)
-* `syst=[bool]`: enable systematics for generation with MadGraph (used in LHE step) (default = False)
+* `syst=[bool]`: enable systematics for generation with MadGraph (used in LHE step) (default = True)
 * `jetmatch=[bool]`: enable Pythia MLM jet matching for MadGraph samples; disable for inclusive samples w/o extra-jet processes, e.g. `tpair` (default = True)
 * `jetmatchQCut=[val]`: override `JetMatching:qCut` merging scale [GeV] (default = -1.0 -> use model default)
 * `jetmatchNJetMax=[num]`: override `JetMatching:nJetMax` max parton multiplicity (default = -1 -> use model default)
@@ -267,6 +268,8 @@ Several predefined chains are provided:
 | MGv11 | 0. LHE-GEN-SIM | 1. DIGI | 2. RECO | 3. MINIAODv3 | 4. NANOAODv11 |
 | P8v12 | 0. GEN-SIM     | 1. DIGI | 2. RECO | 3. MINIAODv4 | 4. NANOAODv12 |
 | MGv12 | 0. LHE-GEN-SIM | 1. DIGI | 2. RECO | 3. MINIAODv4 | 4. NANOAODv12 |
+| M8v15 | 0. LHE-GEN     | 1. DIGI | 2. RECO | 3. MINIAODv6 | 4. NANOAODv15 |
+| MGv15 | 0. LHE-GEN-SIM | 1. DIGI | 2. RECO | 3. MINIAODv6 | 4. NANOAODv15 |
 
 These predefined chains can be modified with the script's command-line options, or (as an exclusive option) a custom chain of steps can be used.
 
@@ -364,6 +367,26 @@ cmsDriver.py  --eventcontent NANOAODSIM  --datatier NANOAODSIM --fileout file:st
 ```
 </details>
 
+These commands are based on the `RunIII2024Summer24` campaign, particularly the `QCD-Bin-PT*` samples on [McM](https://cms-pdmv-prod.web.cern.ch/mcm/chained_requests?prepid=GEN-chain_RunIII2024Summer24GS_flowRunIII2024Summer24DRPremix_flowRunIII2024Summer24MiniAODv6_flowRunIII2024Summer24NanoAODv15-00076&page=0&shown=15):
+The steps are: LHE-GEN, LHE-GEN-SIM, GEN, GEN-SIM, SIM, DIGI, DIGI-HLT, HLT, RECO, MINIAOD (v6), NANOAOD (v15).
+
+<details>
+<summary>Commands (2024)</summary>
+
+```
+cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --eventcontent RAWSIM  --datatier GEN-SIM --fileout file:step0.root --conditions 140X_mcRun3_2024_realistic_v26 --beamspot DBrealistic --step GEN,SIM --geometry DB:Extended --era Run3_2024 --no_exec --mc --python_filename python/2024/step_GEN-SIM.py --no_exec
+cmsDriver.py SVJ/Production/python/EmptyFragment_cff.py --eventcontent RAWSIM  --datatier GEN --fileout file:step0.root --conditions 140X_mcRun3_2024_realistic_v26 --beamspot DBrealistic --step GEN --geometry DB:Extended --era Run3_2024 --no_exec --mc --python_filename python/2024/step_GEN.py --no_exec
+cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --eventcontent RAWSIM  --datatier GEN-SIM --fileout file:step0.root --conditions 140X_mcRun3_2024_realistic_v26 --beamspot DBrealistic --step LHE,GEN,SIM --geometry DB:Extended --era Run3_2024 --no_exec --mc --python_filename python/2024/step_LHE-GEN-SIM.py --no_exec
+cmsDriver.py SVJ/Production/python/HadronizerFragment_cff.py --eventcontent RAWSIM  --datatier GEN --fileout file:step0.root --conditions 140X_mcRun3_2024_realistic_v26 --beamspot DBrealistic --step LHE,GEN --geometry DB:Extended --era Run3_2024 --no_exec --mc --python_filename python/2024/step_LHE-GEN.py --no_exec
+cmsDriver.py  --eventcontent PREMIXRAW  --datatier GEN-SIM-RAW --fileout file:step0.root --pileup_input pileup.root --conditions 140X_mcRun3_2024_realistic_v26 --step DIGI,DATAMIX,L1,DIGI2RAW,HLT:2024v14 --procModifiers premix_stage2 --geometry DB:Extended --filein file:step-1.root --datamix PreMix --era Run3_2024 --no_exec --mc --python_filename python/2024/step_DIGI.py --no_exec
+cmsDriver.py  --eventcontent RAWSIM  --datatier GEN-SIM-RAW --fileout file:step0.root --pileup_input pileup.root --conditions 140X_mcRun3_2024_realistic_v26 --step DIGI,DATAMIX,L1,DIGI2RAW,HLT:2024v14 --procModifiers premix_stage2 --geometry DB:Extended --filein file:step-1.root --datamix PreMix --era Run3_2024 --no_exec --mc --python_filename python/2024/step_RAW.py --no_exec
+cmsDriver.py  --eventcontent AODSIM  --datatier AODSIM --fileout file:step0.root --conditions 140X_mcRun3_2024_realistic_v26 --step RAW2DIGI,L1Reco,RECO,RECOSIM --geometry DB:Extended --filein file:step-1.root --era Run3_2024 --no_exec --mc --python_filename python/2024/step_RECO.py --no_exec
+cmsDriver.py  --eventcontent MINIAODSIM  --datatier MINIAODSIM --fileout file:step0.root --conditions 150X_mcRun3_2024_realistic_v2 --step PAT --geometry DB:Extended --filein file:step-1.root --era Run3_2024 --no_exec --mc --python_filename python/2024/step_MINIAODv6.py --no_exec
+cmsDriver.py  --eventcontent NANOAODSIM  --datatier NANOAODSIM --fileout file:step0.root --conditions 150X_mcRun3_2024_realistic_v2 --step NANO --scenario pp --filein file:step-1.root --era Run3_2024 --no_exec --mc --python_filename python/2024/step_NANOAODv15.py --no_exec
+```
+</details>
+
+
 ### Pileup input files
 
 The script `picklePileupInput.py` can download the premixed pileup input file list, convert it to a Python list and pickle it, and upload it to EOS.
@@ -371,4 +394,5 @@ The script `picklePileupInput.py` can download the premixed pileup input file li
 The premixed pileup input file lists in use are:
 ```
 /Neutrino_E-10_gun/Run3Summer21PrePremix-Summer22_124X_mcRun3_2022_realistic_v11-v2/PREMIX
+/Neutrino_E-10_gun/RunIIISummer24PrePremix-Premixlib2024_140X_mcRun3_2024_realistic_v26-v1/PREMIX
 ```
