@@ -344,7 +344,6 @@ class emjHelper(mgHelper):
                 ])
             return decay_lines
 
-        """
         # Neutral PI is the same-flavor one
         neutral_pi_gamma_sum = [
             sum([
@@ -355,13 +354,13 @@ class emjHelper(mgHelper):
             for idx in range(3)
         ]
         pi_comp = np.argmax(neutral_pi_gamma_sum)
-        """
-        flavored_decay = []
+        
+	flavored_decay = []
         for i in range(3):     # dark quark index
             for j in range(i + 1):      # dark antiquark index, j <= i
                 pid = 4900001 + 100 * (i + 1) + 10 * (j + 1)
                 if i == j:
-                    comp1, comp2 = i, i     # replace with (pi_comp, pi_comp) to match old behavior exactly
+                    comp1, comp2 = pi_comp, pi_comp
                 else:
                     comp1, comp2 = j, i
                 flavored_decay.extend(extend_decay(pid, comp1, comp2))
