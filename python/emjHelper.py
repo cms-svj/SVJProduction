@@ -355,7 +355,7 @@ class emjHelper(mgHelper):
         ]
         pi_comp = np.argmax(neutral_pi_gamma_sum)
         
-	flavored_decay = []
+        flavored_decay = []
         for i in range(3):     # dark quark index
             for j in range(i + 1):      # dark antiquark index, j <= i
                 pid = 4900001 + 100 * (i + 1) + 10 * (j + 1)
