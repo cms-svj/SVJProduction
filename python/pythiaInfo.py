@@ -8,9 +8,11 @@ class PythiaInfoObject:
     def useSetLambda(self):
         return self.version >= 309
 
-    # EMJ flavored related settings
     def _emjFlavorExternalPatch(self):
         return self.version < 309
+
+    def useSeparateFlav(self):
+        return not self._emjFlavorExternalPatch()
 
     def emjFlavoredFlagname(self)->str:
         return 'altHadronSpecies' if self._emjFlavorExternalPatch() else 'separateFlav'

@@ -167,7 +167,7 @@ class emjHelper(mgHelper):
             'HiddenValley:pTminFSR = {ptmin}'.format(ptmin=1.1 * self.mSqua),
             '4900101:m0 = {mass}'.format(mass=self.mSqua),
             '4900102:m0 = {mass}'.format(mass=self.mSqua),
-            '4900103:m0 = {mass}'.format(mass=self.mSqua),           
+            '4900103:m0 = {mass}'.format(mass=self.mSqua),
             self._pythia_flavorflag(),
             *self._pythia_hv_lambda(), # Lambda settings depend on channel of interest
             *self._pythia_probvector(), # Ensure vectors are not produced for flavored t-channel
@@ -210,12 +210,9 @@ class emjHelper(mgHelper):
         )
 
     def _pythia_probvector(self)->list[str]:
-        probVector_lines = []
-        if self.mode == 'aligned' and self.channel == 't':
-            probVector_lines.append(
-                'HiddenValley:probVector = 0.0'        
-            )
-        return probVector_lines
+        return ['HiddenValley:probVector = 0.0'] if (
+            pythiaInfo.useSeparateFlav() and self.mode == 'aligned' and self.channel == 't'
+        ) else []
 
     def MakeRes(self):
         """Pythia configuration for main heavy mediator production process"""
@@ -354,7 +351,7 @@ class emjHelper(mgHelper):
             for idx in range(3)
         ]
         pi_comp = np.argmax(neutral_pi_gamma_sum)
-        
+
         flavored_decay = []
         for i in range(3):     # dark quark index
             for j in range(i + 1):      # dark antiquark index, j <= i
@@ -364,7 +361,7 @@ class emjHelper(mgHelper):
                 else:
                     comp1, comp2 = j, i
                 flavored_decay.extend(extend_decay(pid, comp1, comp2))
-        
+
         return flavored_decay
 
 if __name__ == "__main__":
