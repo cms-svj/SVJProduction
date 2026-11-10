@@ -28,7 +28,7 @@ args = parser.parse_args()
 # specification of tunes
 tune_loc = "Configuration.Generator.MCTunes2017.PythiaCP5Settings_cfi"
 tune_block = "pythia8CP5SettingsBlock"
-tune_suff = "TuneCP5_13TeV_pythia8"
+tune_suff = "TuneCP5_13p6TeV_pythia8"
 gen_tag = "cms.InputTag('generator','unsmeared')"
 
 # complete set of parameter values

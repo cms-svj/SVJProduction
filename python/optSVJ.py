@@ -11,7 +11,7 @@ options.register("scan", "", VarParsing.multiplicity.singleton, VarParsing.varTy
 options.register("fragment", "", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("madgraph", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("nogridpack", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
-options.register("syst", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
+options.register("syst", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("jetmatch", True, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("jetmatchQCut", -1.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("jetmatchNJetMax", -1, VarParsing.multiplicity.singleton, VarParsing.varType.int)

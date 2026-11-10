@@ -214,9 +214,9 @@ class svjHelper(mgHelper):
                 _outname += "_"+pval
         if self.generate is not None:
             if self.generate:
-                _outname += "_13TeV-pythia8"
+                _outname += "_13p6TeV-pythia8"
             else:
-                _outname += "_13TeV-madgraphMLM-pythia8"
+                _outname += "_13p6TeV-madgraphMLM-pythia8"
         if events>0: _outname += "_n-{:g}".format(events)
         if part is not None:
             _outname += "_part-{:g}".format(part)

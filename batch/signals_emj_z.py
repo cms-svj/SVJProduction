@@ -1,10 +1,12 @@
 flist = [
     {
-        "channel": "s", 
-        "mMediator": 1000, 
-        "mDark": 20, 
-        "kappa": 1, 
-        "mode": "unflavored", 
+        "channel": "s",
+        "mMediator": mMed,
+        "mDark": 10,
+        "kappa": ctau,
+        "mode": "unflavored",
         "type": "down"
-    },
+    }
+    for mMed in [2000, 3000]
+    for ctau in [1, 25, 100, 1000, 2000, 3000]
 ]
