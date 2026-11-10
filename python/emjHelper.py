@@ -61,12 +61,16 @@ class emjHelper(mgHelper):
         return emjHelper.MG_DICT[self.channel]
 
     @property
+    def is_flavored(self)->bool:
+        return self.mode == 'aligned' and self.channel == 't'
+
+    @property
     def sm_id(self)->list[int]: # PGDID list of coupled SM quarks
         return emjHelper.SM_COUPLING[self.type][0]
 
     @property
     def sm_mass(self)->list[float]: #PDG mass of coupled SM quarks
-        return emjHelper.SM_COUPLING[self.type][0]
+        return emjHelper.SM_COUPLING[self.type][1]
 
     @property
     def xsec(self)->float:
@@ -165,9 +169,10 @@ class emjHelper(mgHelper):
             'HiddenValley:nFlav = {nflv}'.format(nflv = self._pythia_hv_nFlav()),
             'HiddenValley:spinFv = 0',    # Spin of bi-fundamental res.
             'HiddenValley:pTminFSR = {ptmin}'.format(ptmin=1.1 * self.mSqua),
-            '4900101:m0 = {mass}'.format(mass=self.mSqua),
-            self._pythia_flavorflag(),
+            *self._pythia_dark_quark_masses(),
+            *self._pythia_flavorflag(),
             *self._pythia_hv_lambda(), # Lambda settings depend on channel of interest
+            *self._pythia_probvector(), # Ensure vectors are not produced for flavored t-channel
             # Main resonance production productions
             *self.MakeRes(),
             # Dark sector decay configurations
@@ -200,11 +205,19 @@ class emjHelper(mgHelper):
             ])
         return lambda_lines
 
-    def _pythia_flavorflag(self)->str:
-        return 'HiddenValley:{flagname} = {flag}'.format(
-            flagname=pythiaInfo.emjFlavoredFlagname(),
-            flag = 'off' if self.mode == 'unflavored' else 'on'
-        )
+    def _pythia_dark_quark_masses(self)->list[str]:
+        quarks = [4900101, 4900102, 4900103] if (pythiaInfo.useSeparateFlav() and self.is_flavored) else [4900101]
+        return ['{}:m0 = {}'.format(q, self.mSqua) for q in quarks]
+
+    def _pythia_flavorflag(self)->list[str]:
+        return ['HiddenValley:{} = on'.format(
+            pythiaInfo.emjFlavoredFlagname()
+        )] if self.is_flavored else []
+
+    def _pythia_probvector(self)->list[str]:
+        return ['HiddenValley:probVector = 0.0'] if (
+            pythiaInfo.useSeparateFlav() and self.is_flavored
+        ) else []
 
     def MakeRes(self):
         """Pythia configuration for main heavy mediator production process"""
@@ -234,7 +247,7 @@ class emjHelper(mgHelper):
                 ]
             ],
             "tpair": [ # top-philic scalar mediator X (pair-produced via QCD in the LHE)
-                'SLHA:allowUserOverride = on'
+                'SLHA:allowUserOverride = on',
                 '4900002:isResonance = on',
                 '4900002:mayDecay = on',
                 '4900002:isVisible = off',
@@ -261,6 +274,20 @@ class emjHelper(mgHelper):
                     )
                 )
         return res_production_lines
+
+    def _flavored_pions(self)->list[tuple[int, int, int]]:
+        if pythiaInfo.useSeparateFlav():
+            return [
+                (4900001 + 100 * (i + 1) + 10 * (j + 1), j, i)
+                for i in range(3)
+                for j in range(i+1)
+            ]
+        return [ # use older ID scheme with old Pythia version
+            (4900111, 0, 0),
+            (4900113, 0, 1),
+            (4900211, 1, 2),
+            (4900213, 0, 2),
+        ]
 
     def MakeDecay(self):
         if self.channel == 'tpair':
@@ -309,7 +336,7 @@ class emjHelper(mgHelper):
             ]
 
         ## Remaining configurations can only be t-channel flavor-aligned
-        assert self.channel == "t" and self.mode == 'aligned', "Option for 'aligned' mode can only be used with t-channel"
+        assert self.is_flavored, "Option for 'aligned' mode can only be used with t-channel"
         def extend_decay(dark_meson, dark_comp1, dark_comp2):
             hbarc = 1.97e-13    # in GeV mm
             decay_lines = ['{dark_meson}:m0 = {mass}'.format(dark_meson=dark_meson, mass=self.mDark)]
@@ -333,14 +360,6 @@ class emjHelper(mgHelper):
                 ])
             return decay_lines
 
-        # Defining some missing antiparticles
-        flavored_decay = [
-            '4900111:antiName = pivDiagbar',
-            '4900113:antiName = rhovDiagbar',
-        ]
-        flavored_decay.extend(extend_decay(4900113, 0, 1))
-        flavored_decay.extend(extend_decay(4900211, 0, 2))
-        flavored_decay.extend(extend_decay(4900213, 1, 2))
         # Neutral PI is the same-flavor one
         neutral_pi_gamma_sum = [
             sum([
@@ -351,9 +370,17 @@ class emjHelper(mgHelper):
             for idx in range(3)
         ]
         pi_comp = np.argmax(neutral_pi_gamma_sum)
-        flavored_decay.extend(extend_decay(4900111, pi_comp, pi_comp))
-        return flavored_decay
 
+        flavored_decay = [] if pythiaInfo.useSeparateFlav() else [
+            '4900111:antiName = pivDiagbar',
+            '4900113:antiName = rhovDiagbar',
+        ]
+        for pid, comp1, comp2 in self._flavored_pions():
+            if comp1 == comp2:
+                comp1, comp2 = pi_comp, pi_comp
+            flavored_decay.extend(extend_decay(pid, comp1, comp2))
+        
+        return flavored_decay
 
 if __name__ == "__main__":
     import argparse, re
