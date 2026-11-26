@@ -95,3 +95,7 @@ process.source.bypassVersionCheck = cms.untracked.bool(True)
 
 # Customisation from command line
 process.source.bypassVersionCheck = cms.untracked.bool(True)
+
+# HLT beam spot consistent with the generated vertices, see python/hltBeamSpot2016.py
+from SVJ.Production.hltBeamSpot2016 import fixHLTBeamSpot2016
+process = fixHLTBeamSpot2016(process)
